@@ -3,6 +3,7 @@ import LoginForm from './components/features/LoginForm';;
 import StudentAttendanceApp from './components/features/StudentAttendanceApp';
 import AdminDashboard from './components/features/AdminDashboard';
 import LecturerDashboard from './components/features/LecturerDashboard';
+import TrainingDepartmentDashboard from './components/features/TrainingDepartmentDashboard';
 
 const App = () => {
   const [activeComponent, setActiveComponent] = useState('loginForm');
@@ -13,6 +14,7 @@ const App = () => {
       case 'studentAttendanceApp': return <StudentAttendanceApp />;
       case 'adminDashboard': return <AdminDashboard />;
       case 'lecturerDashboard': return <LecturerDashboard />;
+      case 'trainingDepartmentDashboard': return <TrainingDepartmentDashboard />;
        //default: return <StudentAttendanceApp />;
     }
   };
@@ -24,6 +26,7 @@ const App = () => {
         <button onClick={() => setActiveComponent('studentAttendanceApp')} className="px-4 py-2 bg-blue-500 text-white rounded-lg">StudentAttendanceApp</button>
         <button onClick={() => setActiveComponent('adminDashboard')} className="px-4 py-2 bg-blue-500 text-white rounded-lg">AdminDashboard</button>
         <button onClick={() => setActiveComponent('lecturerDashboard')} className="px-4 py-2 bg-blue-500 text-white rounded-lg">LecturerDashboard</button>
+        <button onClick={() => setActiveComponent('trainingDepartmentDashboard')} className="px-4 py-2 bg-blue-500 text-white rounded-lg">TrainingDepartmentDashboard</button>
       </div>
       
 
