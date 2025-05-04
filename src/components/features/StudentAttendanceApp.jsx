@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Calendar, 
   Clock, 
@@ -9,7 +9,10 @@ import {
   Bell, 
   MessageSquare,
   User,
-  LogOut
+  LogOut,
+  Menu,
+  X,
+  ChevronDown
 } from 'lucide-react';
 
 // Main App component
@@ -29,6 +32,14 @@ const StudentAttendanceApp = () => {
     phone: '0901234567',
     avatar: '/api/placeholder/150/150'
   });
+
+  // Mobile menu state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Close mobile menu when changing tabs
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [activeTab]);
   
   // Course data
   const courses = [
@@ -145,6 +156,18 @@ const StudentAttendanceApp = () => {
   // State for expanded course in history tab
   const [expandedCourse, setExpandedCourse] = useState(null);
   
+  // Navigation items for sidebar and mobile menu
+  const navItems = [
+    { id: 'timetable', title: 'Thời khóa biểu', icon: <Calendar size={20} /> },
+    { id: 'attendance', title: 'Điểm danh', icon: <CheckSquare size={20} /> },
+    { id: 'history', title: 'Lịch sử điểm danh', icon: <BookOpen size={20} /> },
+    { id: 'statistics', title: 'Thống kê điểm danh', icon: <BarChart2 size={20} /> },
+    { id: 'absence', title: 'Đơn xin phép', icon: <FileText size={20} /> },
+    { id: 'notifications', title: 'Thông báo', icon: <Bell size={20} />, badge: notifications.filter(n => !n.isRead).length },
+    { id: 'messages', title: 'Thông báo từ GV', icon: <MessageSquare size={20} /> },
+    { id: 'profile', title: 'Thông tin cá nhân', icon: <User size={20} /> },
+  ];
+
   // Render different content based on active tab
   const renderContent = () => {
     switch(activeTab) {
@@ -193,10 +216,18 @@ const StudentAttendanceApp = () => {
               
               <div className="mt-4">
                 <h4 className="font-medium mb-2">Chọn phương thức điểm danh:</h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <button className="bg-blue-500 text-white py-3 px-4 rounded-lg flex flex-col items-center justify-center">
                     <div className="text-2xl mb-1">📱</div>
                     <div className="text-sm">Quét mã QR</div>
+                  </button>
+                  <button className="bg-green-500 text-white py-3 px-4 rounded-lg flex flex-col items-center justify-center">
+                    <div className="text-2xl mb-1">📍</div>
+                    <div className="text-sm">GPS</div>
+                  </button>
+                  <button className="bg-purple-500 text-white py-3 px-4 rounded-lg flex flex-col items-center justify-center">
+                    <div className="text-2xl mb-1">🔢</div>
+                    <div className="text-sm">Mã điểm danh</div>
                   </button>
                 </div>
               </div>
@@ -238,20 +269,37 @@ const StudentAttendanceApp = () => {
                         <span className="font-medium">{course.sessions.length}</span>
                         &nbsp;buổi
                       </div>
-                      <svg 
-                        className={`w-5 h-5 transition-transform ${expandedCourse === course.id ? 'transform rotate-180' : ''}`} 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <ChevronDown
+                        className={`w-5 h-5 transition-transform ${expandedCourse === course.id ? 'transform rotate-180' : ''}`}
+                      />
                     </div>
                   </div>
                   
                   {expandedCourse === course.id && (
                     <div className="overflow-x-auto">
-                      <table className="min-w-full">
+                      <div className="block md:hidden">
+                        {/* Mobile view - cards instead of table */}
+                        <div className="divide-y divide-gray-200">
+                          {course.sessions.map((session) => (
+                            <div key={session.id} className="p-4">
+                              <div className="flex justify-between mb-2">
+                                <div className="font-medium">{session.name}</div>
+                                <span className={`${getStatusColor(session.status)} font-medium`}>
+                                  {getStatusText(session.status)}
+                                </span>
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                <div>Ngày: {session.date}</div>
+                                <div>Giờ ĐD: {session.time || '—'}</div>
+                                <div>Phương thức: {session.method || '—'}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Desktop view - table */}
+                      <table className="hidden md:table min-w-full">
                         <thead>
                           <tr className="bg-gray-100">
                             <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Buổi học</th>
@@ -285,7 +333,7 @@ const StudentAttendanceApp = () => {
             
             <div className="mt-6 bg-gray-50 rounded-lg p-4">
               <h3 className="font-semibold text-gray-700 mb-2">Chú thích:</h3>
-              <div className="grid grid-cols-3 gap-2 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
                 <div className="flex items-center">
                   <span className="inline-block w-3 h-3 bg-green-600 rounded-full mr-2"></span>
                   <span>Có mặt</span>
@@ -398,7 +446,30 @@ const StudentAttendanceApp = () => {
             
             <div className="mt-6">
               <h3 className="font-semibold mb-3">Đơn xin phép đã gửi</h3>
-              <div className="bg-white rounded-lg shadow overflow-hidden">
+              
+              {/* Mobile cards */}
+              <div className="block md:hidden space-y-3">
+                <div className="bg-white rounded-lg shadow p-4">
+                  <div className="font-medium mb-1">Lập trình nâng cao</div>
+                  <div className="text-sm text-gray-600 mb-2">Ngày gửi: 27/04/2025</div>
+                  <span className="text-green-600 font-medium text-sm">Đã duyệt</span>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow p-4">
+                  <div className="font-medium mb-1">Cơ sở dữ liệu</div>
+                  <div className="text-sm text-gray-600 mb-2">Ngày gửi: 15/04/2025</div>
+                  <span className="text-red-600 font-medium text-sm">Từ chối</span>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow p-4">
+                  <div className="font-medium mb-1">Hệ thống thông tin</div>
+                  <div className="text-sm text-gray-600 mb-2">Ngày gửi: 02/05/2025</div>
+                  <span className="text-yellow-600 font-medium text-sm">Đang xét duyệt</span>
+                </div>
+              </div>
+              
+              {/* Desktop table */}
+              <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden">
                 <table className="min-w-full">
                   <thead>
                     <tr className="bg-gray-100">
@@ -479,7 +550,7 @@ const StudentAttendanceApp = () => {
                       </h3>
                       <p className="text-sm text-gray-600 mt-1">{notification.content}</p>
                     </div>
-                    <span className="text-xs text-gray-500">{notification.time}</span>
+                    <span className="text-xs text-gray-500 ml-2">{notification.time}</span>
                   </div>
                 </div>
               ))}
@@ -503,247 +574,194 @@ const StudentAttendanceApp = () => {
               <div className="p-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      Thông báo về bài tập lớn - Lập trình nâng cao
-                    </h3>
-                    <div className="text-xs text-gray-500 mt-1">GV. Nguyễn Văn B - 01/05/2025</div>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Các em lưu ý nộp bài tập lớn trước 23:59 ngày 15/05/2025. Bài nộp cần đúng format và đầy đủ các yêu cầu đã đề ra trong đề bài.
-                    </p>
+                    <h3 className="font-medium">Thông báo từ GV Nguyễn Văn B</h3>
+                    <p className="text-sm text-gray-500 mt-1">Lập trình nâng cao</p>
+                    <p className="text-sm mt-2">Các em lưu ý chuẩn bị bài tập để nộp vào buổi học tới nhé.</p>
                   </div>
+                  <span className="text-xs text-gray-500">9:30 AM, 03/05/2025</span>
                 </div>
               </div>
               
               <div className="p-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      Điều chỉnh phòng học - Cơ sở dữ liệu
-                    </h3>
-                    <div className="text-xs text-gray-500 mt-1">GV. Lê Văn D - 30/04/2025</div>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Từ tuần sau, lớp Cơ sở dữ liệu sẽ chuyển từ phòng C105 sang phòng Lab D201. Các em lưu ý đến đúng phòng.
-                    </p>
+                    <h3 className="font-medium">Thông báo từ GV Trần Thị C</h3>
+                    <p className="text-sm text-gray-500 mt-1">Hệ thống thông tin</p>
+                    <p className="text-sm mt-2">Buổi học ngày mai sẽ có kiểm tra 15 phút đầu giờ, các em đến đúng giờ nhé.</p>
                   </div>
+                  <span className="text-xs text-gray-500">2:45 PM, 02/05/2025</span>
                 </div>
               </div>
               
               <div className="p-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      Thông báo nghỉ học - Hệ thống thông tin
-                    </h3>
-                    <div className="text-xs text-gray-500 mt-1">GV. Trần Thị C - 29/04/2025</div>
-                    <p className="text-sm text-gray-600 mt-2">
-                      Do có công tác đột xuất, buổi học ngày 30/04/2025 sẽ được dời lại sang ngày 07/05/2025, cùng giờ, cùng phòng. Mong các em thông cảm.
-                    </p>
+                    <h3 className="font-medium">Thông báo từ GV Lê Văn D</h3>
+                    <p className="text-sm text-gray-500 mt-1">Cơ sở dữ liệu</p>
+                    <p className="text-sm mt-2">Các em nộp bài tập lớn trước ngày 10/05 nhé.</p>
                   </div>
+                  <span className="text-xs text-gray-500">11:15 AM, 01/05/2025</span>
                 </div>
               </div>
             </div>
           </div>
         );
+        
       case 'profile':
         return (
           <div className="p-4">
             <h2 className="text-xl font-bold mb-4">Thông tin cá nhân</h2>
             
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex flex-col items-center mb-6">
-                <img 
-                  src={studentInfo.avatar} 
-                  alt="Avatar" 
-                  className="w-24 h-24 rounded-full mb-3"
-                />
-                <h3 className="font-semibold text-lg">{studentInfo.name}</h3>
-                <p className="text-gray-600">MSSV: {studentInfo.id}</p>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-center sm:items-start">
+                <div className="w-24 h-24 mb-4 sm:mb-0 sm:mr-6">
+                  <img 
+                    src={studentInfo.avatar} 
+                    alt="Avatar"
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                </div>
+                
+                <div className="text-center sm:text-left">
+                  <h3 className="text-lg font-semibold">{studentInfo.name}</h3>
+                  <p className="text-gray-600 mt-1">MSSV: {studentInfo.id}</p>
+                  <p className="text-gray-600">Lớp: {studentInfo.class}</p>
+                </div>
               </div>
               
-              <form>
-                <div className="grid grid-cols-1 gap-4">
+              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium mb-4">Thông tin liên hệ</h3>
+                
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Họ và tên:</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Email:</label>
+                    <input
+                      type="email"
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={studentInfo.name}
+                      value={studentInfo.email}
                       readOnly
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">MSSV:</label>
-                    <input 
-                      type="text" 
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100"
-                      value={studentInfo.id}
-                      disabled
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Lớp:</label>
-                    <input 
-                      type="text" 
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100"
-                      value={studentInfo.class}
-                      disabled
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Email:</label>
-                    <input 
-                      type="email" 
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={studentInfo.email}
-                    />
-                  </div>
-                  
-                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại:</label>
-                    <input 
-                      type="tel" 
+                    <input
+                      type="tel"
                       className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={studentInfo.phone}
+                      readOnly
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Mật khẩu:</label>
-                    <button 
-                      type="button"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-blue-600 text-left"
-                    >
-                      Đổi mật khẩu
-                    </button>
                   </div>
                 </div>
                 
-                <div className="mt-6">
-                  <button
-                    type="submit"
-                    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium"
-                  >
-                    Cập nhật thông tin
+                <div className="mt-4">
+                  <button className="text-blue-600 font-medium text-sm">
+                    Yêu cầu cập nhật thông tin
                   </button>
                 </div>
-              </form>
+              </div>
+              
+              <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+                <h3 className="text-lg font-medium mb-4">Bảo mật</h3>
+                <button className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 font-medium">
+                  Đổi mật khẩu
+                </button>
+              </div>
             </div>
           </div>
         );
+        
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      {/* Sidebar */}
-      <div className="w-16 bg-blue-800 text-white flex flex-col items-center py-6 shadow-lg">
-        <div className="flex flex-col space-y-8">
-          <button 
-            onClick={() => setActiveTab('timetable')}
-            className={`p-3 rounded-lg ${activeTab === 'timetable' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Thời khóa biểu"
-          >
-            <Calendar size={20} />
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('attendance')}
-            className={`p-3 rounded-lg ${activeTab === 'attendance' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Điểm danh"
-          >
-            <CheckSquare size={20} />
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`p-3 rounded-lg ${activeTab === 'history' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Lịch sử điểm danh"
-          >
-            <BookOpen size={20} />
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('statistics')}
-            className={`p-3 rounded-lg ${activeTab === 'statistics' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Thống kê điểm danh"
-          >
-            <BarChart2 size={20} />
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('absence')}
-            className={`p-3 rounded-lg ${activeTab === 'absence' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Đơn xin phép"
-          >
-            <FileText size={20} />
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('notifications')}
-            className={`p-3 rounded-lg ${activeTab === 'notifications' ? 'bg-blue-900' : 'hover:bg-blue-700'} relative`}
-            title="Thông báo"
-          >
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-              {notifications.filter(n => !n.isRead).length}
-            </span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('messages')}
-            className={`p-3 rounded-lg ${activeTab === 'messages' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Thông báo từ giảng viên"
-          >
-            <MessageSquare size={20} />
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('profile')}
-            className={`p-3 rounded-lg ${activeTab === 'profile' ? 'bg-blue-900' : 'hover:bg-blue-700'}`}
-            title="Thông tin cá nhân"
-          >
-            <User size={20} />
-          </button>
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:flex-col lg:w-64 bg-blue-700 text-white">
+        <div className="p-4 flex items-center">
+          <span className="font-bold text-xl">Attendance SYS</span>
         </div>
         
-        <div className="mt-auto">
-          <button 
-            className="p-3 rounded-lg hover:bg-red-700"
-            title="Đăng xuất"
-          >
-            <LogOut size={20} />
-          </button>
+        <div className="flex-1 overflow-y-auto">
+          <nav className="mt-5 px-2">
+            {navItems.map((item) => (
+              <div
+                key={item.id}
+                className={`flex items-center px-4 py-3 mb-1 rounded-lg cursor-pointer ${
+                  activeTab === item.id 
+                    ? 'bg-blue-800 text-white' 
+                    : 'text-blue-100 hover:bg-blue-800 hover:text-white'
+                }`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <span className="mr-3">{item.icon}</span>
+                <span>{item.title}</span>
+                {item.badge && (
+                  <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+        
+        <div className="p-4 border-t border-blue-800">
+          <div className="flex items-center px-4 py-3 text-blue-100 hover:bg-blue-800 hover:text-white rounded-lg cursor-pointer">
+            <LogOut size={20} className="mr-3" />
+            <span>Đăng xuất</span>
+          </div>
         </div>
       </div>
       
-      {/* Main Content */}
+      {/* Mobile Header and Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-white shadow">
-          <div className="flex justify-between items-center px-6 py-4">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-blue-800">STU-ATTEND</h1>
-              <span className="ml-2 text-sm text-gray-500">| Đại học Công nghệ Sài Gòn</span>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="text-right mr-3">
-                <p className="text-sm font-medium">{studentInfo.name}</p>
-                <p className="text-xs text-gray-500">{studentInfo.id}</p>
-              </div>
-              <img 
-                src={studentInfo.avatar} 
-                alt="Avatar"
-                className="w-10 h-10 rounded-full"
-              />
-            </div>
-          </div>
-        </header>
+        {/* Mobile Header */}
+        <div className="lg:hidden bg-blue-700 text-white p-4 flex justify-between items-center">
+          <span className="font-bold text-xl">Attendance SYS</span>
+          <button 
+            className="rounded-md p-1 text-blue-100 hover:bg-blue-800 hover:text-white"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
         
-        {/* Content */}
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-blue-700 text-white">
+            <nav className="px-2 py-3">
+              {navItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center px-4 py-3 mb-1 rounded-lg cursor-pointer ${
+                    activeTab === item.id 
+                      ? 'bg-blue-800 text-white' 
+                      : 'text-blue-100 hover:bg-blue-800 hover:text-white'
+                  }`}
+                  onClick={() => setActiveTab(item.id)}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  <span>{item.title}</span>
+                  {item.badge && (
+                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+              ))}
+              
+              <div className="flex items-center px-4 py-3 mt-2 border-t border-blue-800 text-blue-100 hover:bg-blue-800 hover:text-white rounded-lg cursor-pointer">
+                <LogOut size={20} className="mr-3" />
+                <span>Đăng xuất</span>
+              </div>
+            </nav>
+          </div>
+        )}
+        
+        {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
           {renderContent()}
         </main>
