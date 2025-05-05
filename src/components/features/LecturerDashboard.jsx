@@ -84,7 +84,7 @@ export default function LecturerDashboard() {
       {/* Sidebar for desktop */}
       <div className={`${isSidebarOpen ? 'w-64' : 'w-20'} hidden md:block bg-blue-800 text-white transition-all duration-300 ease-in-out`}>
         <div className="p-4 flex items-center justify-between">
-          <h1 className={`${isSidebarOpen ? 'block' : 'hidden'} text-lg font-bold`}>STU Điểm danh</h1>
+          <h1 className={`${isSidebarOpen ? 'block' : 'hidden'} text-lg font-bold`}>STU Giáo Viên</h1>
           <button 
             onClick={() => setSidebarOpen(!isSidebarOpen)}
             className="p-1 rounded-full hover:bg-blue-700"

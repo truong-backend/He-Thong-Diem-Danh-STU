@@ -219,7 +219,7 @@ export default function LoginForm() {
           </div>
           
           <div className="mt-8 text-center text-gray-500 text-sm">
-            © {new Date().getFullYear()} Đại học Công nghệ Sài Gòn. Bảo lưu mọi quyền.
+            © {new Date().getFullYear()} Đại học Công nghệ Sài Gòn.
           </div>
         </div>
       </div>

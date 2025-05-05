@@ -68,8 +68,8 @@ export default function TrainingDepartmentDashboard() {
           <div className="flex items-center mb-8">
             <img src="/api/placeholder/40/40" alt="logo" className="w-10 h-10 rounded-full mr-3" />
             <div>
-              <h2 className="font-bold text-lg">Đại học</h2>
-              <h3 className="text-sm font-medium">Công nghệ Sài Gòn</h3>
+              <h2 className="font-bold text-lg">Phòng Đào Tạo</h2>
+              <h3 className="text-sm font-medium">Đại học Công nghệ Sài Gòn</h3>
             </div>
           </div>
 

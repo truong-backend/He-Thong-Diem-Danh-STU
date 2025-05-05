@@ -80,7 +80,7 @@ export default function AdminDashboard() {
         <div className="mt-8">
           <NavItem 
             icon={<BarChart2 size={20} />} 
-            title="Dashboard" 
+            title="Trang chủ" 
             isActive={activeTab === 'dashboard'} 
             onClick={() => setActiveTab('dashboard')} 
             isSidebarOpen={isSidebarOpen}

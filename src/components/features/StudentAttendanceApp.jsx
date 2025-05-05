@@ -681,7 +681,7 @@ const StudentAttendanceApp = () => {
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex lg:flex-col lg:w-64 bg-blue-700 text-white">
         <div className="p-4 flex items-center">
-          <span className="font-bold text-xl">Attendance SYS</span>
+          <span className="font-bold text-xl">Hệ thống điểm danh</span>
         </div>
         
         <div className="flex-1 overflow-y-auto">
