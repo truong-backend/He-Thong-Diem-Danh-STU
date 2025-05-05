@@ -60,7 +60,8 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    // <div className="flex h-screen bg-gray-100"></div>
+    <div className="">
       {/* Mobile sidebar toggle */}
       <div className="md:hidden fixed top-0 left-0 z-40 p-4">
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-gray-600 focus:outline-none">
@@ -166,7 +167,7 @@ export default function AdminDashboard() {
       <div className="flex-1 ml-0 md:ml-64 transition-all duration-300">
         {/* Header */}
         <header className="bg-white shadow-sm p-4 flex justify-between items-center">
-          <h1 className="text-xl font-semibold text-gray-800">{(activeTab)}</h1>
+          <h1 className="text-xl font-semibold text-gray-800"></h1>
           
           <div className="flex items-center space-x-4">
             <div className="relative">
@@ -341,18 +342,18 @@ function UserManagement() {
   });
 
   return (
-    <div>
-      <div className="mb-6 flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-800">Quản lý tài khoản người dùng</h2>
-        <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-6 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Quản lý tài khoản người dùng</h2>
+        <button className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors w-full sm:w-auto">
           Thêm người dùng mới
         </button>
       </div>
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="flex space-x-4 mb-4 md:mb-0">
+          <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-2">
               <button 
                 className={`px-3 py-2 text-sm font-medium rounded-md ${activeTab === 'all' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-500 hover:text-gray-700'}`}
                 onClick={() => setActiveTab('all')}
@@ -372,11 +373,11 @@ function UserManagement() {
                 Đã khóa
               </button>
             </div>
-            <div className="relative">
+            <div className="relative w-full sm:w-64">
               <input
                 type="text"
                 placeholder="Tìm kiếm người dùng..."
-                className="w-full md:w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -388,25 +389,26 @@ function UserManagement() {
         </div>
         
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          {/* Desktop and tablet view */}
+          <table className="min-w-full divide-y divide-gray-200 hidden sm:table">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tên người dùng
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Email
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                   Vai trò
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                   Đăng nhập gần nhất
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th scope="col" className="px-4 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
@@ -414,48 +416,91 @@ function UserManagement() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <div className="flex-shrink-0 h-8 w-8 sm:h-10 sm:w-10 bg-indigo-100 rounded-full flex items-center justify-center">
                         <span className="text-indigo-700 font-medium">{user.name.charAt(0)}</span>
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-3 sm:ml-4">
                         <div className="text-sm font-medium text-gray-900">{user.name}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">{user.email}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap hidden md:table-cell">
                     <div className="text-sm text-gray-900">{user.role}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       user.status === 'Hoạt động' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {user.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                     {user.lastLogin}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-indigo-600 hover:text-indigo-900 mr-3">Chỉnh sửa</button>
+                  <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button className="text-indigo-600 hover:text-indigo-900 mr-1 sm:mr-3">Chỉnh sửa</button>
                     {user.status === 'Hoạt động' ? (
-                      <button className="text-red-600 hover:text-red-900 mr-3">Khóa</button>
+                      <button className="text-red-600 hover:text-red-900 mr-1 sm:mr-3">Khóa</button>
                     ) : (
-                      <button className="text-green-600 hover:text-green-900 mr-3">Mở khóa</button>
+                      <button className="text-green-600 hover:text-green-900 mr-1 sm:mr-3">Mở khóa</button>
                     )}
-                    <button className="text-indigo-600 hover:text-indigo-900">Đặt lại mật khẩu</button>
+                    <button className="text-indigo-600 hover:text-indigo-900 hidden sm:inline-block">Đặt lại mật khẩu</button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {/* Mobile view */}
+          <div className="sm:hidden divide-y divide-gray-200">
+            {filteredUsers.map((user) => (
+              <div key={user.id} className="py-4 px-4 flex flex-col space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <span className="text-indigo-700 font-medium">{user.name.charAt(0)}</span>
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                    </div>
+                  </div>
+                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    user.status === 'Hoạt động' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {user.status}
+                  </span>
+                </div>
+                <div className="flex flex-col space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Vai trò:</span>
+                    <span className="text-gray-900">{user.role}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Đăng nhập:</span>
+                    <span className="text-gray-900">{user.lastLogin}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-gray-100">
+                  <button className="text-indigo-600 hover:text-indigo-900 text-sm">Chỉnh sửa</button>
+                  {user.status === 'Hoạt động' ? (
+                    <button className="text-red-600 hover:text-red-900 text-sm">Khóa</button>
+                  ) : (
+                    <button className="text-green-600 hover:text-green-900 text-sm">Mở khóa</button>
+                  )}
+                  <button className="text-indigo-600 hover:text-indigo-900 text-sm">Đặt lại mật khẩu</button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 flex-wrap">
           <div className="flex-1 flex justify-between sm:hidden">
             <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
               Trước
@@ -464,7 +509,7 @@ function UserManagement() {
               Tiếp
             </button>
           </div>
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between flex-wrap gap-4">
             <div>
               <p className="text-sm text-gray-700">
                 Hiển thị <span className="font-medium">1</span> đến <span className="font-medium">5</span> của <span className="font-medium">12</span> kết quả
@@ -474,7 +519,6 @@ function UserManagement() {
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                 <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                   <span className="sr-only">Previous</span>
-                  {/* Chevron left icon */}
                   <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -490,7 +534,6 @@ function UserManagement() {
                 </button>
                 <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                   <span className="sr-only">Next</span>
-                  {/* Chevron right icon */}
                   <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
                   </svg>
@@ -798,452 +841,452 @@ function UserLogs() {
 }
 // CategoryManagement Component
 function CategoryManagement() {
+  const categoryTypes = [
+    { id: 'faculty', name: 'Khoa' },
+    { id: 'major', name: 'Ngành' },
+    { id: 'class', name: 'Lớp' },
+    { id: 'subject', name: 'Môn học' }
+  ];
 
-    
-    const categoryTypes = [
-        { id: 'faculty', name: 'Khoa' },
-        { id: 'major', name: 'Ngành' },
-        { id: 'class', name: 'Lớp' },
-        { id: 'subject', name: 'Môn học' }
-      ];
-    
-      // State cho loại danh mục đang được chọn
-      const [selectedType, setSelectedType] = useState('faculty');
-      const [searchTerm, setSearchTerm] = useState('');
-      const [statusFilter, setStatusFilter] = useState('all');
-      const [showAddModal, setShowAddModal] = useState(false);
-      const [showEditModal, setShowEditModal] = useState(false);
-      const [currentItem, setCurrentItem] = useState(null);
-    
-      // Dữ liệu mẫu cho các loại danh mục
-      const data = {
-        faculty: [
-          { id: 1, name: "Khoa Công nghệ thông tin", count: 25, status: "active" },
-          { id: 2, name: "Khoa Kỹ thuật điện", count: 18, status: "active" },
-          { id: 3, name: "Khoa Kinh tế", count: 32, status: "active" },
-          { id: 4, name: "Khoa Ngoại ngữ", count: 15, status: "inactive" },
-          { id: 5, name: "Khoa Quản trị kinh doanh", count: 21, status: "active" },
-          { id: 6, name: "Khoa Khoa học cơ bản", count: 12, status: "active" },
-          { id: 7, name: "Khoa Xây dựng", count: 8, status: "inactive" },
-        ],
-        major: [
-          { id: 1, name: "Công nghệ phần mềm", facultyId: 1, count: 120, status: "active" },
-          { id: 2, name: "Hệ thống thông tin", facultyId: 1, count: 85, status: "active" },
-          { id: 3, name: "Kỹ thuật điện tử", facultyId: 2, count: 65, status: "active" },
-          { id: 4, name: "Tự động hóa", facultyId: 2, count: 45, status: "inactive" },
-          { id: 5, name: "Kinh tế đối ngoại", facultyId: 3, count: 95, status: "active" },
-        ],
-        class: [
-          { id: 1, name: "CNTT.K18.A", majorId: 1, count: 30, status: "active" },
-          { id: 2, name: "CNTT.K18.B", majorId: 1, count: 32, status: "active" },
-          { id: 3, name: "HTTT.K19.A", majorId: 2, count: 28, status: "active" },
-          { id: 4, name: "KTĐT.K17.A", majorId: 3, count: 25, status: "inactive" },
-          { id: 5, name: "KTĐN.K18.A", majorId: 5, count: 35, status: "active" },
-        ],
-        subject: [
-          { id: 1, name: "Lập trình cơ bản", majorId: 1, credits: 3, count: 150, status: "active" },
-          { id: 2, name: "Cơ sở dữ liệu", majorId: 1, credits: 4, count: 120, status: "active" },
-          { id: 3, name: "Phân tích thiết kế hệ thống", majorId: 2, credits: 4, count: 85, status: "active" },
-          { id: 4, name: "Mạch điện tử", majorId: 3, credits: 3, count: 60, status: "inactive" },
-          { id: 5, name: "Kinh tế vĩ mô", majorId: 5, credits: 3, count: 100, status: "active" },
-        ]
-      };
-    
-      // Lọc dữ liệu theo tìm kiếm và trạng thái
-      const filteredData = data[selectedType].filter(item => {
-        return (
-          item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-          (statusFilter === 'all' || item.status === statusFilter)
-        );
-      });
-    
-      // Xử lý khi click nút sửa
-      const handleEdit = (item) => {
-        setCurrentItem(item);
-        setShowEditModal(true);
-      };
-    
-      // Xử lý khi click nút thêm mới
-      const handleAdd = () => {
-        setShowAddModal(true);
-      };
-    
-      // Hiển thị tiêu đề tương ứng với loại danh mục đang chọn
-      const getTitle = () => {
-        const type = categoryTypes.find(t => t.id === selectedType);
-        return `Quản lý ${type.name}`;
-      };
-    
-      return (
-        <div className="p-6 max-w-7xl mx-auto">
-          {/* Tab chọn loại danh mục */}
-          <div className="mb-6 border-b border-gray-200">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              {categoryTypes.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={`${
-                    selectedType === type.id
-                      ? 'border-indigo-500 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  {type.name}
-                </button>
-              ))}
-            </nav>
-          </div>
-    
-          {/* Tiêu đề và nút thêm mới */}
-          <div className="mb-6 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">{getTitle()}</h2>
-            <button 
-              onClick={handleAdd}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
+  // State cho loại danh mục đang được chọn
+  const [selectedType, setSelectedType] = useState('faculty');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [currentItem, setCurrentItem] = useState(null);
+
+  // Dữ liệu mẫu cho các loại danh mục
+  const data = {
+    faculty: [
+      { id: 1, name: "Khoa Công nghệ thông tin", count: 25, status: "active" },
+      { id: 2, name: "Khoa Kỹ thuật điện", count: 18, status: "active" },
+      { id: 3, name: "Khoa Kinh tế", count: 32, status: "active" },
+      { id: 4, name: "Khoa Ngoại ngữ", count: 15, status: "inactive" },
+      { id: 5, name: "Khoa Quản trị kinh doanh", count: 21, status: "active" },
+      { id: 6, name: "Khoa Khoa học cơ bản", count: 12, status: "active" },
+      { id: 7, name: "Khoa Xây dựng", count: 8, status: "inactive" },
+    ],
+    major: [
+      { id: 1, name: "Công nghệ phần mềm", facultyId: 1, count: 120, status: "active" },
+      { id: 2, name: "Hệ thống thông tin", facultyId: 1, count: 85, status: "active" },
+      { id: 3, name: "Kỹ thuật điện tử", facultyId: 2, count: 65, status: "active" },
+      { id: 4, name: "Tự động hóa", facultyId: 2, count: 45, status: "inactive" },
+      { id: 5, name: "Kinh tế đối ngoại", facultyId: 3, count: 95, status: "active" },
+    ],
+    class: [
+      { id: 1, name: "CNTT.K18.A", majorId: 1, count: 30, status: "active" },
+      { id: 2, name: "CNTT.K18.B", majorId: 1, count: 32, status: "active" },
+      { id: 3, name: "HTTT.K19.A", majorId: 2, count: 28, status: "active" },
+      { id: 4, name: "KTĐT.K17.A", majorId: 3, count: 25, status: "inactive" },
+      { id: 5, name: "KTĐN.K18.A", majorId: 5, count: 35, status: "active" },
+    ],
+    subject: [
+      { id: 1, name: "Lập trình cơ bản", majorId: 1, credits: 3, count: 150, status: "active" },
+      { id: 2, name: "Cơ sở dữ liệu", majorId: 1, credits: 4, count: 120, status: "active" },
+      { id: 3, name: "Phân tích thiết kế hệ thống", majorId: 2, credits: 4, count: 85, status: "active" },
+      { id: 4, name: "Mạch điện tử", majorId: 3, credits: 3, count: 60, status: "inactive" },
+      { id: 5, name: "Kinh tế vĩ mô", majorId: 5, credits: 3, count: 100, status: "active" },
+    ]
+  };
+
+  // Lọc dữ liệu theo tìm kiếm và trạng thái
+  const filteredData = data[selectedType].filter(item => {
+    return (
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (statusFilter === 'all' || item.status === statusFilter)
+    );
+  });
+
+  // Xử lý khi click nút sửa
+  const handleEdit = (item) => {
+    setCurrentItem(item);
+    setShowEditModal(true);
+  };
+
+  // Xử lý khi click nút thêm mới
+  const handleAdd = () => {
+    setShowAddModal(true);
+  };
+
+  // Hiển thị tiêu đề tương ứng với loại danh mục đang chọn
+  const getTitle = () => {
+    const type = categoryTypes.find(t => t.id === selectedType);
+    return `Quản lý ${type.name}`;
+  };
+
+  return (
+    <div className="p-3 md:p-6 max-w-7xl mx-auto">
+      {/* Tab chọn loại danh mục - Responsive */}
+      <div className="mb-4 md:mb-6 border-b border-gray-200 overflow-x-auto">
+        <nav className="-mb-px flex space-x-2 md:space-x-8" aria-label="Tabs">
+          {categoryTypes.map((type) => (
+            <button
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={`${
+                selectedType === type.id
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-2 md:py-4 px-1 border-b-2 font-medium text-xs md:text-sm`}
             >
-              Thêm {categoryTypes.find(t => t.id === selectedType).name} mới
+              {type.name}
+            </button>
+          ))}
+        </nav>
+      </div>
+
+      {/* Tiêu đề và nút thêm mới - Responsive */}
+      <div className="mb-4 md:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-3 sm:space-y-0">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-800">{getTitle()}</h2>
+        <button 
+          onClick={handleAdd}
+          className="w-full sm:w-auto bg-indigo-600 text-white px-3 py-2 text-sm rounded-md hover:bg-indigo-700 transition-colors"
+        >
+          Thêm {categoryTypes.find(t => t.id === selectedType).name} mới
+        </button>
+      </div>
+
+      {/* Bộ lọc và tìm kiếm - Responsive */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-3 md:p-4 border-b border-gray-200">
+          <div className="flex flex-col space-y-3 md:space-y-0 md:flex-row md:space-x-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder={`Tìm kiếm ${categoryTypes.find(t => t.id === selectedType).name.toLowerCase()}...`}
+                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="w-full md:w-auto">
+              <select 
+                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Không hoạt động</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        {/* Bảng dữ liệu - Responsive */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tên {categoryTypes.find(t => t.id === selectedType).name}
+                </th>
+                {selectedType === 'subject' && (
+                  <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Số tín chỉ
+                  </th>
+                )}
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {selectedType === 'subject' ? 'Số SV' : 'SL'}
+                </th>
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Trạng thái
+                </th>
+                <th scope="col" className="px-3 md:px-6 py-2 md:py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredData.map((item) => (
+                <tr key={item.id}>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm">
+                    <div className="text-gray-900">{item.id}</div>
+                  </td>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm">
+                    <div className="font-medium text-gray-900">{item.name}</div>
+                  </td>
+                  {selectedType === 'subject' && (
+                    <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm">
+                      <div className="text-gray-900">{item.credits}</div>
+                    </td>
+                  )}
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm">
+                    <div className="text-gray-900">{item.count}</div>
+                  </td>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-xs md:text-sm">
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {item.status === 'active' ? 'Hoạt động' : 'Không HĐ'}
+                    </span>
+                  </td>
+                  <td className="px-3 md:px-6 py-2 md:py-4 whitespace-nowrap text-right text-xs md:text-sm font-medium">
+                    <div className="flex justify-end space-x-2">
+                      <button 
+                        className="text-indigo-600 hover:text-indigo-900"
+                        onClick={() => handleEdit(item)}
+                      >
+                        Sửa
+                      </button>
+                      <button className="text-red-600 hover:text-red-900">Xóa</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Phân trang - Responsive */}
+        <div className="bg-white px-3 md:px-4 py-2 md:py-3 flex items-center justify-between border-t border-gray-200">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button className="relative inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Trước
+            </button>
+            <button className="ml-3 relative inline-flex items-center px-3 py-1 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+              Sau
             </button>
           </div>
-    
-          {/* Bộ lọc và tìm kiếm */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    placeholder={`Tìm kiếm ${categoryTypes.find(t => t.id === selectedType).name.toLowerCase()}...`}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <select 
-                    className="block w-full md:w-auto pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}
-                  >
-                    <option value="all">Tất cả trạng thái</option>
-                    <option value="active">Hoạt động</option>
-                    <option value="inactive">Không hoạt động</option>
-                  </select>
-                </div>
-              </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs md:text-sm text-gray-700">
+                Hiển thị <span className="font-medium">1</span> đến <span className="font-medium">{filteredData.length}</span> của <span className="font-medium">{filteredData.length}</span> kết quả
+              </p>
             </div>
-            
-            {/* Bảng dữ liệu */}
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Tên {categoryTypes.find(t => t.id === selectedType).name}
-                    </th>
-                    {selectedType === 'subject' && (
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Số tín chỉ
-                      </th>
-                    )}
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {selectedType === 'subject' ? 'Số sinh viên' : 'Số lượng'}
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Trạng thái
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Thao tác
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredData.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{item.id}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                      </td>
-                      {selectedType === 'subject' && (
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{item.credits}</div>
-                        </td>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button className="relative inline-flex items-center px-1 md:px-2 py-1 md:py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                  <span className="sr-only">Previous</span>
+                  <svg className="h-4 w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+                <button className="relative inline-flex items-center px-2 md:px-4 py-1 md:py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600 hover:bg-gray-50">
+                  1
+                </button>
+                <button className="relative inline-flex items-center px-1 md:px-2 py-1 md:py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                  <span className="sr-only">Next</span>
+                  <svg className="h-4 w-4 md:h-5 md:w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal thêm mới - Responsive */}
+      {showAddModal && (
+        <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full sm:w-full">
+              <div className="bg-white px-3 md:px-4 pt-3 md:pt-5 pb-3 md:pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-base md:text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                      Thêm {categoryTypes.find(t => t.id === selectedType).name} mới
+                    </h3>
+                    <div className="mt-4">
+                      <div className="mb-4">
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                          Tên {categoryTypes.find(t => t.id === selectedType).name}
+                        </label>
+                        <input
+                          type="text"
+                          id="name"
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
+
+                      {selectedType !== 'faculty' && (
+                        <div className="mb-4">
+                          <label htmlFor="parent" className="block text-sm font-medium text-gray-700">
+                            {selectedType === 'major' ? 'Khoa' : selectedType === 'class' ? 'Ngành' : 'Ngành'}
+                          </label>
+                          <select
+                            id="parent"
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          >
+                            {selectedType === 'major' && data.faculty.map(f => (
+                              <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                            {selectedType === 'class' && data.major.map(m => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                            {selectedType === 'subject' && data.major.map(m => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
                       )}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{item.count}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          item.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {item.status === 'active' ? 'Hoạt động' : 'Không hoạt động'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button 
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                          onClick={() => handleEdit(item)}
+
+                      {selectedType === 'subject' && (
+                        <div className="mb-4">
+                          <label htmlFor="credits" className="block text-sm font-medium text-gray-700">
+                            Số tín chỉ
+                          </label>
+                          <input
+                            type="number"
+                            id="credits"
+                            min="1"
+                            max="10"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          />
+                        </div>
+                      )}
+
+                      <div className="mb-4">
+                        <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                          Trạng thái
+                        </label>
+                        <select
+                          id="status"
+                          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
                         >
-                          Sửa
-                        </button>
-                        <button className="text-red-600 hover:text-red-900">Xóa</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-    
-            {/* Phân trang */}
-            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200">
-              <div className="flex-1 flex justify-between sm:hidden">
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Trước
-                </button>
-                <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                  Sau
-                </button>
+                          <option value="active">Hoạt động</option>
+                          <option value="inactive">Không hoạt động</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm text-gray-700">
-                    Hiển thị <span className="font-medium">1</span> đến <span className="font-medium">{filteredData.length}</span> của <span className="font-medium">{filteredData.length}</span> kết quả
-                  </p>
-                </div>
-                <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                    <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                      <span className="sr-only">Previous</span>
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                    <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-indigo-50 text-sm font-medium text-indigo-600 hover:bg-gray-50">
-                      1
-                    </button>
-                    <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                      <span className="sr-only">Next</span>
-                      <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </nav>
-                </div>
+              <div className="bg-gray-50 px-3 md:px-4 py-2 md:py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button 
+                  type="button" 
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 md:px-4 py-1 md:py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Lưu
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowAddModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 md:px-4 py-1 md:py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Hủy bỏ
+                </button>
               </div>
             </div>
           </div>
-    
-          {/* Modal thêm mới */}
-          {showAddModal && (
-            <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div className="sm:flex sm:items-start">
-                      <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                          Thêm {categoryTypes.find(t => t.id === selectedType).name} mới
-                        </h3>
-                        <div className="mt-4">
-                          <div className="mb-4">
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                              Tên {categoryTypes.find(t => t.id === selectedType).name}
-                            </label>
-                            <input
-                              type="text"
-                              id="name"
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                          </div>
-    
-                          {selectedType !== 'faculty' && (
-                            <div className="mb-4">
-                              <label htmlFor="parent" className="block text-sm font-medium text-gray-700">
-                                {selectedType === 'major' ? 'Khoa' : selectedType === 'class' ? 'Ngành' : 'Ngành'}
-                              </label>
-                              <select
-                                id="parent"
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                              >
-                                {selectedType === 'major' && data.faculty.map(f => (
-                                  <option key={f.id} value={f.id}>{f.name}</option>
-                                ))}
-                                {selectedType === 'class' && data.major.map(m => (
-                                  <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                                {selectedType === 'subject' && data.major.map(m => (
-                                  <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-    
-                          {selectedType === 'subject' && (
-                            <div className="mb-4">
-                              <label htmlFor="credits" className="block text-sm font-medium text-gray-700">
-                                Số tín chỉ
-                              </label>
-                              <input
-                                type="number"
-                                id="credits"
-                                min="1"
-                                max="10"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              />
-                            </div>
-                          )}
-    
-                          <div className="mb-4">
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-                              Trạng thái
-                            </label>
-                            <select
-                              id="status"
-                              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                            >
-                              <option value="active">Hoạt động</option>
-                              <option value="inactive">Không hoạt động</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button 
-                      type="button" 
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-                    >
-                      Lưu
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => setShowAddModal(false)}
-                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    >
-                      Hủy bỏ
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-    
-          {/* Modal chỉnh sửa */}
-          {showEditModal && currentItem && (
-            <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-              <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-                <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                  <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div className="sm:flex sm:items-start">
-                      <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                          Chỉnh sửa {categoryTypes.find(t => t.id === selectedType).name}
-                        </h3>
-                        <div className="mt-4">
-                          <div className="mb-4">
-                            <label htmlFor="editName" className="block text-sm font-medium text-gray-700">
-                              Tên {categoryTypes.find(t => t.id === selectedType).name}
-                            </label>
-                            <input
-                              type="text"
-                              id="editName"
-                              defaultValue={currentItem.name}
-                              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            />
-                          </div>
-    
-                          {selectedType !== 'faculty' && (
-                            <div className="mb-4">
-                              <label htmlFor="editParent" className="block text-sm font-medium text-gray-700">
-                                {selectedType === 'major' ? 'Khoa' : selectedType === 'class' ? 'Ngành' : 'Ngành'}
-                              </label>
-                              <select
-                                id="editParent"
-                                defaultValue={
-                                  selectedType === 'major' ? currentItem.facultyId : 
-                                  selectedType === 'class' ? currentItem.majorId : 
-                                  currentItem.majorId
-                                }
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                              >
-                                {selectedType === 'major' && data.faculty.map(f => (
-                                  <option key={f.id} value={f.id}>{f.name}</option>
-                                ))}
-                                {selectedType === 'class' && data.major.map(m => (
-                                  <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                                {selectedType === 'subject' && data.major.map(m => (
-                                  <option key={m.id} value={m.id}>{m.name}</option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-    
-                          {selectedType === 'subject' && (
-                            <div className="mb-4">
-                              <label htmlFor="editCredits" className="block text-sm font-medium text-gray-700">
-                                Số tín chỉ
-                              </label>
-                              <input
-                                type="number"
-                                id="editCredits"
-                                defaultValue={currentItem.credits}
-                                min="1"
-                                max="10"
-                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                              />
-                            </div>
-                          )}
-    
-                          <div className="mb-4">
-                            <label htmlFor="editStatus" className="block text-sm font-medium text-gray-700">
-                              Trạng thái
-                            </label>
-                            <select
-                              id="editStatus"
-                              defaultValue={currentItem.status}
-                              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-                            >
-                              <option value="active">Hoạt động</option>
-                              <option value="inactive">Không hoạt động</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button 
-                      type="button" 
-                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
-                    >
-                      Cập nhật
-                    </button>
-                    <button 
-                      type="button" 
-                      onClick={() => setShowEditModal(false)}
-                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    >
-                      Hủy bỏ
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
-      );
-    }
+      )}
+
+      {/* Modal chỉnh sửa - Responsive */}
+      {showEditModal && currentItem && (
+        <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full sm:w-full">
+              <div className="bg-white px-3 md:px-4 pt-3 md:pt-5 pb-3 md:pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-base md:text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                      Chỉnh sửa {categoryTypes.find(t => t.id === selectedType).name}
+                    </h3>
+                    <div className="mt-4">
+                      <div className="mb-4">
+                        <label htmlFor="editName" className="block text-sm font-medium text-gray-700">
+                          Tên {categoryTypes.find(t => t.id === selectedType).name}
+                        </label>
+                        <input
+                          type="text"
+                          id="editName"
+                          defaultValue={currentItem.name}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
+
+                      {selectedType !== 'faculty' && (
+                        <div className="mb-4">
+                          <label htmlFor="editParent" className="block text-sm font-medium text-gray-700">
+                            {selectedType === 'major' ? 'Khoa' : selectedType === 'class' ? 'Ngành' : 'Ngành'}
+                          </label>
+                          <select
+                            id="editParent"
+                            defaultValue={
+                              selectedType === 'major' ? currentItem.facultyId : 
+                              selectedType === 'class' ? currentItem.majorId : 
+                              currentItem.majorId
+                            }
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          >
+                            {selectedType === 'major' && data.faculty.map(f => (
+                              <option key={f.id} value={f.id}>{f.name}</option>
+                            ))}
+                            {selectedType === 'class' && data.major.map(m => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                            {selectedType === 'subject' && data.major.map(m => (
+                              <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {selectedType === 'subject' && (
+                        <div className="mb-4">
+                          <label htmlFor="editCredits" className="block text-sm font-medium text-gray-700">
+                            Số tín chỉ
+                          </label>
+                          <input
+                            type="number"
+                            id="editCredits"
+                            defaultValue={currentItem.credits}
+                            min="1"
+                            max="10"
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                          />
+                        </div>
+                      )}
+
+                      <div className="mb-4">
+                        <label htmlFor="editStatus" className="block text-sm font-medium text-gray-700">
+                          Trạng thái
+                        </label>
+                        <select
+                          id="editStatus"
+                          defaultValue={currentItem.status}
+                          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                        >
+                          <option value="active">Hoạt động</option>
+                          <option value="inactive">Không hoạt động</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-gray-50 px-3 md:px-4 py-2 md:py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button 
+                  type="button" 
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 md:px-4 py-1 md:py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Cập nhật
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => setShowEditModal(false)}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 md:px-4 py-1 md:py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                >
+                  Hủy bỏ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
   
   // BackupRestore Component

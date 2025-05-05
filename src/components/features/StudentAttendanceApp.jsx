@@ -720,7 +720,7 @@ const StudentAttendanceApp = () => {
       <div className="flex-1 flex flex-col">
         {/* Mobile Header */}
         <div className="lg:hidden bg-blue-700 text-white p-4 flex justify-between items-center">
-          <span className="font-bold text-xl">Attendance SYS</span>
+          <span className="font-bold text-xl">Hệ thống điểm danh</span>
           <button 
             className="rounded-md p-1 text-blue-100 hover:bg-blue-800 hover:text-white"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
