@@ -17,23 +17,23 @@ import {
   X,
   AlertTriangle,
   CheckCircle,
-  Search
+  Search,
+  Home
 } from 'lucide-react';
 
-// Main App Component
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-//   const [notifications, setNotifications] = useState([
-//     { id: 1, message: "Backup completed successfully", time: "10 minutes ago", isRead: false },
-//     { id: 2, message: "New user accounts require approval", time: "1 hour ago", isRead: false },
-//     { id: 3, message: "System update scheduled for tonight", time: "2 hours ago", isRead: true }
-//   ]);
-  
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationCount] = useState(3);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
   };
 
+  // Render content based on active tab
   const renderContent = () => {
     switch(activeTab) {
       case 'dashboard':
@@ -50,12 +50,8 @@ export default function AdminDashboard() {
         return <CategoryManagement />;
       case 'backup':
         return <BackupRestore />;
-      case 'monitoring':
-        return <SystemMonitoring />;
       case 'reports':
         return <AttendanceReports />;
-      case 'notifications':
-        return <NotificationSettings />;
       case 'support':
         return <TechnicalSupport />;
       default:
@@ -65,155 +61,140 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex h-screen bg-gray-100">
+      {/* Mobile sidebar toggle */}
+      <div className="md:hidden fixed top-0 left-0 z-40 p-4">
+        <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-gray-600 focus:outline-none">
+          {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-20'} bg-indigo-800 text-white transition-all duration-300 ease-in-out`}>
-        <div className="p-4 flex justify-between items-center">
-          {isSidebarOpen ? (
-            <h2 className="text-xl font-bold">STU Admin</h2>
-          ) : (
-            <h2 className="text-xl font-bold">STU</h2>
-          )}
-          <button onClick={toggleSidebar} className="text-white">
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-        <div className="mt-8">
-          <NavItem 
-            icon={<BarChart2 size={20} />} 
-            title="Trang chủ" 
-            isActive={activeTab === 'dashboard'} 
-            onClick={() => setActiveTab('dashboard')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<Users size={20} />} 
-            title="Quản lý người dùng" 
-            isActive={activeTab === 'users'} 
-            onClick={() => setActiveTab('users')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<Shield size={20} />} 
-            title="Phân quyền" 
-            isActive={activeTab === 'permissions'} 
-            onClick={() => setActiveTab('permissions')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<FileText size={20} />} 
-            title="Nhật ký hoạt động" 
-            isActive={activeTab === 'logs'} 
-            onClick={() => setActiveTab('logs')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<Settings size={20} />} 
-            title="Cài đặt hệ thống" 
-            isActive={activeTab === 'settings'} 
-            onClick={() => setActiveTab('settings')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<BookOpen size={20} />} 
-            title="Quản lý danh mục" 
-            isActive={activeTab === 'categories'} 
-            onClick={() => setActiveTab('categories')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          <NavItem 
-            icon={<Archive size={20} />} 
-            title="Sao lưu & phục hồi" 
-            isActive={activeTab === 'backup'} 
-            onClick={() => setActiveTab('backup')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          {/* <NavItem 
-            icon={<Monitor size={20} />} 
-            title="Giám sát hệ thống" 
-            isActive={activeTab === 'monitoring'} 
-            onClick={() => setActiveTab('monitoring')} 
-            isSidebarOpen={isSidebarOpen}
-          /> */}
-          <NavItem 
-            icon={<BarChart2 size={20} />} 
-            title="Báo cáo điểm danh" 
-            isActive={activeTab === 'reports'} 
-            onClick={() => setActiveTab('reports')} 
-            isSidebarOpen={isSidebarOpen}
-          />
-          {/* <NavItem 
-            icon={<Bell size={20} />} 
-            title="Cấu hình thông báo" 
-            isActive={activeTab === 'notifications'} 
-            onClick={() => setActiveTab('notifications')} 
-            isSidebarOpen={isSidebarOpen}
-          /> */}
-          <NavItem 
-            icon={<HelpCircle size={20} />} 
-            title="Hỗ trợ kỹ thuật" 
-            isActive={activeTab === 'support'} 
-            onClick={() => setActiveTab('support')} 
-            isSidebarOpen={isSidebarOpen}
-          />
+      <div className={`fixed inset-y-0 left-0 w-64 bg-indigo-800 text-white transform transition-transform duration-300 ease-in-out z-30 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+        <div className="p-4">
+          <div className="flex items-center mb-8">
+            <img src="/api/placeholder/40/40" alt="logo" className="w-10 h-10 rounded-full mr-3" />
+            <div>
+              <h2 className="font-bold text-lg">Phòng Đào Tạo</h2>
+              <h3 className="text-sm font-medium">Đại học Công nghệ Sài Gòn</h3>
+            </div>
+          </div>
+
+          <nav className="space-y-1">
+            <button 
+              onClick={() => handleTabChange('dashboard')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'dashboard' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <Home size={18} className="mr-3" />
+              <span>Trang chủ</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('users')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'users' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <Users size={18} className="mr-3" />
+              <span>Quản lý người dùng</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('permissions')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'permissions' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <Shield size={18} className="mr-3" />
+              <span>Phân quyền</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('logs')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'logs' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <FileText size={18} className="mr-3" />
+              <span>Nhật ký hoạt động</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('settings')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'settings' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <Settings size={18} className="mr-3" />
+              <span>Cài đặt hệ thống</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('categories')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'categories' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <BookOpen size={18} className="mr-3" />
+              <span>Quản lý danh mục</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('backup')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'backup' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <Archive size={18} className="mr-3" />
+              <span>Sao lưu & phục hồi</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('reports')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'reports' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <BarChart2 size={18} className="mr-3" />
+              <span>Báo cáo điểm danh</span>
+            </button>
+            
+            <button 
+              onClick={() => handleTabChange('support')} 
+              className={`flex items-center px-4 py-3 w-full rounded ${activeTab === 'support' ? 'bg-indigo-700' : 'hover:bg-indigo-700'}`}
+            >
+              <HelpCircle size={18} className="mr-3" />
+              <span>Hỗ trợ kỹ thuật</span>
+            </button>
+          </nav>
+
+          <div className="absolute bottom-0 left-0 right-0 p-4">
+            <button className="flex items-center px-4 py-3 w-full rounded hover:bg-indigo-700 text-white">
+              <LogOut size={18} className="mr-3" />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main content */}
+      <div className="flex-1 ml-0 md:ml-64 transition-all duration-300">
         {/* Header */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-semibold text-gray-800">Hệ thống điểm danh - Đại học Công nghệ Sài Gòn</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <button className="relative text-gray-500 hover:text-gray-700">
-                  <Bell size={20} />
-                  {/* <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                    {notifications.filter(n => !n.isRead).length}
-                  </span> */}
-                </button>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white">
-                  <User size={18} />
-                </div>
-                <span className="text-gray-700 font-medium">Admin</span>
-              </div>
-              <button className="text-gray-500 hover:text-gray-700">
-                <LogOut size={20} />
+        <header className="bg-white shadow-sm p-4 flex justify-between items-center">
+          <h1 className="text-xl font-semibold text-gray-800">{(activeTab)}</h1>
+          
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <button className="relative p-2 rounded-full hover:bg-gray-100">
+                <Bell size={20} />
+                {notificationCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    {notificationCount}
+                  </span>
+                )}
               </button>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <img src="/api/placeholder/32/32" alt="Profile" className="w-8 h-8 rounded-full" />
+              <span className="text-sm font-medium text-gray-700 hidden sm:inline-block">Admin</span>
             </div>
           </div>
         </header>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-6">
+        {/* Page content */}
+        <main className="p-6">
           {renderContent()}
         </main>
       </div>
     </div>
   );
 }
-
-// Navigation Item Component
-function NavItem({ icon, title, isActive, onClick, isSidebarOpen }) {
-  return (
-    <div 
-      className={`flex items-center p-3 cursor-pointer transition-colors ${
-        isActive ? 'bg-indigo-700 text-white' : 'text-indigo-200 hover:bg-indigo-700 hover:text-white'
-      }`}
-      onClick={onClick}
-    >
-      <div className="flex items-center justify-center w-6">
-        {icon}
-      </div>
-      {isSidebarOpen && <span className="ml-3">{title}</span>}
-    </div>
-  );
-}
-
 // Dashboard Content Component
 function DashboardContent() {
   const stats = [
