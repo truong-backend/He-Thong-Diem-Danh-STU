@@ -70,10 +70,11 @@ public class WebSecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không sử dụng session
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/login", "/api/register").permitAll() // Cho phép tất cả mọi người truy cập vào địa chỉ login và register
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Chỉ admin mới được truy cập các endpoint admin
-                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER") // Admin và giáo viên được truy cập
-                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT") // Tất cả role được truy cập
+                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Cho phép login và đăng ký không cần xác thực
+                        .requestMatchers("/api/auth/request-reset", "/api/auth/reset", "/api/auth/resend-otp").permitAll() // Cho phép đặt lại mật khẩu không cần xác thực
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Chỉ ADMIN mới được truy cập
+                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER") // ADMIN và TEACHER được truy cập
+                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT") // Cả 3 role được truy cập
                         .anyRequest().authenticated() // Tất cả các request khác đều cần phải xác thực mới được truy cập
                 );
 

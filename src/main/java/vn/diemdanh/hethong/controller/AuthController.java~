@@ -3,16 +3,23 @@ package vn.diemdanh.hethong.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.forgot_password.YeuCauDatLaiMatKhau;
+import vn.diemdanh.hethong.dto.forgot_password.YeuCauOTP;
+import vn.diemdanh.hethong.dto.forgot_password.YeuCauXacThucOPT;
 import vn.diemdanh.hethong.dto.login.LoginRequest;
 import vn.diemdanh.hethong.dto.login.LoginResponse;
+import vn.diemdanh.hethong.service.forgot_password.PasswordResetService;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.security.JwtTokenProvider;
 
 import jakarta.validation.Valid;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -23,13 +30,16 @@ public class AuthController {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
+    @Autowired
+    private PasswordResetService passwordResetService;
+
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            // Xác thực từ email và password (sửa từ username thành email)
+            // Xác thực từ email và password
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(),  // Đã sửa từ getUsername() thành getEmail()
+                            loginRequest.getEmail(),
                             loginRequest.getPassword()
                     )
             );
@@ -54,22 +64,27 @@ public class AuthController {
             );
 
             return ResponseEntity.ok(loginResponse);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.badRequest().body("Thông tin đăng nhập không chính xác");
         } catch (Exception e) {
-            // Trả về lỗi nếu xác thực thất bại
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập: " + e.getMessage());
         }
     }
 
     // Api /api/random yêu cầu phải xác thực mới có thể request
     @GetMapping("/random")
-    public ResponseEntity<RandomStuff> randomStuff(){
-        // Lấy thông tin user hiện tại từ SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ResponseEntity<?> randomStuff(){
+        try {
+            // Lấy thông tin user hiện tại từ SecurityContext
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        return ResponseEntity.ok(new RandomStuff(
-                "JWT Hợp lệ mới có thể thấy được message này. Xin chào " + userDetails.getUserRealUsername()
-        ));
+            return ResponseEntity.ok(new RandomStuff(
+                    "JWT Hợp lệ mới có thể thấy được message này. Xin chào " + userDetails.getUserRealUsername()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi xác thực: " + e.getMessage());
+        }
     }
 
     // Inner class cho RandomStuff response
@@ -86,6 +101,64 @@ public class AuthController {
 
         public void setMessage(String message) {
             this.message = message;
+        }
+    }
+
+    /**
+     * Gửi OTP cho quá trình đặt lại mật khẩu
+     */
+    @PostMapping("/request-reset")
+    public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody YeuCauDatLaiMatKhau request) {
+        try {
+            passwordResetService.createAndSendOtp(request.getEmail());
+            return ResponseEntity.ok(
+                    Map.of("message", "Mã OTP đã được gửi tới email " + request.getEmail())
+            );
+        } catch (Exception e) {
+            //log.error("Error sending OTP", e);
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Không thể gửi OTP: " + e.getMessage())
+            );
+        }
+    }
+
+    /**
+     * Xác minh OTP và đặt lại mật khẩu
+     */
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody YeuCauXacThucOPT request) {
+        try {
+            passwordResetService.verifyOtpAndResetPassword(
+                    request.getEmail(),
+                    request.getOtp(),
+                    request.getNewPassword()
+            );
+            return ResponseEntity.ok(
+                    Map.of("message", "Mật khẩu đã được đặt lại thành công")
+            );
+        } catch (Exception e) {
+            //log.error("Error resetting password", e);
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Không thể đặt lại mật khẩu: " + e.getMessage())
+            );
+        }
+    }
+
+    /**
+     * Gửi lại OTP nếu OTP cũ đã hết hạn
+     */
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@Valid @RequestBody YeuCauOTP request) {
+        try {
+            passwordResetService.createAndSendOtp(request.getEmail());
+            return ResponseEntity.ok(
+                    Map.of("message", "Mã OTP mới đã được gửi tới email " + request.getEmail())
+            );
+        } catch (Exception e) {
+            //log.error("Error resending OTP", e);
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Không thể gửi lại OTP: " + e.getMessage())
+            );
         }
     }
 }

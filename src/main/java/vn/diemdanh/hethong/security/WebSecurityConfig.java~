@@ -13,7 +13,12 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import vn.diemdanh.hethong.service.login.UserService;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -47,17 +52,26 @@ public class WebSecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
+        configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors() // Cho phép CORS
-                .and()
-                .csrf()
-                .disable() // Vô hiệu hóa CSRF vì sử dụng JWT
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource())) // Cấu hình CORS
+                .csrf(csrf -> csrf.disable()) // Vô hiệu hóa CSRF vì sử dụng JWT
                 .authenticationProvider(authenticationProvider())
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Không sử dụng session
-                .and()
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không sử dụng session
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/api/login", "/api/register").permitAll() // Cho phép tất cả mọi người truy cập vào địa chỉ login và register
+                        .requestMatchers("/api/password/**").permitAll() // Cho phép truy cập các endpoint đặt lại mật khẩu
                         .requestMatchers("/api/admin/**").hasRole("ADMIN") // Chỉ admin mới được truy cập các endpoint admin
                         .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER") // Admin và giáo viên được truy cập
                         .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT") // Tất cả role được truy cập

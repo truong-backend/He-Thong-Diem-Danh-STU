@@ -8,21 +8,30 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.forgot_password.YeuCauDatLaiMatKhau;
+import vn.diemdanh.hethong.dto.forgot_password.YeuCauOTP;
+import vn.diemdanh.hethong.dto.forgot_password.YeuCauXacThucOPT;
 import vn.diemdanh.hethong.dto.login.LoginRequest;
 import vn.diemdanh.hethong.dto.login.LoginResponse;
+import vn.diemdanh.hethong.service.forgot_password.PasswordResetService;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.security.JwtTokenProvider;
 
 import jakarta.validation.Valid;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
 
     @Autowired
     private JwtTokenProvider tokenProvider;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -92,6 +101,64 @@ public class AuthController {
 
         public void setMessage(String message) {
             this.message = message;
+        }
+    }
+
+    /**
+     * Gửi OTP cho quá trình đặt lại mật khẩu
+     */
+    @PostMapping("/request-reset")
+    public ResponseEntity<?> requestPasswordReset(@Valid @RequestBody YeuCauDatLaiMatKhau request) {
+        try {
+            passwordResetService.createAndSendOtp(request.getEmail());
+            return ResponseEntity.ok(
+                    Map.of("message", "Mã OTP đã được gửi tới email " + request.getEmail())
+            );
+        } catch (Exception e) {
+            //log.error("Error sending OTP", e);
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Không thể gửi OTP: " + e.getMessage())
+            );
+        }
+    }
+
+    /**
+     * Xác minh OTP và đặt lại mật khẩu
+     */
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody YeuCauXacThucOPT request) {
+        try {
+            passwordResetService.verifyOtpAndResetPassword(
+                    request.getEmail(),
+                    request.getOtp(),
+                    request.getNewPassword()
+            );
+            return ResponseEntity.ok(
+                    Map.of("message", "Mật khẩu đã được đặt lại thành công")
+            );
+        } catch (Exception e) {
+            //log.error("Error resetting password", e);
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Không thể đặt lại mật khẩu: " + e.getMessage())
+            );
+        }
+    }
+
+    /**
+     * Gửi lại OTP nếu OTP cũ đã hết hạn
+     */
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@Valid @RequestBody YeuCauOTP request) {
+        try {
+            passwordResetService.createAndSendOtp(request.getEmail());
+            return ResponseEntity.ok(
+                    Map.of("message", "Mã OTP mới đã được gửi tới email " + request.getEmail())
+            );
+        } catch (Exception e) {
+            //log.error("Error resending OTP", e);
+            return ResponseEntity.badRequest().body(
+                    Map.of("error", "Không thể gửi lại OTP: " + e.getMessage())
+            );
         }
     }
 }
