@@ -1,9 +1,0 @@
-package vn.diemdanh.hethong.dto.forgot_password;
-
-public class YeuCauOTP {
-    @NotNull
-    @NotEmpty
-    @NotBlank
-    @Email
-    private String email;
-}
