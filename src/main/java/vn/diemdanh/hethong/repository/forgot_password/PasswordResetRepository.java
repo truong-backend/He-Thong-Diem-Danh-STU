@@ -1,0 +1,7 @@
+package vn.diemdanh.hethong.repository.forgot_password;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import vn.diemdanh.hethong.entity.PasswordReset;
+
+public interface PasswordResetRepository extends JpaRepository<PasswordReset, String> {
+  }

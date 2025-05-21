@@ -1,0 +1,21 @@
+package vn.diemdanh.hethong.dto.forgot_password;
+
+public class YeuCauXacDinhOPT {
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Email
+    private String email;
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Size(min = 6, max = 6, message = "OTP phải có 6 ký tự")
+    private String otp;
+
+    @NotNull
+    @NotEmpty
+    @NotBlank
+    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+    private String newPassword;
+}
