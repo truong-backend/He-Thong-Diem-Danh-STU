@@ -1,4 +1,5 @@
 package vn.diemdanh.hethong.dto.login;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -6,13 +7,38 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class LoginResponse {
     private String accessToken;
     private String tokenType = "Bearer";  // Giá trị mặc định là "Bearer"
-    private Integer userId;
+    private String userId;     // Changed to String to support both Long (User) and Integer (Admin)
     private String username;
+    private String email;      // Email used for login
     private String role;
+    private String userType;   // "USER" hoặc "ADMIN"
 
+    // Constructor with token only
+    public LoginResponse(String accessToken) {
+        this.accessToken = accessToken;
+    }
 
+    // Constructor with all details
+    public LoginResponse(String accessToken, String userId, String username, String email, String role, String userType) {
+        this.accessToken = accessToken;
+        this.userId = userId;
+        this.username = username;
+        this.email = email;
+        this.role = role;
+        this.userType = userType;
+        // tokenType is already initialized with "Bearer"
+    }
+
+    // Backward compatibility constructor (for existing code that passes Long userId)
+    public LoginResponse(String accessToken, Long userId, String username, String email, String role) {
+        this.accessToken = accessToken;
+        this.userId = userId != null ? userId.toString() : null;
+        this.username = username;
+        this.email = email;
+        this.role = role;
+        this.userType = "USER"; // Default to USER for backward compatibility
+    }
 }

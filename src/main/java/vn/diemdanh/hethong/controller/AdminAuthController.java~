@@ -16,7 +16,7 @@ import vn.diemdanh.hethong.security.JwtTokenProvider;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/apiAdmin")
+@RequestMapping("/api/admin")
 public class AdminAuthController {
     @Autowired
     AuthenticationManager authenticationManager;

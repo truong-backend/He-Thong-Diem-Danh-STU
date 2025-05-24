@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,9 +17,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import vn.diemdanh.hethong.service.login.AdminService;
 import vn.diemdanh.hethong.service.login.UserService;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -27,28 +30,42 @@ public class WebSecurityConfig {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AdminService adminService;
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
-        return authConfig.getAuthenticationManager();
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
-        // Password encoder, để Spring Security sử dụng mã hóa mật khẩu người dùng
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider userAuthenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
+    }
+
+    @Bean
+    public DaoAuthenticationProvider adminAuthenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(adminService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() throws Exception {
+        // Create a custom AuthenticationManager with multiple providers
+        return new ProviderManager(Arrays.asList(
+                userAuthenticationProvider(),
+                adminAuthenticationProvider()
+        ));
     }
 
     @Bean
@@ -65,19 +82,18 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource())) // Cấu hình CORS
-                .csrf(csrf -> csrf.disable()) // Vô hiệu hóa CSRF vì sử dụng JWT
-                .authenticationProvider(authenticationProvider())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Không sử dụng session
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/login", "/api/register").permitAll() // Cho phép tất cả mọi người truy cập vào địa chỉ login và register
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Chỉ admin mới được truy cập các endpoint admin
-                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER") // Admin và giáo viên được truy cập
-                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT") // Tất cả role được truy cập
-                        .anyRequest().authenticated() // Tất cả các request khác đều cần phải xác thực mới được truy cập
+                        .requestMatchers("/api/login", "/api/register", "/apiAdmin/login").permitAll()
+                        .requestMatchers("/apiAdmin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
+                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                        .anyRequest().authenticated()
                 );
 
-        // Thêm một lớp Filter kiểm tra jwt
+        // Add JWT filter
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

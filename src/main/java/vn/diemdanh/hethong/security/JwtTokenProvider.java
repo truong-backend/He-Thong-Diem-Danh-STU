@@ -31,6 +31,21 @@ public class JwtTokenProvider {
         // Tạo chuỗi json web token từ id của user.
         return Jwts.builder()
                 .subject(Long.toString(userDetails.getId()))
+                .claim("userType", "USER") // Thêm claim để phân biệt loại user
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    // Tạo ra jwt từ thông tin admin
+    public String generateTokenForAdmin(CustomAdminDetails adminDetails) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
+        // Tạo chuỗi json web token từ id của admin.
+        return Jwts.builder()
+                .subject(Integer.toString(adminDetails.getId()))
+                .claim("userType", "ADMIN") // Thêm claim để phân biệt loại user
                 .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
@@ -46,6 +61,28 @@ public class JwtTokenProvider {
                 .getPayload();
 
         return Long.parseLong(claims.getSubject());
+    }
+
+    // Lấy thông tin admin từ jwt
+    public Integer getAdminIdFromJWT(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return Integer.parseInt(claims.getSubject());
+    }
+
+    // Lấy loại user từ JWT
+    public String getUserTypeFromJWT(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("userType", String.class);
     }
 
     public boolean validateToken(String authToken) {

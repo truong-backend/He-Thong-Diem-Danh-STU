@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserLoginResponse {
+public class LoginResponse {
     private String accessToken;
     private String tokenType = "Bearer";  // Giá trị mặc định là "Bearer"
     private Long userId;     // Changed from Integer to Long to match User entity ID type
@@ -16,12 +16,12 @@ public class UserLoginResponse {
     private String role;
 
     // Constructor with token
-    public UserLoginResponse(String accessToken) {
+    public LoginResponse(String accessToken) {
         this.accessToken = accessToken;
     }
 
     // Constructor with all details
-    public UserLoginResponse(String accessToken, Long userId, String username, String email, String role) {
+    public LoginResponse(String accessToken, Long userId, String username, String email, String role) {
         this.accessToken = accessToken;
         this.userId = userId;
         this.username = username;

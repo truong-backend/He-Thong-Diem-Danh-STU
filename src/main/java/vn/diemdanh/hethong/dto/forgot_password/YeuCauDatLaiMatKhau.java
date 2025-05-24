@@ -2,7 +2,7 @@ package vn.diemdanh.hethong.dto.forgot_password;
 
 import jakarta.validation.constraints.*;
 
-public class DatLaiMatKhau {
+public class YeuCauDatLaiMatKhau {
     @NotNull
     @NotEmpty
     @NotBlank

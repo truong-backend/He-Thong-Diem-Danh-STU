@@ -1,0 +1,123 @@
+package vn.diemdanh.hethong.security;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import vn.diemdanh.hethong.entity.*;
+
+import java.util.*;
+
+public class CustomUserDetails implements UserDetails {
+    private final User user;
+    private final Admin admin;
+    private final String userType; // "USER" hoặc "ADMIN"
+
+    // Constructor cho User
+    public CustomUserDetails(User user) {
+        this.user = user;
+        this.admin = null;
+        this.userType = "USER";
+    }
+
+    // Constructor cho Admin
+    public CustomUserDetails(Admin admin) {
+        this.user = null;
+        this.admin = admin;
+        this.userType = "ADMIN";
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        String role = isAdmin() ? admin.getRole() : user.getRole();
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
+    @Override
+    public String getPassword() {
+        return isAdmin() ? admin.getPassword() : user.getPassword();
+    }
+
+    @Override
+    public String getUsername() {
+        // Sử dụng email để xác thực
+        return isAdmin() ? admin.getEmail() : user.getEmail();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // Kiểm tra xem có phải Admin không
+    public boolean isAdmin() {
+        return "ADMIN".equals(userType);
+    }
+
+    // Trả về thực thể gốc
+    public Object getOriginalEntity() {
+        return isAdmin() ? admin : user;
+    }
+
+    // Lấy ID - cần xử lý khác nhau cho User và Admin
+    public String getId() {
+        if (isAdmin()) {
+            return admin.getId().toString();
+        } else {
+            return user.getId().toString();
+        }
+    }
+
+    // Lấy ID dạng Long cho User, Integer cho Admin
+    public Object getEntityId() {
+        return isAdmin() ? admin.getId() : user.getId();
+    }
+
+    // Lấy tên người dùng gốc
+    public String getUserRealUsername() {
+        if (isAdmin()) {
+            return admin.getFullName() != null ? admin.getFullName() : admin.getUsername();
+        } else {
+            return user.getUsername();
+        }
+    }
+
+    // Lấy vai trò
+    public String getRole() {
+        return isAdmin() ? admin.getRole() : user.getRole();
+    }
+
+    // Lấy email
+    public String getEmail() {
+        return isAdmin() ? admin.getEmail() : user.getEmail();
+    }
+
+    // Lấy loại người dùng
+    public String getUserType() {
+        return userType;
+    }
+
+    // Getter cho User (có thể null nếu là Admin)
+    public User getUser() {
+        return user;
+    }
+
+    // Getter cho Admin (có thể null nếu là User)
+    public Admin getAdmin() {
+        return admin;
+    }
+}

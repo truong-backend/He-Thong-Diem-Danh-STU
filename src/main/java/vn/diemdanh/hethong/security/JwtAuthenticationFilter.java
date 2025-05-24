@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import vn.diemdanh.hethong.service.login.AdminService;
 import vn.diemdanh.hethong.service.login.UserService;
 
 import jakarta.servlet.FilterChain;
@@ -22,7 +23,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtTokenProvider tokenProvider;
 
     @Autowired
-    private UserService customUserDetailsService;
+    private UserService userService;
+
+    @Autowired
+    private AdminService adminService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,10 +37,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                // Lấy id user từ chuỗi jwt
-                Long userId = tokenProvider.getUserIdFromJWT(jwt);
-                // Lấy thông tin người dùng từ id
-                UserDetails userDetails = customUserDetailsService.loadUserById(userId);
+                // Lấy loại user từ JWT để quyết định cách xử lý
+                String userType = tokenProvider.getUserTypeFromJWT(jwt);
+
+                UserDetails userDetails = null;
+
+                if ("ADMIN".equals(userType)) {
+                    // Xử lý cho Admin
+                    Integer adminId = tokenProvider.getAdminIdFromJWT(jwt);
+                    userDetails = adminService.loadAdminById(adminId);
+                } else {
+                    // Xử lý cho User (mặc định)
+                    Long userId = tokenProvider.getUserIdFromJWT(jwt);
+                    userDetails = userService.loadUserById(userId);
+                }
+
                 if(userDetails != null) {
                     // Nếu người dùng hợp lệ, set thông tin cho Security Context
                     UsernamePasswordAuthenticationToken

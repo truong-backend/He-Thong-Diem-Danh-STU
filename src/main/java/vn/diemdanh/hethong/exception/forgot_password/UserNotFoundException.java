@@ -1,4 +1,7 @@
 package vn.diemdanh.hethong.exception.forgot_password;
 
-public class UserNotFoundException {
+public class UserNotFoundException extends RuntimeException {
+    public UserNotFoundException(String message) {
+        super(message);
+    }
 }

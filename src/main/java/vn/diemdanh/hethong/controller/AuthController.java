@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.login.LoginRequest;
-import vn.diemdanh.hethong.dto.login.LoginResponse;
+import vn.diemdanh.hethong.dto.login.UserLoginResponse;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.security.JwtTokenProvider;
 
@@ -46,7 +46,7 @@ public class AuthController {
             String jwt = tokenProvider.generateToken(userDetails);
 
             // Tạo response với đầy đủ thông tin
-            LoginResponse loginResponse = new LoginResponse(
+            UserLoginResponse userLoginResponse = new UserLoginResponse(
                     jwt,
                     userDetails.getId(),
                     userDetails.getUserRealUsername(),
@@ -54,7 +54,7 @@ public class AuthController {
                     userDetails.getRole()
             );
 
-            return ResponseEntity.ok(loginResponse);
+            return ResponseEntity.ok(userLoginResponse);
         } catch (BadCredentialsException e) {
             return ResponseEntity.badRequest().body("Thông tin đăng nhập không chính xác");
         } catch (Exception e) {

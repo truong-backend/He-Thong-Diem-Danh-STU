@@ -1,0 +1,6 @@
+package vn.diemdanh.hethong.exception.forgot_password;
+
+public class OtpInvalidException extends Throwable {
+    public OtpInvalidException(String s) {
+    }
+}

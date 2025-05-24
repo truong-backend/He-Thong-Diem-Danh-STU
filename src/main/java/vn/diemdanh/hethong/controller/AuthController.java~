@@ -3,12 +3,15 @@ package vn.diemdanh.hethong.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.login.AdminLoginResponse;
 import vn.diemdanh.hethong.dto.login.LoginRequest;
-import vn.diemdanh.hethong.dto.login.LoginResponse;
+import vn.diemdanh.hethong.dto.login.UserLoginResponse;
+import vn.diemdanh.hethong.security.CustomAdminDetails;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.security.JwtTokenProvider;
 
@@ -23,13 +26,13 @@ public class AuthController {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    @PostMapping("/loginUser")
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
-            // Xác thực từ email và password (sửa từ username thành email)
+            // Xác thực từ email và password
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequest.getEmail(),  // Đã sửa từ getUsername() thành getEmail()
+                            loginRequest.getEmail(),
                             loginRequest.getPassword()
                     )
             );
@@ -45,7 +48,7 @@ public class AuthController {
             String jwt = tokenProvider.generateToken(userDetails);
 
             // Tạo response với đầy đủ thông tin
-            LoginResponse loginResponse = new LoginResponse(
+            UserLoginResponse userLoginResponse = new UserLoginResponse(
                     jwt,
                     userDetails.getId(),
                     userDetails.getUserRealUsername(),
@@ -53,23 +56,28 @@ public class AuthController {
                     userDetails.getRole()
             );
 
-            return ResponseEntity.ok(loginResponse);
+            return ResponseEntity.ok(userLoginResponse);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.badRequest().body("Thông tin đăng nhập không chính xác");
         } catch (Exception e) {
-            // Trả về lỗi nếu xác thực thất bại
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập: " + e.getMessage());
         }
     }
 
     // Api /api/random yêu cầu phải xác thực mới có thể request
     @GetMapping("/random")
-    public ResponseEntity<RandomStuff> randomStuff(){
-        // Lấy thông tin user hiện tại từ SecurityContext
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    public ResponseEntity<?> randomStuff(){
+        try {
+            // Lấy thông tin user hiện tại từ SecurityContext
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        return ResponseEntity.ok(new RandomStuff(
-                "JWT Hợp lệ mới có thể thấy được message này. Xin chào " + userDetails.getUserRealUsername()
-        ));
+            return ResponseEntity.ok(new RandomStuff(
+                    "JWT Hợp lệ mới có thể thấy được message này. Xin chào " + userDetails.getUserRealUsername()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi xác thực: " + e.getMessage());
+        }
     }
 
     // Inner class cho RandomStuff response
@@ -86,6 +94,134 @@ public class AuthController {
 
         public void setMessage(String message) {
             this.message = message;
+        }
+    }
+//  Phương thức đăng nhập cho admin
+    @PostMapping("/loginAdmin")
+    public ResponseEntity<?> authenticateAdmin(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            // Xác thực từ email và password
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+            // Nếu không xảy ra exception tức là thông tin hợp lệ
+            // Set thông tin authentication vào Security Context
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            // Lấy thông tin admin từ authentication
+            CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
+
+            // Trả về jwt cùng với thông tin admin
+            String jwt = tokenProvider.generateTokenForAdmin(adminDetails);
+
+            // Tạo response với đầy đủ thông tin
+            AdminLoginResponse loginResponse = new AdminLoginResponse(
+                    jwt,
+                    adminDetails.getId(),
+                    adminDetails.getUserRealUsername(),
+                    adminDetails.getUsername(), // Đây là email
+                    adminDetails.getFullName(),
+                    adminDetails.getRole()
+            );
+
+            return ResponseEntity.ok(loginResponse);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.badRequest().body("Thông tin đăng nhập admin không chính xác");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập admin: " + e.getMessage());
+        }
+    }
+
+    // Api /api/admin/profile yêu cầu phải xác thực admin
+    @GetMapping("/profile")
+    public ResponseEntity<?> getAdminProfile(){
+        try {
+            // Lấy thông tin admin hiện tại từ SecurityContext
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            CustomAdminDetails adminDetails = (CustomAdminDetails) authentication.getPrincipal();
+
+            return ResponseEntity.ok(new AdminProfileResponse(
+                    "Chào mừng admin: " + adminDetails.getFullName(),
+                    adminDetails.getId(),
+                    adminDetails.getUserRealUsername(),
+                    adminDetails.getUsername(),
+                    adminDetails.getFullName(),
+                    adminDetails.getRole()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi xác thực admin: " + e.getMessage());
+        }
+    }
+
+    // Inner class cho AdminProfileResponse
+    public static class AdminProfileResponse {
+        private String message;
+        private Integer adminId;
+        private String username;
+        private String email;
+        private String fullName;
+        private String role;
+
+        public AdminProfileResponse(String message, Integer adminId, String username, String email, String fullName, String role) {
+            this.message = message;
+            this.adminId = adminId;
+            this.username = username;
+            this.email = email;
+            this.fullName = fullName;
+            this.role = role;
+        }
+
+        // Getters and Setters
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
+        }
+
+        public Integer getAdminId() {
+            return adminId;
+        }
+
+        public void setAdminId(Integer adminId) {
+            this.adminId = adminId;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getFullName() {
+            return fullName;
+        }
+
+        public void setFullName(String fullName) {
+            this.fullName = fullName;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
     }
 }

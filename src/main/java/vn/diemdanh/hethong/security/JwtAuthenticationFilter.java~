@@ -23,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserService customUserDetailsService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response, FilterChain filterChain)
@@ -37,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Lấy thông tin người dùng từ id
                 UserDetails userDetails = customUserDetailsService.loadUserById(userId);
                 if(userDetails != null) {
-                    // Nếu người dùng hợp lệ, set thông tin cho Seturity Context
+                    // Nếu người dùng hợp lệ, set thông tin cho Security Context
                     UsernamePasswordAuthenticationToken
                             authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
@@ -61,4 +62,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-
