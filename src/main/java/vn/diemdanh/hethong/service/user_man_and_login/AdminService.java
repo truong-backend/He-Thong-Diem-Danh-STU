@@ -13,7 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
 import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
+import vn.diemdanh.hethong.dto.user_managerment.UpdateAdminRequest;
 import vn.diemdanh.hethong.entity.Admin;
+import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;
 import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
 
@@ -120,5 +122,36 @@ public class AdminService implements UserDetailsService {
                 savedAdmin.getCreatedAt(),
                 savedAdmin.getUpdatedAt()
         );
+    }
+
+    public AdminDto updateAdmin(Integer id, @Valid UpdateAdminRequest request) {
+        Admin admin = adminRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with id: " + id));
+
+        admin.setUsername(request.getUsername());
+        admin.setRole(request.getRole());
+        admin.setUpdatedAt(Instant.now());
+
+        if (request.getEmail() != null) {
+            admin.setEmail(request.getEmail());
+        }
+        if (request.getFullName() != null) {
+            admin.setFullName(request.getFullName());
+        }
+        if (request.getPassword() != null) {
+            admin.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        Admin updatedAdmin = adminRepository.save(admin);
+        return updatedAdmin != null ? new AdminDto(
+                updatedAdmin.getId(),
+                updatedAdmin.getUsername(),
+                updatedAdmin.getEmail(),
+                updatedAdmin.getFullName(),
+                updatedAdmin.getRole(),
+                updatedAdmin.getAvatar(),
+                updatedAdmin.getCreatedAt(),
+                updatedAdmin.getUpdatedAt()
+        ) : null;
     }
 }

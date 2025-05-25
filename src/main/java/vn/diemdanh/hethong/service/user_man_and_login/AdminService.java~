@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
 import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
+import vn.diemdanh.hethong.dto.user_managerment.UpdateAdminRequest;
 import vn.diemdanh.hethong.entity.Admin;
 import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
@@ -99,6 +100,7 @@ public class AdminService implements UserDetailsService {
         }
 
         Admin admin = new Admin();
+;
         admin.setUsername(request.getUsername());
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
         admin.setEmail(request.getEmail());
@@ -119,5 +121,8 @@ public class AdminService implements UserDetailsService {
                 savedAdmin.getCreatedAt(),
                 savedAdmin.getUpdatedAt()
         );
+    }
+
+    public AdminDto updateAdmin(Integer id, @Valid UpdateAdminRequest request) {
     }
 }

@@ -69,5 +69,4 @@ public class UserManagementController {
             return ResponseEntity.badRequest().body(error);
         }
     }
-
 }
