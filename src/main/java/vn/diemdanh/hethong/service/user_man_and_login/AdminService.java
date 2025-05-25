@@ -154,4 +154,11 @@ public class AdminService implements UserDetailsService {
                 updatedAdmin.getUpdatedAt()
         ) : null;
     }
+
+    public void deleteAdmin(Integer id) {
+        Admin admin = adminRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with id: " + id));
+
+        adminRepository.delete(admin);
+    }
 }

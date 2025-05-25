@@ -69,5 +69,17 @@ public class UserManagementController {
             return ResponseEntity.badRequest().body(error);
         }
     }
-
+    @DeleteMapping("/admins/{id}")
+    public ResponseEntity<?> deleteAdmin(@PathVariable Integer id) {
+        try {
+            adminService.deleteAdmin(id);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Admin đã được xóa thành công");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 }
