@@ -65,4 +65,17 @@ public class AdminService implements UserDetailsService {
                 admin.getUpdatedAt()
         ));
     }
+    public Optional<AdminDto> getAdminDtoById(Integer id) {
+        return adminRepository.findById(id)
+                .map(admin -> new AdminDto(
+                    admin.getId(),
+                    admin.getUsername(),
+                    admin.getEmail(),
+                    admin.getFullName(),
+                    admin.getRole(),
+                    admin.getAvatar(),
+                    admin.getCreatedAt(),
+                    admin.getUpdatedAt()
+                ));
+    }
 }
