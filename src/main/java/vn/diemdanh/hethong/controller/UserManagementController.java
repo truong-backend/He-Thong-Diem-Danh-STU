@@ -1,5 +1,6 @@
 package vn.diemdanh.hethong.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -8,7 +9,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
+import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
 import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -40,4 +45,16 @@ public class UserManagementController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+    @PostMapping("/admins")
+    public ResponseEntity<?> createAdmin(@Valid @RequestBody CreateAdminRequest request) {
+        try {
+            AdminDto createdAdmin = adminService.createAdmin(request);
+            return ResponseEntity.ok(createdAdmin);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
 }

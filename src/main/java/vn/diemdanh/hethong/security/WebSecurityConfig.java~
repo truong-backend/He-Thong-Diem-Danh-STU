@@ -51,7 +51,7 @@ public class WebSecurityConfig {
     public DaoAuthenticationProvider adminAuthenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(adminService);
-        authProvider.setPasswordEncoder(passwordEncoder);
+        authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 

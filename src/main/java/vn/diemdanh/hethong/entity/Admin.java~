@@ -15,7 +15,6 @@ import java.time.Instant;
 public class Admin {
     @Id
     @Column(name = "admin_id", nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Size(max = 50)

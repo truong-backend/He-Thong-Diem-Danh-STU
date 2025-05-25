@@ -1,17 +1,23 @@
 package vn.diemdanh.hethong.service.user_man_and_login;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
+import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
 import vn.diemdanh.hethong.entity.Admin;
 import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Service
@@ -19,6 +25,8 @@ public class AdminService implements UserDetailsService {
     @Autowired
     private AdminRepository adminRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @Override
     public UserDetails loadUserByUsername(String email) {
         // Kiểm tra xem admin có tồn tại trong database không?
@@ -77,5 +85,40 @@ public class AdminService implements UserDetailsService {
                     admin.getCreatedAt(),
                     admin.getUpdatedAt()
                 ));
+    }
+
+    public AdminDto createAdmin(@Valid CreateAdminRequest request) {
+        // Check if email already exists
+        if (adminRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email đã tồn tại trong hệ thống");
+        }
+
+        // Check if username already exists
+        if (adminRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("Username đã tồn tại trong hệ thống");
+        }
+
+        Admin admin = new Admin();
+;
+        admin.setUsername(request.getUsername());
+        admin.setPassword(passwordEncoder.encode(request.getPassword()));
+        admin.setEmail(request.getEmail());
+        admin.setFullName(request.getFullName());
+        admin.setRole(request.getRole());
+        admin.setCreatedAt(Instant.now());
+        admin.setUpdatedAt(Instant.now());
+
+        Admin savedAdmin = adminRepository.save(admin);
+
+        return new AdminDto(
+                savedAdmin.getId(),
+                savedAdmin.getUsername(),
+                savedAdmin.getEmail(),
+                savedAdmin.getFullName(),
+                savedAdmin.getRole(),
+                savedAdmin.getAvatar(),
+                savedAdmin.getCreatedAt(),
+                savedAdmin.getUpdatedAt()
+        );
     }
 }
