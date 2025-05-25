@@ -12,7 +12,7 @@ import vn.diemdanh.hethong.exception.forgot_password.OtpExpiredException;
 import vn.diemdanh.hethong.exception.forgot_password.OtpInvalidException;
 import vn.diemdanh.hethong.exception.forgot_password.UserNotFoundException;
 import vn.diemdanh.hethong.repository.forgot_password.PasswordResetRepository;
-import vn.diemdanh.hethong.repository.login.UserRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
 import vn.diemdanh.hethong.service.email.EmailService;
 
 import java.time.Duration;

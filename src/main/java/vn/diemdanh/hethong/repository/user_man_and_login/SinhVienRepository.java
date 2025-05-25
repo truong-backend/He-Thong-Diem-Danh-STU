@@ -1,4 +1,7 @@
 package vn.diemdanh.hethong.repository.user_man_and_login;
 
-public interface SinhVienRepository extends org.springframework.data.jpa.repository.JpaRepository<vn.diemdanh.hethong.entity.SinhVien, java.lang.String> {
-  }
+import org.springframework.data.jpa.repository.JpaRepository;
+import vn.diemdanh.hethong.entity.SinhVien;
+
+public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
+}

@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.service.login;
+package vn.diemdanh.hethong.service.user_man_and_login;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.repository.login.UserRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 
 import java.util.Optional;

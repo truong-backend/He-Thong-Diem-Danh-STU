@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.service.login;
+package vn.diemdanh.hethong.service.user_man_and_login;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,13 +53,29 @@ public class AdminService implements UserDetailsService {
     }
 
     public Page<AdminDto> getAllAdmins(Pageable pageable) {
-        return adminRepository.findAll(pageable)
+        Page<Admin> adminPage = adminRepository.findAll(pageable);
+        return adminPage.map(admin -> new AdminDto(
+                admin.getId(),
+                admin.getUsername(),
+                admin.getEmail(),
+                admin.getFullName(),
+                admin.getRole(),
+                admin.getAvatar(),
+                admin.getCreatedAt(),
+                admin.getUpdatedAt()
+        ));
+    }
+    public Optional<AdminDto> getAdminDtoById(Integer id) {
+        return adminRepository.findById(id)
                 .map(admin -> new AdminDto(
-                        admin.getId(),
-                        admin.getUsername(),
-                        admin.getEmail(),
-                        admin.getFullName(),
-                        admin.getRole()
+                    admin.getId(),
+                    admin.getUsername(),
+                    admin.getEmail(),
+                    admin.getFullName(),
+                    admin.getRole(),
+                    admin.getAvatar(),
+                    admin.getCreatedAt(),
+                    admin.getUpdatedAt()
                 ));
     }
 }

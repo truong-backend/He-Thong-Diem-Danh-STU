@@ -8,8 +8,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import vn.diemdanh.hethong.service.login.AdminService;
-import vn.diemdanh.hethong.service.login.UserService;
+import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
+import vn.diemdanh.hethong.service.user_man_and_login.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

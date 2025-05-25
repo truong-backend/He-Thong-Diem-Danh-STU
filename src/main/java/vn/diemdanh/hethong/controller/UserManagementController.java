@@ -6,13 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
-import vn.diemdanh.hethong.service.login.AdminService;
+import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
 
 @RestController
 @RequestMapping("/api/admin/users")
@@ -37,5 +33,11 @@ public class UserManagementController {
         Page<AdminDto> admins = adminService.getAllAdmins(pageable);
 
         return ResponseEntity.ok(admins);
+    }
+    @GetMapping("/admins/{id}")
+    public ResponseEntity<AdminDto> getAdminById(@PathVariable Integer id) {
+        return adminService.getAdminDtoById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
