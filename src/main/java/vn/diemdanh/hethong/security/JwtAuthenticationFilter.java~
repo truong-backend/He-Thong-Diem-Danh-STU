@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import vn.diemdanh.hethong.service.login.AdminService;
 import vn.diemdanh.hethong.service.login.UserService;
 
 import jakarta.servlet.FilterChain;
@@ -22,7 +23,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtTokenProvider tokenProvider;
 
     @Autowired
-    private UserService customUserDetailsService;
+    private UserService userService;
+
+    @Autowired
+    private AdminService adminService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,21 +37,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                // Lấy id user từ chuỗi jwt
-                Long userId = tokenProvider.getUserIdFromJWT(jwt);
-                // Lấy thông tin người dùng từ id
-                UserDetails userDetails = customUserDetailsService.loadUserById(userId);
+                // Lấy loại user từ JWT để quyết định cách xử lý
+                String userType = tokenProvider.getUserTypeFromJWT(jwt);
+
+                UserDetails userDetails = null;
+
+                if ("ADMIN".equals(userType)) {
+                    // Xử lý cho Admin
+                    Integer adminId = tokenProvider.getAdminIdFromJWT(jwt);
+                    userDetails = adminService.loadAdminById(adminId);
+                    log.debug("Loaded admin details for ID: {}", adminId);
+                } else {
+                    // Xử lý cho User (mặc định)
+                    Long userId = tokenProvider.getUserIdFromJWT(jwt);
+                    userDetails = userService.loadUserById(userId);
+                    log.debug("Loaded user details for ID: {}", userId);
+                }
+
                 if(userDetails != null) {
                     // Nếu người dùng hợp lệ, set thông tin cho Security Context
                     UsernamePasswordAuthenticationToken
-                            authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                            authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("Successfully authenticated user: {}", userDetails.getUsername());
                 }
+            } else {
+                log.debug("No valid JWT token found in request");
             }
+        } catch (io.jsonwebtoken.security.SignatureException ex) {
+            log.error("Invalid JWT signature: {}", ex.getMessage());
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            log.error("Expired JWT token: {}", ex.getMessage());
+        } catch (io.jsonwebtoken.MalformedJwtException ex) {
+            log.error("Malformed JWT token: {}", ex.getMessage());
+        } catch (io.jsonwebtoken.UnsupportedJwtException ex) {
+            log.error("Unsupported JWT token: {}", ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            log.error("JWT claims string is empty: {}", ex.getMessage());
         } catch (Exception ex) {
-            log.error("failed on set user authentication", ex);
+            log.error("Failed to set user authentication: {}", ex.getMessage(), ex);
         }
 
         filterChain.doFilter(request, response);
@@ -55,9 +86,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private String getJwtFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        // Kiểm tra xem header Authorization có chứa thông tin jwt không
+        log.debug("Authorization header: {}", bearerToken);
+
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            String jwt = bearerToken.substring(7);
+            log.debug("Extracted JWT: {}", jwt.substring(0, Math.min(20, jwt.length())) + "...");
+            return jwt;
         }
         return null;
     }

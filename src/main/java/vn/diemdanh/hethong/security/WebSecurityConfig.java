@@ -86,11 +86,11 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/api/login", "/api/register", "/apiAdmin/login").permitAll()
+                        .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/apiAdmin/**").hasRole("ADMIN")
                         .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
                         .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         // Add JWT filter

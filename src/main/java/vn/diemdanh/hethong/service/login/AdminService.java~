@@ -1,0 +1,39 @@
+package vn.diemdanh.hethong.service.login;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+import vn.diemdanh.hethong.entity.Admin;
+import vn.diemdanh.hethong.repository.login.AdminRepository;
+import vn.diemdanh.hethong.security.CustomAdminDetails;
+
+import java.util.Optional;
+
+@Service
+public class AdminService implements UserDetailsService {
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Optional<Admin> adminOptional = adminRepository.findByEmail(email);
+
+        if (adminOptional.isPresent()) {
+            Admin admin = adminOptional.get();
+            return new CustomAdminDetails(admin);
+        }
+
+        throw new UsernameNotFoundException("Admin not found with email: " + email);
+    }
+
+    public Optional<Admin> findByEmail(String email) {
+        return adminRepository.findByEmail(email);
+    }
+
+    public Optional<Admin> findByUsername(String username) {
+        return adminRepository.findByUsername(username);
+    }
+}

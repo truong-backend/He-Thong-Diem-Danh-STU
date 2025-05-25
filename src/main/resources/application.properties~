@@ -32,7 +32,3 @@ spring.mail.properties.mail.smtp.writetimeout=5000
 # Logging configuration for debugging JWT issues
 logging.level.vn.diemdanh.hethong.security=DEBUG
 logging.level.org.springframework.security=DEBUG
-
-# JWT Configuration
-jwt.secret=f16eef5770f8a61e377d7a7198f5e139115e4a191eba0b4e07ccde5eb437323c692e82c04c5544e06d8acb445142f75cad9cecaf291f88e3f2a715807f9a0f5b
-jwt.expiration=604800000

@@ -25,9 +25,7 @@ public class JwtTokenProvider {
     // Tạo SecretKey từ chuỗi secret
     private SecretKey getSigningKey() {
         byte[] keyBytes = JWT_SECRET.getBytes(StandardCharsets.UTF_8);
-        SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-        log.debug("Secret key length: {} bits", keyBytes.length * 8);
-        return key;
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     // Tạo ra jwt từ thông tin user
@@ -36,21 +34,16 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
 
         try {
-            String token = Jwts.builder()
+            return Jwts.builder()
                     .subject(Long.toString(userDetails.getId()))
                     .claim("userType", "USER")
                     .claim("userId", userDetails.getId())
                     .claim("email", userDetails.getUsername()) // Store email
                     .claim("role", userDetails.getRole())
-                    .claim("username", userDetails.getUserRealUsername()) // Add real username
                     .issuedAt(now)
                     .expiration(expiryDate)
-                    .signWith(getSigningKey(), Jwts.SIG.HS512)
+                    .signWith(getSigningKey(), SignatureAlgorithm.HS512) // Explicitly specify algorithm
                     .compact();
-
-            log.info("Generated JWT token for user ID: {}, email: {}, expires: {}",
-                    userDetails.getId(), userDetails.getUsername(), expiryDate);
-            return token;
         } catch (Exception e) {
             log.error("Error generating token for user: {}", userDetails.getId(), e);
             throw new RuntimeException("Error generating JWT token", e);
@@ -63,22 +56,16 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
 
         try {
-            String token = Jwts.builder()
+            return Jwts.builder()
                     .subject(Integer.toString(adminDetails.getId()))
                     .claim("userType", "ADMIN")
                     .claim("adminId", adminDetails.getId())
                     .claim("email", adminDetails.getUsername()) // Store email
                     .claim("role", adminDetails.getRole())
-                    .claim("username", adminDetails.getUserRealUsername()) // Add real username
-                    .claim("fullName", adminDetails.getFullName()) // Add full name
                     .issuedAt(now)
                     .expiration(expiryDate)
-                    .signWith(getSigningKey(), Jwts.SIG.HS512)
+                    .signWith(getSigningKey(), SignatureAlgorithm.HS512) // Explicitly specify algorithm
                     .compact();
-
-            log.info("Generated JWT token for admin ID: {}, email: {}, expires: {}",
-                    adminDetails.getId(), adminDetails.getUsername(), expiryDate);
-            return token;
         } catch (Exception e) {
             log.error("Error generating token for admin: {}", adminDetails.getId(), e);
             throw new RuntimeException("Error generating JWT token for admin", e);
@@ -88,14 +75,15 @@ public class JwtTokenProvider {
     // Lấy thông tin user từ jwt
     public Long getUserIdFromJWT(String token) {
         try {
-            Claims claims = parseToken(token);
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
             // Try to get from userId claim first, then fallback to subject
             Object userIdClaim = claims.get("userId");
             if (userIdClaim != null) {
-                if (userIdClaim instanceof Number) {
-                    return ((Number) userIdClaim).longValue();
-                }
                 return Long.parseLong(userIdClaim.toString());
             }
 
@@ -109,14 +97,15 @@ public class JwtTokenProvider {
     // Lấy thông tin admin từ jwt
     public Integer getAdminIdFromJWT(String token) {
         try {
-            Claims claims = parseToken(token);
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
 
             // Try to get from adminId claim first, then fallback to subject
             Object adminIdClaim = claims.get("adminId");
             if (adminIdClaim != null) {
-                if (adminIdClaim instanceof Number) {
-                    return ((Number) adminIdClaim).intValue();
-                }
                 return Integer.parseInt(adminIdClaim.toString());
             }
 
@@ -130,26 +119,27 @@ public class JwtTokenProvider {
     // Lấy loại user từ JWT
     public String getUserTypeFromJWT(String token) {
         try {
-            Claims claims = parseToken(token);
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+
             String userType = claims.get("userType", String.class);
 
             // If userType is not present, try to determine from other claims
-            if (userType == null || userType.isEmpty()) {
+            if (userType == null) {
                 // Check if it has admin-specific claims
                 if (claims.get("adminId") != null) {
-                    log.debug("Determined user type as ADMIN from adminId claim");
                     return "ADMIN";
                 } else if (claims.get("userId") != null) {
-                    log.debug("Determined user type as USER from userId claim");
                     return "USER";
                 } else {
                     // Fallback: assume USER if no specific type found
-                    log.debug("No specific user type found, defaulting to USER");
                     return "USER";
                 }
             }
 
-            log.debug("User type from JWT: {}", userType);
             return userType;
         } catch (Exception e) {
             log.error("Error extracting user type from JWT: {}", e.getMessage());
@@ -165,19 +155,15 @@ public class JwtTokenProvider {
         }
 
         try {
-            Claims claims = parseToken(authToken);
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(authToken);
 
-            // Additional validation - check if token is expired
-            Date expiration = claims.getExpiration();
-            if (expiration != null && expiration.before(new Date())) {
-                log.debug("JWT token is expired: {}", expiration);
-                return false;
-            }
-
-            log.debug("JWT token validation successful for subject: {}", claims.getSubject());
+            log.debug("JWT token validation successful");
             return true;
         } catch (io.jsonwebtoken.security.SignatureException ex) {
-            log.error("Invalid JWT signature - token may have been generated with different secret: {}", ex.getMessage());
+            log.error("Invalid JWT signature: {}", ex.getMessage());
         } catch (MalformedJwtException ex) {
             log.error("Invalid JWT token format: {}", ex.getMessage());
         } catch (ExpiredJwtException ex) {
@@ -192,59 +178,17 @@ public class JwtTokenProvider {
         return false;
     }
 
-    // Helper method to parse token safely
-    private Claims parseToken(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-
     // Helper method to decode token without validation (for debugging)
     public Claims getClaimsFromToken(String token) {
         try {
-            return parseToken(token);
+            return Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
         } catch (Exception e) {
             log.error("Error parsing token claims: {}", e.getMessage());
             return null;
-        }
-    }
-
-    // Method to extract email from token
-    public String getEmailFromJWT(String token) {
-        try {
-            Claims claims = parseToken(token);
-            return claims.get("email", String.class);
-        } catch (Exception e) {
-            log.error("Error extracting email from JWT: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // Method to extract role from token
-    public String getRoleFromJWT(String token) {
-        try {
-            Claims claims = parseToken(token);
-            return claims.get("role", String.class);
-        } catch (Exception e) {
-            log.error("Error extracting role from JWT: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // Method to check if token will expire soon (within 1 hour)
-    public boolean isTokenExpiringSoon(String token) {
-        try {
-            Claims claims = parseToken(token);
-            Date expiration = claims.getExpiration();
-            if (expiration == null) return false;
-
-            long timeUntilExpiry = expiration.getTime() - System.currentTimeMillis();
-            return timeUntilExpiry < 3600000; // 1 hour in milliseconds
-        } catch (Exception e) {
-            log.error("Error checking token expiration: {}", e.getMessage());
-            return true; // Assume expiring if we can't parse
         }
     }
 }
