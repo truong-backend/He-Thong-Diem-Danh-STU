@@ -1,0 +1,15 @@
+package vn.diemdanh.hethong.repository.user_man_and_login;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import vn.diemdanh.hethong.entity.LichGd;
+import vn.diemdanh.hethong.entity.Tkb;
+
+import java.time.LocalDate;
+
+public interface TkbRepository extends JpaRepository<Tkb, Long> {
+    Page<Tkb> findByMaGd(LichGd lichGd, Pageable pageable);
+    Page<Tkb> findByNgayHoc(LocalDate ngayHoc, Pageable pageable);
+    Page<Tkb> findByNgayHocBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+} 
