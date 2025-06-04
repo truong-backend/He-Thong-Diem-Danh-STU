@@ -1,6 +1,8 @@
-package vn.diemdanh.hethong.repository.login;
+package vn.diemdanh.hethong.repository.user_man_and_login;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import vn.diemdanh.hethong.entity.User;
 
 import java.util.*;
@@ -8,4 +10,18 @@ import java.util.*;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
     Optional<User> findByUsername(String username);
+    
+    // Search method with pagination
+    Page<User> findByUsernameContainingOrEmailContaining(String username, String email, Pageable pageable);
+
+    // Thêm phương thức tìm kiếm theo role có phân trang
+    Page<User> findByRole(String role, Pageable pageable);
+
+    // Thêm phương thức search theo role và keyword
+    Page<User> findByRoleAndUsernameContainingOrRoleAndEmailContainingOrRoleAndFullNameContaining(
+            String role1, String username,
+            String role2, String email,
+            String role3, String fullName,
+            Pageable pageable
+    );
 }

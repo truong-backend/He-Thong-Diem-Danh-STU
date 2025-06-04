@@ -101,29 +101,29 @@ public class UserController {
 
         return dto;
     }
-    @GetMapping("/role/{role}")
-    public ResponseEntity<Page<UserDto>> getUsersByRole(
-            @PathVariable String role,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(required = false) String search) {
-
-        Sort sort = sortDir.equalsIgnoreCase("desc") ?
-                Sort.by(sortBy).descending() :
-                Sort.by(sortBy).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<User> userPage;
-
-        if (search != null && !search.isEmpty()) {
-            userPage = userService.searchUsersByRole(role, search, pageable);
-        } else {
-            userPage = userService.getUsersByRole(role, pageable);
-        }
-
-        Page<UserDto> dtoPage = userPage.map(this::convertToDto);
-        return ResponseEntity.ok(dtoPage);
-    }
+    // Get users by role
+//    @GetMapping("/role/{role}")
+//    public ResponseEntity<Page<UserDto>> getUsersByRole(
+//            @PathVariable String role,
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(defaultValue = "id") String sortBy,
+//            @RequestParam(defaultValue = "asc") String sortDir,
+//            @RequestParam(required = false) String search) {
+//
+//        Pageable pageable = PageRequest.of(page, size,
+//                sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending()
+//                        : Sort.by(sortBy).descending());
+//
+//        Page<User> userPage;
+//        if (search != null && !search.trim().isEmpty()) {
+////            userPage = userService.searchUsersByRole(role, search, pageable);
+//        } else {
+//            userPage = userService.getUsersByRole(role, pageable);
+//        }
+//
+//        Page<UserDto> userDtoPage = userPage.map(this::convertToDto);
+//        return ResponseEntity.ok(userDtoPage);
+//    }
+//
 }

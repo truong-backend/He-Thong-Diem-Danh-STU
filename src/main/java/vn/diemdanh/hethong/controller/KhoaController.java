@@ -13,7 +13,9 @@ import vn.diemdanh.hethong.repository.user_man_and_login.KhoaRepository;
 
 import jakarta.validation.Valid;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/khoa")
@@ -74,7 +76,19 @@ public class KhoaController {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách khoa: " + e.getMessage());
         }
     }
-
+    // ✅ API lấy danh sách không phân trang
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllKhoa() {
+        try {
+            List<Khoa> khoas = khoaRepository.findAll();
+            List<KhoaDto> dtos = khoas.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách khoa: " + e.getMessage());
+        }
+    }
     // READ - Lấy thông tin một khoa
     @GetMapping("/{maKhoa}")
     public ResponseEntity<?> getKhoa(@PathVariable String maKhoa) {
