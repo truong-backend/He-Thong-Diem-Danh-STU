@@ -1,6 +1,7 @@
 package vn.diemdanh.hethong.service.user_man_and_login;
 
 import jakarta.validation.Valid;
+import org.apache.commons.math3.analysis.function.Sinh;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
@@ -11,16 +12,26 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
 import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
+import vn.diemdanh.hethong.dto.user_managerment.SinhVienDto;
 import vn.diemdanh.hethong.dto.user_managerment.UpdateAdminRequest;
 import vn.diemdanh.hethong.entity.Admin;
+import vn.diemdanh.hethong.entity.Lop;
+import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;
 import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.LopRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.SinhVienRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService implements UserDetailsService {
@@ -29,6 +40,35 @@ public class AdminService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    LopRepository lopRepository;
+    @Autowired
+    SinhVienRepository sinhVienRepository;
+
+    @Transactional
+    public void saveImportData(List<SinhVienExcelDto> sinhVienExcelDtos){
+        try {
+            List<SinhVien> sinhViens = sinhVienExcelDtos.stream().map(dto -> {
+                SinhVien sv = new SinhVien();
+                sv.setMaSv(dto.getMaSv());
+                sv.setTenSv(dto.getTenSv());
+                sv.setNgaySinh(dto.getNgaySinh());
+                sv.setPhai(dto.getPhai());
+                sv.setDiaChi(dto.getDiaChi());
+                sv.setSdt(dto.getSdt());
+                sv.setEmail(dto.getEmail());
+                Lop lop = lopRepository.findById(dto.getMaLop().trim()).orElseThrow(() ->
+                        new RuntimeException("Lớp không tồn tại " + dto.getMaLop()));
+                sv.setMaLop(lop);
+                sv.setAvatar(dto.getAvatar());
+                return sv;
+            }).collect(Collectors.toList());
+            sinhVienRepository.saveAll(sinhViens);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw  e;
+        }
+    }
     @Override
     public UserDetails loadUserByUsername(String email) {
         // Kiểm tra xem admin có tồn tại trong database không?
