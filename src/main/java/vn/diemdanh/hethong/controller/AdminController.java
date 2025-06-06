@@ -6,14 +6,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
 import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
 import vn.diemdanh.hethong.dto.user_managerment.UpdateAdminRequest;
+import vn.diemdanh.hethong.helper.csvImport;
+import vn.diemdanh.hethong.helper.excel_Import;
 import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -22,6 +30,24 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
+
+    @PostMapping(value = "/importExcel-SinhVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        try {
+            List<SinhVienExcelDto> sinhvienlist = new ArrayList<>();
+            if(fileName.endsWith(".csv")){
+                sinhvienlist = csvImport.csvImportFile(file.getInputStream());
+            }
+            else if(fileName.endsWith(".xls") || fileName.endsWith(".xlsx")){
+                sinhvienlist = excel_Import.excelImportFile(file.getInputStream());
+            }
+            adminService.saveImportData(sinhvienlist);
+            return ResponseEntity.ok("Import thành công");
+        } catch (Exception e) {
+           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
 
     @GetMapping
     public ResponseEntity<Page<AdminDto>> getAllAdmins(
