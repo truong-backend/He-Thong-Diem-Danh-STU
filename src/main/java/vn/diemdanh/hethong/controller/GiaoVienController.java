@@ -14,8 +14,10 @@ import vn.diemdanh.hethong.repository.user_man_and_login.*;
 
 import jakarta.validation.Valid;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/giao-vien")
@@ -222,6 +224,32 @@ public class GiaoVienController {
             return ResponseEntity.ok("Xóa giáo viên thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi xóa giáo viên: " + e.getMessage());
+        }
+    }
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllGiaoVienWithoutPaging() {
+        try {
+            List<GiaoVien> giaoViens = giaoVienRepository.findAll(Sort.by("maGv").ascending());
+
+            List<GiaoVienDto> dtos = giaoViens.stream()
+                .map(giaoVien -> {
+                    GiaoVienDto dto = new GiaoVienDto();
+                    dto.setMaGv(giaoVien.getMaGv());
+                    dto.setTenGv(giaoVien.getTenGv());
+                    dto.setNgaySinh(giaoVien.getNgaySinh());
+                    dto.setPhai(giaoVien.getPhai());
+                    dto.setDiaChi(giaoVien.getDiaChi());
+                    dto.setSdt(giaoVien.getSdt());
+                    dto.setEmail(giaoVien.getEmail());
+                    dto.setAvatar(giaoVien.getAvatar());
+                    dto.setHasAccount(userRepository.findByEmail(giaoVien.getEmail()).isPresent());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách giáo viên: " + e.getMessage());
         }
     }
 } 

@@ -145,20 +145,7 @@ public class MonHocController {
         dto.setSoTiet(monHoc.getSoTiet());
         return dto;
     }
-    @GetMapping("/all")
-    public ResponseEntity<?> getAllMonHocWithoutPaging() {
-        try {
-            List<MonHoc> monHocs = monHocRepository.findAll(Sort.by("maMh").ascending());
 
-            List<MonHocDto> dtos = monHocs.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách môn học: " + e.getMessage());
-        }
-    }
     // Helper method to validate sort fields
     private boolean isValidSortField(String field) {
         return Arrays.asList("maMh", "tenMh", "soTiet").contains(field);

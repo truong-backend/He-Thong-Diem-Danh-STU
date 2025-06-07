@@ -98,28 +98,36 @@ public class SinhVienController {
     public ResponseEntity<?> getAllSinhVien(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "maSv,asc") String[] sort) {
+            @RequestParam(defaultValue = "maSv,asc") String[] sort,
+            @RequestParam(required = false) String search) {
         try {
             // Validate sort field
             String sortField = sort[0];
             String sortDirection = sort.length > 1 ? sort[1] : "asc";
-            
-            // Kiểm tra tính hợp lệ của trường sắp xếp
+
             if (!isValidSortField(sortField)) {
                 return ResponseEntity.badRequest()
-                    .body("Trường sắp xếp không hợp lệ. Các trường hợp lệ: maSv, tenSv, ngaySinh, email, maLop");
+                        .body("Trường sắp xếp không hợp lệ. Các trường hợp lệ: maSv, tenSv, ngaySinh, email, maLop");
             }
 
-            // Tạo Pageable với sort
+            // Create pageable with sort
             Pageable pageable = PageRequest.of(
-                page, 
-                size, 
-                sortDirection.equalsIgnoreCase("desc") ? 
-                    Sort.by(sortField).descending() : 
-                    Sort.by(sortField).ascending()
+                    page,
+                    size,
+                    sortDirection.equalsIgnoreCase("desc") ?
+                            Sort.by(sortField).descending() :
+                            Sort.by(sortField).ascending()
             );
 
-            Page<SinhVien> sinhViens = sinhVienRepository.findAll(pageable);
+            // Get students with search
+            Page<SinhVien> sinhViens;
+            if (search != null && !search.trim().isEmpty()) {
+                sinhViens = sinhVienRepository.findByMaSvContainingIgnoreCase(search.trim(), pageable);
+            } else {
+                sinhViens = sinhVienRepository.findAll(pageable);
+            }
+
+            // Map to DTOs
             Page<SinhVienDto> dtos = sinhViens.map(sinhVien -> {
                 SinhVienDto dto = new SinhVienDto();
                 dto.setMaSv(sinhVien.getMaSv());
@@ -236,4 +244,5 @@ public class SinhVienController {
             return ResponseEntity.badRequest().body("Lỗi khi xóa sinh viên: " + e.getMessage());
         }
     }
+
 } 
