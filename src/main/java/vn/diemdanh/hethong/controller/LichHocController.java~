@@ -162,70 +162,7 @@ public class LichHocController {
         dto.setHocKy(lichHoc.getMaGd().getHocKy());
         return dto;
     }
-    // UPDATE - Cập nhật lịch học (chuyển sang lịch giảng dạy khác)
-    @PutMapping("/{maSv}/{maGd}")
-    public ResponseEntity<?> updateLichHoc(
-            @PathVariable String maSv,
-            @PathVariable Long maGd,
-            @Valid @RequestBody LichHocDto request
-    ) {
-        try {
-            // Tạo ID cho lịch học hiện tại
-            LichHocId currentLichHocId = new LichHocId();
-            currentLichHocId.setMaSv(maSv);
-            currentLichHocId.setMaGd(maGd);
 
-            // Kiểm tra lịch học hiện tại có tồn tại không
-            LichHoc currentLichHoc = lichHocRepository.findById(currentLichHocId)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch học"));
-
-            // Kiểm tra sinh viên có tồn tại không
-            SinhVien sinhVien = sinhVienRepository.findById(request.getMaSv())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
-
-            // Kiểm tra lịch giảng dạy mới có tồn tại không
-            LichGd newLichGd = lichGdRepository.findById(request.getMaGd())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy mới"));
-
-            // Kiểm tra sinh viên trong request phải khớp với path variable
-            if (!sinhVien.getMaSv().equals(maSv)) {
-                return ResponseEntity.badRequest().body("Mã sinh viên trong request không khớp");
-            }
-
-            // Nếu chuyển sang lịch giảng dạy khác
-            if (!newLichGd.getId().equals(maGd)) {
-                // Tạo ID cho lịch học mới
-                LichHocId newLichHocId = new LichHocId();
-                newLichHocId.setMaSv(sinhVien.getMaSv());
-                newLichHocId.setMaGd(newLichGd.getId());
-
-                // Kiểm tra lịch học mới đã tồn tại chưa
-                if (lichHocRepository.findById(newLichHocId).isPresent()) {
-                    return ResponseEntity.badRequest().body("Sinh viên đã đăng ký lịch giảng dạy mới này");
-                }
-
-                // Xóa lịch học cũ
-                lichHocRepository.delete(currentLichHoc);
-
-                // Tạo lịch học mới
-                LichHoc newLichHoc = new LichHoc();
-                newLichHoc.setId(newLichHocId);
-                newLichHoc.setMaSv(sinhVien);
-                newLichHoc.setMaGd(newLichGd);
-
-                // Lưu lịch học mới
-                newLichHoc = lichHocRepository.save(newLichHoc);
-
-                return ResponseEntity.ok(convertToDto(newLichHoc));
-            } else {
-                // Nếu không thay đổi lịch giảng dạy, trả về lịch học hiện tại
-                return ResponseEntity.ok(convertToDto(currentLichHoc));
-            }
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi cập nhật lịch học: " + e.getMessage());
-        }
-    }
     // Helper method to validate sort fields
     private boolean isValidSortField(String field) {
         return Arrays.asList(

@@ -8,6 +8,7 @@ public class UserDto {
     private Long id;
     private String username;
     private String email;
+    private String password; // Added for create/update operations
     private String role;
     private String fullName; // Tên sinh viên hoặc giáo viên
     private String userType; // SINH_VIEN hoặc GIAO_VIEN

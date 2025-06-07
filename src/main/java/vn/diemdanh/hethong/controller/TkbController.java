@@ -17,6 +17,8 @@ import vn.diemdanh.hethong.repository.user_man_and_login.TkbRepository;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/tkb")
@@ -28,6 +30,20 @@ public class TkbController {
     @Autowired
     private LichGdRepository lichGdRepository;
 
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllTkbWithoutPaging() {
+        try {
+            List<Tkb> tkbs = tkbRepository.findAll(Sort.by("ngayHoc").ascending());
+
+            List<TkbDto> dtos = tkbs.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách thời khóa biểu: " + e.getMessage());
+        }
+    }
     // CREATE - Thêm thời khóa biểu mới
     @PostMapping
     public ResponseEntity<?> createTkb(@Valid @RequestBody TkbDto request) {

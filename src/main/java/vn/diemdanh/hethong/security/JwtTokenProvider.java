@@ -201,50 +201,5 @@ public class JwtTokenProvider {
                 .getPayload();
     }
 
-    // Helper method to decode token without validation (for debugging)
-    public Claims getClaimsFromToken(String token) {
-        try {
-            return parseToken(token);
-        } catch (Exception e) {
-            log.error("Error parsing token claims: {}", e.getMessage());
-            return null;
-        }
-    }
 
-    // Method to extract email from token
-    public String getEmailFromJWT(String token) {
-        try {
-            Claims claims = parseToken(token);
-            return claims.get("email", String.class);
-        } catch (Exception e) {
-            log.error("Error extracting email from JWT: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // Method to extract role from token
-    public String getRoleFromJWT(String token) {
-        try {
-            Claims claims = parseToken(token);
-            return claims.get("role", String.class);
-        } catch (Exception e) {
-            log.error("Error extracting role from JWT: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    // Method to check if token will expire soon (within 1 hour)
-    public boolean isTokenExpiringSoon(String token) {
-        try {
-            Claims claims = parseToken(token);
-            Date expiration = claims.getExpiration();
-            if (expiration == null) return false;
-
-            long timeUntilExpiry = expiration.getTime() - System.currentTimeMillis();
-            return timeUntilExpiry < 3600000; // 1 hour in milliseconds
-        } catch (Exception e) {
-            log.error("Error checking token expiration: {}", e.getMessage());
-            return true; // Assume expiring if we can't parse
-        }
-    }
 }

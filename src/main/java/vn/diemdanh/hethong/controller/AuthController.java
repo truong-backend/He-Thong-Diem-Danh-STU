@@ -38,10 +38,15 @@ public class AuthController {
     @Autowired
     private AdminService adminService;
 
-    @PostMapping("/user/login")
-    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    @PostMapping("/sinhvien/login")
+    public ResponseEntity<?> authenticateSinhVien(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             log.info("Attempting user login for email: {}", loginRequest.getEmail());
+            
+            // Kiểm tra xem có phải email sinh viên không
+            if (!loginRequest.getEmail().endsWith("@student.stu.edu.vn")) {
+                return ResponseEntity.badRequest().body("Email không hợp lệ. Vui lòng sử dụng email sinh viên (@student.stu.edu.vn)");
+            }
             
             // Authenticate user
             Authentication authentication = authenticationManager.authenticate(
@@ -69,12 +74,59 @@ public class AuthController {
             log.info("User login successful for email: {}", loginRequest.getEmail());
             return ResponseEntity.ok(response);
 
+        } catch (ClassCastException e) {
+            log.error("Invalid account type for user login: {}", loginRequest.getEmail());
+            return ResponseEntity.badRequest().body("Tài khoản không hợp lệ cho đăng nhập sinh viên");
         } catch (BadCredentialsException e) {
             log.error("Invalid user credentials for email: {}", loginRequest.getEmail());
-            return ResponseEntity.badRequest().body("Invalid email or password");
+            return ResponseEntity.badRequest().body("Email hoặc mật khẩu không chính xác");
         } catch (Exception e) {
             log.error("Error during user login for email: {}: {}", loginRequest.getEmail(), e.getMessage());
-            return ResponseEntity.badRequest().body("Error during login: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/giangvien/login")
+    public ResponseEntity<?> authenticateGiangVien(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            log.info("Attempting user login for email: {}", loginRequest.getEmail());
+
+
+            // Authenticate user
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword()
+                    )
+            );
+
+            // Get user details
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+            // Generate JWT token
+            String jwt = tokenProvider.generateToken(userDetails);
+
+            // Create response
+            UserLoginResponse response = new UserLoginResponse(
+                    jwt,
+                    userDetails.getId(),
+                    userDetails.getUserRealUsername(),
+                    userDetails.getUsername(), // email
+                    userDetails.getRole()
+            );
+
+            log.info("User login successful for email: {}", loginRequest.getEmail());
+            return ResponseEntity.ok(response);
+
+        } catch (ClassCastException e) {
+            log.error("Invalid account type for user login: {}", loginRequest.getEmail());
+            return ResponseEntity.badRequest().body("Tài khoản không hợp lệ cho đăng nhập giảng viên");
+        } catch (BadCredentialsException e) {
+            log.error("Invalid user credentials for email: {}", loginRequest.getEmail());
+            return ResponseEntity.badRequest().body("Email hoặc mật khẩu không chính xác");
+        } catch (Exception e) {
+            log.error("Error during user login for email: {}: {}", loginRequest.getEmail(), e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập: " + e.getMessage());
         }
     }
 
@@ -82,6 +134,11 @@ public class AuthController {
     public ResponseEntity<?> authenticateAdmin(@Valid @RequestBody LoginRequest loginRequest) {
         try {
             log.info("Attempting admin login for email: {}", loginRequest.getEmail());
+            
+            // Kiểm tra xem email có phải là email sinh viên không
+            if (loginRequest.getEmail().endsWith("@student.stu.edu.vn")) {
+                return ResponseEntity.badRequest().body("Tài khoản sinh viên không được phép đăng nhập vào trang quản trị");
+            }
             
             // Authenticate admin
             Authentication authentication = authenticationManager.authenticate(
@@ -110,12 +167,15 @@ public class AuthController {
             log.info("Admin login successful for email: {}", loginRequest.getEmail());
             return ResponseEntity.ok(response);
 
+        } catch (ClassCastException e) {
+            log.error("Invalid account type for admin login: {}", loginRequest.getEmail());
+            return ResponseEntity.badRequest().body("Tài khoản không có quyền truy cập trang quản trị");
         } catch (BadCredentialsException e) {
             log.error("Invalid admin credentials for email: {}", loginRequest.getEmail());
-            return ResponseEntity.badRequest().body("Invalid email or password");
+            return ResponseEntity.badRequest().body("Email hoặc mật khẩu không chính xác");
         } catch (Exception e) {
             log.error("Error during admin login for email: {}: {}", loginRequest.getEmail(), e.getMessage());
-            return ResponseEntity.badRequest().body("Error during login: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi đăng nhập: " + e.getMessage());
         }
     }
 } 

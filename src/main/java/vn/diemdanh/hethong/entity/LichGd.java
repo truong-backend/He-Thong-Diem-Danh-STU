@@ -13,6 +13,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "lich_gd")
 public class LichGd {
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     @Column(name = "ma_gd", columnDefinition = "int UNSIGNED not null")
     private Long id;
