@@ -97,7 +97,20 @@ public class LopController {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách lớp: " + e.getMessage());
         }
     }
+    @GetMapping("/all")
+    public ResponseEntity<?> getAlls() {
+        try {
+            List<Lop> lops = lopRepository.findAll(Sort.by("maLop").ascending());
 
+            List<LopDto> dtos = lops.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách lớp: " + e.getMessage());
+        }
+    }
     // READ - Lấy thông tin một lớp
     @GetMapping("/{maLop}")
     public ResponseEntity<?> getLop(@PathVariable String maLop) {
