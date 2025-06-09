@@ -6,13 +6,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.dto.user_managerment.*;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.user_man_and_login.*;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.giaovien.GiaoVienService;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +34,22 @@ public class GiaoVienController {
     @Autowired
     private GiaoVienRepository giaoVienRepository;
 
+    @Autowired GiaoVienService GiaoVienService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+ 
+
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfileTeacher(@AuthenticationPrincipal UserDetails userDetails) {
+        String email = userDetails.getUsername();
+        GiaoVienDTO_Profile giaoVien = GiaoVienService.getGiaoVienByEmail(email);
+        return ResponseEntity.ok(giaoVien);
+    }
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfileTeacher(@AuthenticationPrincipal UserDetails userDetails,@RequestBody @Valid GiaoVienDTO_Profile giaoVienDTO_Profile) {
+        String email = userDetails.getUsername();
+        return ResponseEntity.ok(GiaoVienService.updateProfileGiaoVien(email,giaoVienDTO_Profile));
+    }
 
     // CREATE - Thêm giáo viên mới
     @PostMapping
@@ -165,7 +184,7 @@ public class GiaoVienController {
             dto.setSdt(giaoVien.getSdt());
             dto.setEmail(giaoVien.getEmail());
             dto.setAvatar(giaoVien.getAvatar());
-            
+
             Optional<User> userOpt = userRepository.findByEmail(giaoVien.getEmail());
             dto.setHasAccount(userOpt.isPresent());
 
