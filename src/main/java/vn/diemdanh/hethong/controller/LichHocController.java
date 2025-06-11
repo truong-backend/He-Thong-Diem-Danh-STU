@@ -13,9 +13,9 @@ import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.LichHoc;
 import vn.diemdanh.hethong.entity.LichHocId;
 import vn.diemdanh.hethong.entity.SinhVien;
-import vn.diemdanh.hethong.repository.user_man_and_login.LichGdRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.LichHocRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.SinhVienRepository;
+import vn.diemdanh.hethong.repository.LichGdRepository;
+import vn.diemdanh.hethong.repository.LichHocRepository;
+import vn.diemdanh.hethong.repository.SinhVienRepository;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;

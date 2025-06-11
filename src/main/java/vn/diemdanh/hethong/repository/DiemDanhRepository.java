@@ -1,17 +1,12 @@
-package vn.diemdanh.hethong.repository.user_man_and_login;
+package vn.diemdanh.hethong.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import vn.diemdanh.hethong.dto.diemdanh.DiemDanhDto;
-import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.entity.DiemDanh;
 import vn.diemdanh.hethong.entity.Tkb;
 
 import java.time.LocalDate;
-import java.util.*;
 
 public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
 

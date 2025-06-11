@@ -11,7 +11,9 @@ import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
 import vn.diemdanh.hethong.dto.sinhvien.UpdateSinhVienRequest;
 import vn.diemdanh.hethong.entity.*;
-import vn.diemdanh.hethong.repository.user_man_and_login.*;
+import vn.diemdanh.hethong.repository.LopRepository;
+import vn.diemdanh.hethong.repository.SinhVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 
 import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.SinhVienService;

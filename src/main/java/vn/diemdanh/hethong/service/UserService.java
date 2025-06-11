@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;

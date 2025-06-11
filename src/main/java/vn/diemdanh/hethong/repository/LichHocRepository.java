@@ -1,9 +1,8 @@
-package vn.diemdanh.hethong.repository.user_man_and_login;
+package vn.diemdanh.hethong.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.LichHoc;
 import vn.diemdanh.hethong.entity.LichHocId;
 import vn.diemdanh.hethong.entity.SinhVien;

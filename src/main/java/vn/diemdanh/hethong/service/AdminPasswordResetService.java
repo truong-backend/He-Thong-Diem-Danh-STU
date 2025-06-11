@@ -10,8 +10,8 @@ import vn.diemdanh.hethong.entity.AdminPasswordReset;
 import vn.diemdanh.hethong.exception.forgot_password.OtpExpiredException;
 import vn.diemdanh.hethong.exception.forgot_password.OtpInvalidException;
 import vn.diemdanh.hethong.exception.forgot_password.UserNotFoundException;
-import vn.diemdanh.hethong.repository.forgot_password.AdminPasswordResetRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
+import vn.diemdanh.hethong.repository.AdminPasswordResetRepository;
+import vn.diemdanh.hethong.repository.AdminRepository;
 
 import java.time.Duration;
 import java.time.Instant;

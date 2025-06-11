@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.repository.user_man_and_login;
+package vn.diemdanh.hethong.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

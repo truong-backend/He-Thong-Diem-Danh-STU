@@ -5,23 +5,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
 import vn.diemdanh.hethong.entity.GiaoVien;
 import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.MonHoc;
-import vn.diemdanh.hethong.repository.user_man_and_login.GiaoVienRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.LichGdRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.MonHocRepository;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
+import vn.diemdanh.hethong.repository.LichGdRepository;
+import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/lichgd")

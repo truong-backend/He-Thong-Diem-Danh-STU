@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.entity.GiaoVien;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.repository.user_man_and_login.GiaoVienRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 
 @Service
 public class GiaoVienService {

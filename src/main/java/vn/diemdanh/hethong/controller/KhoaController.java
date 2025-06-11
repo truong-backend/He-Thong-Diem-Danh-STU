@@ -9,12 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.khoa.KhoaDto;
 import vn.diemdanh.hethong.entity.Khoa;
-import vn.diemdanh.hethong.repository.user_man_and_login.KhoaRepository;
+import vn.diemdanh.hethong.repository.KhoaRepository;
 
 import jakarta.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController

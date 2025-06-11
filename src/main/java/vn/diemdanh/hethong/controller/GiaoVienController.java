@@ -15,7 +15,8 @@ import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
 import vn.diemdanh.hethong.dto.giaovien.UpdateGiaoVienRequest;
 import vn.diemdanh.hethong.entity.*;
-import vn.diemdanh.hethong.repository.user_man_and_login.*;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 
 import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.GiaoVienService;

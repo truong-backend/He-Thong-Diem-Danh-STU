@@ -7,9 +7,9 @@ import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.entity.Lop;
 import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.repository.user_man_and_login.LopRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.SinhVienRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
+import vn.diemdanh.hethong.repository.LopRepository;
+import vn.diemdanh.hethong.repository.SinhVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 
 import java.time.Instant;
 
