@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.service.giaovien;
+package vn.diemdanh.hethong.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,8 +8,6 @@ import vn.diemdanh.hethong.entity.GiaoVien;
 import vn.diemdanh.hethong.entity.User;
 import vn.diemdanh.hethong.repository.user_man_and_login.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
-
-import java.util.Optional;
 
 @Service
 public class GiaoVienService {

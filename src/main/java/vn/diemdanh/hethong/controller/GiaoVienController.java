@@ -18,7 +18,7 @@ import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.user_man_and_login.*;
 
 import jakarta.validation.Valid;
-import vn.diemdanh.hethong.service.giaovien.GiaoVienService;
+import vn.diemdanh.hethong.service.GiaoVienService;
 
 import java.time.Instant;
 import java.util.List;

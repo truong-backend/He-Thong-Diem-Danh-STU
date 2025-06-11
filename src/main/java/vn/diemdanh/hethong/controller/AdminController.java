@@ -17,7 +17,7 @@ import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
 import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
 import vn.diemdanh.hethong.helper.csvImport;
 import vn.diemdanh.hethong.helper.excel_Import;
-import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
+import vn.diemdanh.hethong.service.AdminService;
 
 import java.util.ArrayList;
 import java.util.HashMap;

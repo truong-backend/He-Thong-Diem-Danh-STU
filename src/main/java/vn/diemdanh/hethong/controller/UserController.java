@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.service.user_man_and_login.UserService;
+import vn.diemdanh.hethong.service.UserService;
 import org.springframework.http.HttpStatus;
 
 @RestController

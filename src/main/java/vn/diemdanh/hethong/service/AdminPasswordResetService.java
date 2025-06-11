@@ -1,19 +1,17 @@
-package vn.diemdanh.hethong.service.forgot_password;
-
+package vn.diemdanh.hethong.service;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vn.diemdanh.hethong.entity.PasswordReset;
-import vn.diemdanh.hethong.entity.User;
+import vn.diemdanh.hethong.entity.Admin;
+import vn.diemdanh.hethong.entity.AdminPasswordReset;
 import vn.diemdanh.hethong.exception.forgot_password.OtpExpiredException;
 import vn.diemdanh.hethong.exception.forgot_password.OtpInvalidException;
 import vn.diemdanh.hethong.exception.forgot_password.UserNotFoundException;
-import vn.diemdanh.hethong.repository.forgot_password.PasswordResetRepository;
-import vn.diemdanh.hethong.repository.user_man_and_login.UserRepository;
-import vn.diemdanh.hethong.service.email.EmailService;
+import vn.diemdanh.hethong.repository.forgot_password.AdminPasswordResetRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -22,13 +20,13 @@ import java.util.Random;
 
 @Service
 @Slf4j
-public class PasswordResetService {
+public class AdminPasswordResetService {
 
     @Autowired
-    private PasswordResetRepository passwordResetRepository;
+    private AdminPasswordResetRepository adminPasswordResetRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private AdminRepository adminRepository;
 
     @Autowired
     private EmailService emailService;
@@ -40,13 +38,13 @@ public class PasswordResetService {
     private static final long OTP_EXPIRATION_MINUTES = 3;
 
     /**
-     * Tạo OTP ngẫu nhiên 6 số và gửi qua email
+     * Tạo OTP ngẫu nhiên 6 số và gửi qua email cho Admin
      */
     @Transactional
     public void createAndSendOtp(String email) throws UserNotFoundException {
-        // Kiểm tra xem email có tồn tại không
-        if (!userRepository.findByEmail(email).isPresent()) {
-            throw new UserNotFoundException("Không tìm thấy người dùng với email: " + email);
+        // Kiểm tra xem email admin có tồn tại không
+        if (!adminRepository.findByEmail(email).isPresent()) {
+            throw new UserNotFoundException("Không tìm thấy admin với email: " + email);
         }
 
         // Tạo OTP 6 số ngẫu nhiên
@@ -60,18 +58,18 @@ public class PasswordResetService {
     }
 
     /**
-     * Xác minh OTP và đặt lại mật khẩu
+     * Xác minh OTP và đặt lại mật khẩu cho Admin
      */
     @Transactional
     public void verifyOtpAndResetPassword(String email, String otp, String newPassword) {
         // Lấy thông tin OTP từ database
-        Optional<PasswordReset> passwordResetOptional = passwordResetRepository.findById(email);
+        Optional<AdminPasswordReset> passwordResetOptional = adminPasswordResetRepository.findById(email);
 
         if (!passwordResetOptional.isPresent()) {
-            throw new OtpInvalidException("Không tìm thấy yêu cầu đặt lại mật khẩu cho email này");
+            throw new OtpInvalidException("Không tìm thấy yêu cầu đặt lại mật khẩu cho email admin này");
         }
 
-        PasswordReset passwordReset = passwordResetOptional.get();
+        AdminPasswordReset passwordReset = passwordResetOptional.get();
 
         // Kiểm tra xem OTP có hợp lệ không
         if (!passwordEncoder.matches(otp, passwordReset.getToken())) {
@@ -83,18 +81,19 @@ public class PasswordResetService {
             throw new OtpExpiredException("Mã OTP đã hết hạn");
         }
 
-        // Cập nhật mật khẩu mới
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        if (!userOptional.isPresent()) {
-            throw new UserNotFoundException("Không tìm thấy người dùng với email: " + email);
+        // Cập nhật mật khẩu mới cho admin
+        Optional<Admin> adminOptional = adminRepository.findByEmail(email);
+        if (!adminOptional.isPresent()) {
+            throw new UserNotFoundException("Không tìm thấy admin với email: " + email);
         }
 
-        User user = userOptional.get();
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        Admin admin = adminOptional.get();
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        admin.setUpdatedAt(Instant.now());
+        adminRepository.save(admin);
 
         // Xóa bản ghi OTP sau khi đặt lại mật khẩu thành công
-        passwordResetRepository.deleteById(email);
+        adminPasswordResetRepository.deleteById(email);
     }
 
     /**
@@ -107,24 +106,28 @@ public class PasswordResetService {
     }
 
     /**
-     * Lưu OTP vào database
+     * Lưu OTP vào database cho admin
      */
     private void saveOtp(String email, String otp) {
-        PasswordReset passwordReset = new PasswordReset();
+        AdminPasswordReset passwordReset = new AdminPasswordReset();
         passwordReset.setEmail(email);
         passwordReset.setToken(passwordEncoder.encode(otp)); // Mã hóa OTP trước khi lưu
         passwordReset.setCreatedAt(Instant.now());
 
-        passwordResetRepository.save(passwordReset);
+        adminPasswordResetRepository.save(passwordReset);
     }
 
     /**
-     * Gửi OTP qua email
+     * Gửi OTP qua email cho admin
      */
     private void sendOtpEmail(String email, String otp) {
-        String subject = "Mã OTP đặt lại mật khẩu";
-        String content = "Mã OTP để đặt lại mật khẩu của bạn là: " + otp + "\n"
-                + "Mã này sẽ hết hạn sau " + OTP_EXPIRATION_MINUTES + " phút.";
+        String subject = "Mã OTP đặt lại mật khẩu Admin";
+        String content = "Xin chào Admin,\n\n"
+                + "Mã OTP để đặt lại mật khẩu admin của bạn là: " + otp + "\n"
+                + "Mã này sẽ hết hạn sau " + OTP_EXPIRATION_MINUTES + " phút.\n\n"
+                + "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.\n\n"
+                + "Trân trọng,\n"
+                + "Hệ thống điểm danh";
 
         emailService.sendEmail(email, subject, content);
     }

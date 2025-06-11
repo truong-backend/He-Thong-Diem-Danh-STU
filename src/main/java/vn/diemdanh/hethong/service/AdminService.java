@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.service.user_man_and_login;
+package vn.diemdanh.hethong.service;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,6 @@ import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
 import vn.diemdanh.hethong.repository.user_man_and_login.LopRepository;
 import vn.diemdanh.hethong.repository.user_man_and_login.SinhVienRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
-import vn.diemdanh.hethong.service.SinhVienService;
 
 import java.time.Instant;
 import java.util.List;
