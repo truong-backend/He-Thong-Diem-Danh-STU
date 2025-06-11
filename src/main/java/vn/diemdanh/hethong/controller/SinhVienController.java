@@ -6,13 +6,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import vn.diemdanh.hethong.dto.user_managerment.*;
+import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
+import vn.diemdanh.hethong.dto.sinhvien.UpdateSinhVienRequest;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.user_man_and_login.*;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.SinhVienService;
+
 import java.time.Instant;
 import java.util.Optional;
 import java.util.Arrays;
@@ -31,54 +34,13 @@ public class SinhVienController {
     private LopRepository lopRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private SinhVienService sinhVienService;
 
     // CREATE - Thêm sinh viên mới
     @PostMapping
     public ResponseEntity<?> createSinhVien(@Valid @RequestBody CreateSinhVienRequest request) {
         try {
-            // Kiểm tra mã sinh viên đã tồn tại chưa
-            if (sinhVienRepository.findById(request.getMaSv()).isPresent()) {
-                return ResponseEntity.badRequest().body("Mã sinh viên đã tồn tại");
-            }
-
-            // Kiểm tra email đã tồn tại chưa
-            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-                return ResponseEntity.badRequest().body("Email đã tồn tại");
-            }
-
-            // Kiểm tra lớp có tồn tại không
-            Lop lop = lopRepository.findById(request.getMaLop())
-                    .orElseThrow(() -> new RuntimeException("Lớp không tồn tại"));
-
-            // Tạo sinh viên mới
-            SinhVien sinhVien = new SinhVien();
-            sinhVien.setMaSv(request.getMaSv());
-            sinhVien.setTenSv(request.getTenSv());
-            sinhVien.setNgaySinh(request.getNgaySinh());
-            sinhVien.setPhai(request.getPhai());
-            sinhVien.setDiaChi(request.getDiaChi());
-            sinhVien.setSdt(request.getSdt());
-            sinhVien.setEmail(request.getEmail());
-            sinhVien.setMaLop(lop);
-
-            // Lưu sinh viên
-            sinhVien = sinhVienRepository.save(sinhVien);
-
-            // Nếu yêu cầu tạo tài khoản
-            if (request.isCreateAccount()) {
-                User user = new User();
-                user.setUsername(request.getMaSv());
-                user.setEmail(request.getEmail());
-                user.setPassword(passwordEncoder.encode(request.getMaSv()));
-                user.setRole("SINH_VIEN");
-                user.setMaSv(sinhVien);
-                user.setCreatedAt(Instant.now());
-                user.setUpdatedAt(Instant.now());
-
-                userRepository.save(user);
-            }
-
+            sinhVienService.createSinhVien(request);
             return ResponseEntity.ok("Thêm sinh viên thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm sinh viên: " + e.getMessage());

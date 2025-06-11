@@ -1,15 +1,11 @@
-package vn.diemdanh.hethong.dto.user_managerment;
+package vn.diemdanh.hethong.dto.giaovien;
 
 import lombok.Data;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
-public class CreateGiaoVienRequest {
-    @NotBlank(message = "Mã giáo viên không được để trống")
-    @Size(max = 10, message = "Mã giáo viên không được vượt quá 10 ký tự")
-    private String maGv;
-
+public class UpdateGiaoVienRequest {
     @NotBlank(message = "Tên giáo viên không được để trống")
     @Size(max = 150, message = "Tên giáo viên không được vượt quá 150 ký tự")
     private String tenGv;
@@ -35,6 +31,4 @@ public class CreateGiaoVienRequest {
     @Email(message = "Email không hợp lệ")
     @Size(max = 50, message = "Email không được vượt quá 50 ký tự")
     private String email;
-
-    private boolean createAccount = true;
 }

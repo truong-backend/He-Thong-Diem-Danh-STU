@@ -15,15 +15,6 @@ import java.util.*;
 
 public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
 
-    @Query("Select sv.maSv,sv.tenSv,lop.tenLop,dd.diemDanh1,dd.diemDanh2,dd.ghiChu "
-            +"FROM Lop lop "
-            +"join lop.sinhViens sv "
-            +"JOIN sv.lichGds gd "
-            + "JOIN gd.maMh mh "
-            +"JOIN gd.tkbs tkb  "
-            + "JOIN tkb.diemDanhs dd "
-            +" WHERE mh.tenMh = :tenMh AND gd.phongHoc = :phongHoc")
-    List<Object[]> getDanhSachDiemDanhByMH_PH(@Param("tenMh")String tenMh, @Param("phongHoc")String phongHoc);
     Page<DiemDanh> findByMaTkb(Tkb tkb, Pageable pageable);
     Page<DiemDanh> findByMaSv(String maSv, Pageable pageable);
     Page<DiemDanh> findByMaTkbAndMaSv(Tkb tkb, String maSv, Pageable pageable);

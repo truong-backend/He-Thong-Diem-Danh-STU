@@ -11,7 +11,7 @@ import java.util.*;
 public class DiemDanhService {
     @Autowired private DiemDanhRepository diemDanhRepository;
 
-//    public List<Object[]> getDanhSachdiemDanhByMH_PH(String tenMH,String phongHoc) {
-//       return diemDanhRepository.getDanhSachDiemDanhByMH_PH(tenMH, phongHoc);
-//    }
+    public List<Object[]> getDanhSachdiemDanhByMH_PH(String tenMH,String phongHoc) {
+       return diemDanhRepository.getDanhSachDiemDanhByMH_PH(tenMH, phongHoc);
+    }
 }

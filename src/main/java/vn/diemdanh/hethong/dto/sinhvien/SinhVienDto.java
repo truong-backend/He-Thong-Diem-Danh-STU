@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.dto.user_managerment;
+package vn.diemdanh.hethong.dto.sinhvien;
 
 import lombok.Data;
 import java.time.LocalDate;

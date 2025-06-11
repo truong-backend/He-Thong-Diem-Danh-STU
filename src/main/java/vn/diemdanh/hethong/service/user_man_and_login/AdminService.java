@@ -1,37 +1,31 @@
 package vn.diemdanh.hethong.service.user_man_and_login;
 
 import jakarta.validation.Valid;
-import org.apache.commons.math3.analysis.function.Sinh;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.diemdanh.hethong.dto.admin.AdminDto;
+import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
+import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
+import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
-import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
-import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
-import vn.diemdanh.hethong.dto.user_managerment.SinhVienDto;
-import vn.diemdanh.hethong.dto.user_managerment.UpdateAdminRequest;
 import vn.diemdanh.hethong.entity.Admin;
-import vn.diemdanh.hethong.entity.Lop;
-import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;
 import vn.diemdanh.hethong.repository.user_man_and_login.AdminRepository;
 import vn.diemdanh.hethong.repository.user_man_and_login.LopRepository;
 import vn.diemdanh.hethong.repository.user_man_and_login.SinhVienRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
+import vn.diemdanh.hethong.service.SinhVienService;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class AdminService implements UserDetailsService {
@@ -45,29 +39,35 @@ public class AdminService implements UserDetailsService {
     @Autowired
     SinhVienRepository sinhVienRepository;
 
+    @Autowired
+    private SinhVienService sinhVienService;
+
     @Transactional
-    public void saveImportData(List<SinhVienExcelDto> sinhVienExcelDtos){
-        try {
-            List<SinhVien> sinhViens = sinhVienExcelDtos.stream().map(dto -> {
-                SinhVien sv = new SinhVien();
-                sv.setMaSv(dto.getMaSv());
-                sv.setTenSv(dto.getTenSv());
-                sv.setNgaySinh(dto.getNgaySinh());
-                sv.setPhai(dto.getPhai());
-                sv.setDiaChi(dto.getDiaChi());
-                sv.setSdt(dto.getSdt());
-                sv.setEmail(dto.getEmail());
-                Lop lop = lopRepository.findById(dto.getMaLop().trim()).orElseThrow(() ->
-                        new RuntimeException("Lớp không tồn tại " + dto.getMaLop()));
-                sv.setMaLop(lop);
-                sv.setAvatar(dto.getAvatar());
-                return sv;
-            }).collect(Collectors.toList());
-            sinhVienRepository.saveAll(sinhViens);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw  e;
+    public void saveImportData(List<SinhVienExcelDto> sinhVienExcelDtos) {
+        for (SinhVienExcelDto dto : sinhVienExcelDtos) {
+            try {
+                CreateSinhVienRequest request = convertToCreateRequest(dto);
+                sinhVienService.createSinhVien(request);
+            } catch (Exception e) {
+                // Log lỗi nhưng không rollback toàn bộ
+                System.err.println("Lỗi khi thêm sinh viên mã: " + dto.getMaSv() + " -> " + e.getMessage());
+            }
         }
+    }
+
+
+    public CreateSinhVienRequest convertToCreateRequest(SinhVienExcelDto excelDto) {
+        CreateSinhVienRequest request = new CreateSinhVienRequest();
+        request.setMaSv(excelDto.getMaSv());
+        request.setTenSv(excelDto.getTenSv());
+        request.setNgaySinh(excelDto.getNgaySinh());
+        request.setPhai(excelDto.getPhai());
+        request.setDiaChi(excelDto.getDiaChi());
+        request.setSdt(excelDto.getSdt());
+        request.setEmail(excelDto.getEmail());
+        request.setMaLop(excelDto.getMaLop());
+        request.setCreateAccount(true); // hoặc false, tùy nhu cầu
+        return request;
     }
     @Override
     public UserDetails loadUserByUsername(String email) {

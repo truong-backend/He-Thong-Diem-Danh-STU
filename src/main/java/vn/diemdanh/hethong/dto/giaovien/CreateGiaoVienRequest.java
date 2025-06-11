@@ -1,18 +1,18 @@
-package vn.diemdanh.hethong.dto.user_managerment;
+package vn.diemdanh.hethong.dto.giaovien;
 
 import lombok.Data;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
-public class CreateSinhVienRequest {
-    @NotBlank(message = "Mã sinh viên không được để trống")
-    @Size(max = 10, message = "Mã sinh viên không được vượt quá 10 ký tự")
-    private String maSv;
+public class CreateGiaoVienRequest {
+    @NotBlank(message = "Mã giáo viên không được để trống")
+    @Size(max = 10, message = "Mã giáo viên không được vượt quá 10 ký tự")
+    private String maGv;
 
-    @NotBlank(message = "Tên sinh viên không được để trống")
-    @Size(max = 150, message = "Tên sinh viên không được vượt quá 150 ký tự")
-    private String tenSv;
+    @NotBlank(message = "Tên giáo viên không được để trống")
+    @Size(max = 150, message = "Tên giáo viên không được vượt quá 150 ký tự")
+    private String tenGv;
 
     @NotNull(message = "Ngày sinh không được để trống")
     @Past(message = "Ngày sinh phải là ngày trong quá khứ")
@@ -36,8 +36,5 @@ public class CreateSinhVienRequest {
     @Size(max = 50, message = "Email không được vượt quá 50 ký tự")
     private String email;
 
-    @NotBlank(message = "Mã lớp không được để trống")
-    private String maLop;
-
-    private boolean createAccount = true; // Mặc định tạo tài khoản
+    private boolean createAccount = true;
 }

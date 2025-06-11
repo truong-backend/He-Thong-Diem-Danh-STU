@@ -13,6 +13,10 @@ import vn.diemdanh.hethong.entity.MonHoc;
 import java.util.List;
 
 public interface LichGdRepository extends JpaRepository<LichGd, Long> {
+//    @Query("Select new vn.diemdanh.hethong.dto.lichgd.LichGdDto(gd.id,gv.maGv,gv.tenGv,mh.maMh,mh.tenMh,gd.nmh,gd.phongHoc,gd.ngayBd,gd.ngayKt,gd.stBd,gd.stKt,gd.hocKy) "
+//        +"From LichGd gd join gd.maGv gv join gd.maMh mh where gd.maGv.maGv = :maGv "
+//    )
+//    List<LichGdDto> getLichGiangDayByIdGV(@Param("maGv")String maGv);
     Page<LichGd> findByMaGv(GiaoVien giaoVien, Pageable pageable);
     Page<LichGd> findByMaMh(MonHoc monHoc, Pageable pageable);
     Page<LichGd> findByHocKy(Integer hocKy, Pageable pageable);

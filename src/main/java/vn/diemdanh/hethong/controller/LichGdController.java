@@ -36,15 +36,7 @@ public class LichGdController {
     @Autowired
     private MonHocRepository monHocRepository;
 
-    @GetMapping("/LichGD-giao-vien/{maGv}")
-    public ResponseEntity<List<LichGdDto>> getLichGDByIdGV(@PathVariable String maGv) {
-        try {
-            GiaoVien giaoVien = giaoVienRepository.findById(maGv).orElseThrow(() -> new RuntimeException("Giáo viên này không tồn tại!"));
-            return ResponseEntity.ok(lichGdRepository.getLichGiangDayByIdGV(maGv));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyList());
-        }
-    }
+
 
     // CREATE - Thêm lịch giảng dạy mới
     @PostMapping
