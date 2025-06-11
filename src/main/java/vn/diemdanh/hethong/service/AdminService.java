@@ -16,15 +16,19 @@ import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.entity.Admin;
+import vn.diemdanh.hethong.entity.SinhVien;
+import vn.diemdanh.hethong.entity.User;
 import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;
 import vn.diemdanh.hethong.repository.AdminRepository;
 import vn.diemdanh.hethong.repository.LopRepository;
 import vn.diemdanh.hethong.repository.SinhVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService implements UserDetailsService {
@@ -199,5 +203,22 @@ public class AdminService implements UserDetailsService {
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found with id: " + id));
 
         adminRepository.delete(admin);
+    }
+
+    public List<SinhVienExcelDto> getAllSinhVienForExcel() {
+        List<SinhVien> sinhViens = sinhVienRepository.findAll();
+        return sinhViens.stream()
+            .map(sv -> new SinhVienExcelDto(
+                sv.getMaSv(),
+                sv.getTenSv(),
+                sv.getNgaySinh(),
+                sv.getPhai(),
+                sv.getDiaChi(),
+                sv.getSdt(),
+                sv.getEmail(),
+                sv.getMaLop().getMaLop(),
+                sv.getAvatar()
+            ))
+            .collect(Collectors.toList());
     }
 }
