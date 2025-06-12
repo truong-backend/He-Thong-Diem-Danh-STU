@@ -13,5 +13,5 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
     Page<Tkb> findByNgayHoc(LocalDate ngayHoc, Pageable pageable);
     Page<Tkb> findByNgayHocBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
-    //Phần điểm danh QR code
+    //Phần điểm danh QR
 } 

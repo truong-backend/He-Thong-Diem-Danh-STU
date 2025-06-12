@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class DiemDanhService {
+    @Autowired private DiemDanhRepository diemDanhRepository;
+
+    @Autowired
+    private DiemDanhRepository diemDanhRepository;
 
     @Autowired
     private TkbRepository tkbRepository;
