@@ -69,7 +69,7 @@ public class SinhVienService {
 
         userRepository.save(user);
     }
-
+    
     public List<SinhVien> findAll() {
         return sinhVienRepository.findAll();
     }

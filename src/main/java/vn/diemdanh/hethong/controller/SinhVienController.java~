@@ -55,23 +55,8 @@ public class SinhVienController {
         }
     }
 
-    private SinhVienDto convertToDto(SinhVien sinhVien) {
-        SinhVienDto dto = new SinhVienDto();
-        dto.setMaSv(sinhVien.getMaSv());
-        dto.setTenSv(sinhVien.getTenSv());
-        dto.setNgaySinh(sinhVien.getNgaySinh());
-        dto.setPhai(sinhVien.getPhai());
-        dto.setDiaChi(sinhVien.getDiaChi());
-        dto.setSdt(sinhVien.getSdt());
-        dto.setEmail(sinhVien.getEmail());
-        dto.setMaLop(sinhVien.getMaLop().getMaLop());
-        dto.setTenLop(sinhVien.getMaLop().getTenLop());
-        dto.setTenKhoa(sinhVien.getMaLop().getMaKhoa().getTenKhoa());
-        dto.setAvatar(sinhVien.getAvatar());
-        dto.setHasAccount(userRepository.findByEmail(sinhVien.getEmail()).isPresent());
-        return dto;
+    private Object convertToDto(SinhVien sinhVien) {
     }
-
 
 
     // CREATE - Thêm sinh viên mới
