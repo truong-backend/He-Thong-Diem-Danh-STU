@@ -12,7 +12,11 @@ import vn.diemdanh.hethong.repository.SinhVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SinhVienService {
@@ -72,6 +76,27 @@ public class SinhVienService {
 
     public List<SinhVien> findAll() {
         return sinhVienRepository.findAll();
+    }
+
+    //Lấy danh sách sinh viên theo ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
+
+    public List<Map<String, Object>> getSinhVienTheoLich(
+            String maGv,
+            String maMh,
+            int nhom,
+            int hocKy,
+            LocalDate ngayHoc
+    ) {
+        List<Object[]> rawResults = sinhVienRepository.findSinhVienTheoLichGiangDay(maGv, maMh, nhom, hocKy, ngayHoc);
+
+        return rawResults.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("ma_sv", row[0]);
+            map.put("ten_sv", row[1]);
+            map.put("email", row[2]);
+            map.put("ma_lop", row[3]);
+            return map;
+        }).collect(Collectors.toList());
     }
 
 }

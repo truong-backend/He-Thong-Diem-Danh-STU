@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.khoa.KhoaDto;
@@ -20,7 +21,9 @@ import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.SinhVienService;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -244,5 +247,18 @@ public class SinhVienController {
             return ResponseEntity.badRequest().body("Lỗi khi xóa sinh viên: " + e.getMessage());
         }
     }
+    //Lấy danh sách sinh viên theo ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
+    @GetMapping("/Danh-sach-sinh-vien-theo-lich")
+    public ResponseEntity<?> getSinhVienTheoLich(
+            @RequestParam String maGv,
+            @RequestParam String maMh,
+            @RequestParam int nhom,
+            @RequestParam int hocKy,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayHoc
+    ) {
+        List<Map<String, Object>> result = sinhVienService.getSinhVienTheoLich(maGv, maMh, nhom, hocKy, ngayHoc);
+        return ResponseEntity.ok(result);
+    }
+
 
 } 
