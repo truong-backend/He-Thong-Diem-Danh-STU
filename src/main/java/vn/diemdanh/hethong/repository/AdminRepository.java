@@ -1,0 +1,11 @@
+package vn.diemdanh.hethong.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import vn.diemdanh.hethong.entity.Admin;
+
+import java.util.Optional;
+
+public interface AdminRepository extends JpaRepository<Admin, Integer> {
+    Optional<Admin> findByEmail(String email);
+    Optional<Admin> findByUsername(String username);
+}

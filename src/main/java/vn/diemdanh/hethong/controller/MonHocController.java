@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.entity.MonHoc;
-import vn.diemdanh.hethong.repository.user_man_and_login.MonHocRepository;
+import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
 import java.util.Arrays;

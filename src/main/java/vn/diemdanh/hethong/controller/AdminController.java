@@ -2,23 +2,27 @@ package vn.diemdanh.hethong.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
-import vn.diemdanh.hethong.dto.user_managerment.AdminDto;
-import vn.diemdanh.hethong.dto.user_managerment.CreateAdminRequest;
-import vn.diemdanh.hethong.dto.user_managerment.UpdateAdminRequest;
+import vn.diemdanh.hethong.dto.admin.AdminDto;
+import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
+import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
+import vn.diemdanh.hethong.helper.ExcelExporter;
 import vn.diemdanh.hethong.helper.csvImport;
 import vn.diemdanh.hethong.helper.excel_Import;
-import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
+import vn.diemdanh.hethong.service.AdminService;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,23 +35,23 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
-    @PostMapping(value = "/importExcel-SinhVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
-        String fileName = file.getOriginalFilename();
-        try {
-            List<SinhVienExcelDto> sinhvienlist = new ArrayList<>();
-            if(fileName.endsWith(".csv")){
-                sinhvienlist = csvImport.csvImportFile(file.getInputStream());
+        @PostMapping(value = "/importExcel-SinhVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+        public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
+            String fileName = file.getOriginalFilename();
+            try {
+                List<SinhVienExcelDto> sinhvienlist = new ArrayList<>();
+                if(fileName.endsWith(".csv")){
+                    sinhvienlist = csvImport.csvImportFile(file.getInputStream());
+                }
+                else if(fileName.endsWith(".xls") || fileName.endsWith(".xlsx")){
+                    sinhvienlist = excel_Import.excelImportFile(file.getInputStream());
+                }
+                adminService.saveImportData(sinhvienlist);
+                return ResponseEntity.ok("Import thành công");
+            } catch (Exception e) {
+               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
             }
-            else if(fileName.endsWith(".xls") || fileName.endsWith(".xlsx")){
-                sinhvienlist = excel_Import.excelImportFile(file.getInputStream());
-            }
-            adminService.saveImportData(sinhvienlist);
-            return ResponseEntity.ok("Import thành công");
-        } catch (Exception e) {
-           return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-    }
 
     @GetMapping
     public ResponseEntity<Page<AdminDto>> getAllAdmins(
@@ -109,6 +113,25 @@ public class AdminController {
             Map<String, String> error = new HashMap<>();
             error.put("message", e.getMessage());
             return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/export-sinhvien")
+    public ResponseEntity<InputStreamResource> exportSinhVien() {
+        try {
+            List<SinhVienExcelDto> sinhViens = adminService.getAllSinhVienForExcel();
+            ByteArrayInputStream in = ExcelExporter.sinhVienToExcel(sinhViens);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=sinh_vien.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(new InputStreamResource(in));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 } 

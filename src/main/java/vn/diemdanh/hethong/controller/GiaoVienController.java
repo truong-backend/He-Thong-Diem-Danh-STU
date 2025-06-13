@@ -10,13 +10,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
-import vn.diemdanh.hethong.dto.user_managerment.*;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
+import vn.diemdanh.hethong.dto.giaovien.UpdateGiaoVienRequest;
 import vn.diemdanh.hethong.entity.*;
-import vn.diemdanh.hethong.repository.user_man_and_login.*;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
 
 import jakarta.validation.Valid;
-import vn.diemdanh.hethong.service.giaovien.GiaoVienService;
+import vn.diemdanh.hethong.service.GiaoVienService;
 
 import java.time.Instant;
 import java.util.List;

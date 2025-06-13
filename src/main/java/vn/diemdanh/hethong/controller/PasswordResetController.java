@@ -8,8 +8,8 @@ import vn.diemdanh.hethong.dto.forgot_password.YeuCauXacThucOPT;
 import vn.diemdanh.hethong.exception.forgot_password.OtpExpiredException;
 import vn.diemdanh.hethong.exception.forgot_password.OtpInvalidException;
 import vn.diemdanh.hethong.exception.forgot_password.UserNotFoundException;
-import vn.diemdanh.hethong.service.forgot_password.AdminPasswordResetService;
-import vn.diemdanh.hethong.service.forgot_password.PasswordResetService;
+import vn.diemdanh.hethong.service.AdminPasswordResetService;
+import vn.diemdanh.hethong.service.PasswordResetService;
 
 import jakarta.validation.Valid;
 

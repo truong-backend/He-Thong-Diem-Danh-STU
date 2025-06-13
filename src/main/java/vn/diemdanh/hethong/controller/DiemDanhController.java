@@ -13,10 +13,8 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/getDanhSachDiemDanh")
 public class DiemDanhController {
-    @Autowired private DiemDanhService diemDanhService;
+    @Autowired
+    private DiemDanhService diemDanhService;
 
-    @GetMapping("/monhoc-phonghoc")
-    public List<Object[]> getDanhSachDiemDanh(@RequestParam String tenMh,@RequestParam String tenPH) {
-        return diemDanhService.getDanhSachdiemDanhByMH_PH(tenMh, tenPH);
-    }
+
 }

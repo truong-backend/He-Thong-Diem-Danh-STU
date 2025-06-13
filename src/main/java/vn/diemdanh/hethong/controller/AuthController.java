@@ -17,8 +17,8 @@ import vn.diemdanh.hethong.dto.login.AdminLoginResponse;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.security.CustomAdminDetails;
 import vn.diemdanh.hethong.security.JwtTokenProvider;
-import vn.diemdanh.hethong.service.user_man_and_login.UserService;
-import vn.diemdanh.hethong.service.user_man_and_login.AdminService;
+import vn.diemdanh.hethong.service.UserService;
+import vn.diemdanh.hethong.service.AdminService;
 
 import jakarta.validation.Valid;
 

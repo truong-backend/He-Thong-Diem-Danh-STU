@@ -7,12 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vn.diemdanh.hethong.dto.user_managerment.UserDto;
+import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.service.user_man_and_login.UserService;
+import vn.diemdanh.hethong.service.UserService;
 import org.springframework.http.HttpStatus;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")

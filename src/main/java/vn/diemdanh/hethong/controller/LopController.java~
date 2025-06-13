@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.lop.LopDto;
 import vn.diemdanh.hethong.entity.Khoa;
 import vn.diemdanh.hethong.entity.Lop;
-import vn.diemdanh.hethong.repository.KhoaRepository;
-import vn.diemdanh.hethong.repository.LopRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.KhoaRepository;
+import vn.diemdanh.hethong.repository.user_man_and_login.LopRepository;
 
 import jakarta.validation.Valid;
 import java.util.Arrays;
