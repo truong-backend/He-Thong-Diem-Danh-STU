@@ -14,6 +14,8 @@ public class DiemDanhService {
 
     @Autowired
     private TkbRepository tkbRepository;
+
+
     // Lấy danh sách học kỳ
     public List<String> getHocKyList() {
         return tkbRepository.findAll().stream()
@@ -21,6 +23,8 @@ public class DiemDanhService {
                 .distinct()
                 .collect(Collectors.toList());
     }
+
+
 
 //    public List<Object[]> getDanhSachdiemDanhByMH_PH(String tenMH,String phongHoc) {
 //       return diemDanhRepository.getDanhSachDiemDanhByMH_PH(tenMH, phongHoc);

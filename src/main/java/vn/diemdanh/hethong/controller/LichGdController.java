@@ -16,6 +16,7 @@ import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.DiemDanhService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,6 +35,8 @@ public class LichGdController {
     @Autowired
     private MonHocRepository monHocRepository;
 
+    @Autowired
+    private DiemDanhService diemDanhService;
 
 
     // CREATE - Thêm lịch giảng dạy mới
@@ -238,5 +241,15 @@ public class LichGdController {
     private boolean isValidSortField(String field) {
         return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy")
                 .contains(field);
+    }
+    // Lấy danh sách học kỳ
+    @GetMapping("/hocky")
+    public ResponseEntity<List<String>> getHocKyList() {
+        try {
+            List<String> hocKyList = diemDanhService.getHocKyList();
+            return ResponseEntity.ok(hocKyList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 } 

@@ -21,18 +21,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/getDanhSachDiemDanh")
 public class DiemDanhController {
-    @Autowired
-    private DiemDanhService diemDanhService;
 
-    // Lấy danh sách học kỳ
-    @GetMapping("/hocky")
-    public ResponseEntity<List<String>> getHocKyList() {
-        try {
-            List<String> hocKyList = diemDanhService.getHocKyList();
-            return ResponseEntity.ok(hocKyList);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
+    // Lấy danh sách môn học theo học kỳ của giảng viên đó
 
 }

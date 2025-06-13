@@ -168,7 +168,7 @@ public class MonHocController {
         return Arrays.asList("maMh", "tenMh", "soTiet").contains(field);
     }
 
-    @GetMapping("/mon-hoc-theo-giao-vien")
+    @GetMapping("/mon-hoc")
     public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
             @RequestParam String maGv,
             @RequestParam int hocKy) {

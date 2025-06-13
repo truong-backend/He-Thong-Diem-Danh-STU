@@ -18,6 +18,8 @@ import vn.diemdanh.hethong.repository.MonHocRepository;
 import jakarta.validation.Valid;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lichgd")
@@ -199,6 +201,18 @@ public class LichGdController {
             return ResponseEntity.ok("Xóa lịch giảng dạy thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi xóa lịch giảng dạy: " + e.getMessage());
+        }
+    }
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllLichGd() {
+        try {
+            List<LichGd> lichGds = lichGdRepository.findAll();
+            List<LichGdDto> dtos = lichGds.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách lịch giảng dạy: " + e.getMessage());
         }
     }
 
