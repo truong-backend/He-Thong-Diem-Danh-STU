@@ -25,8 +25,6 @@ public class MonHocController {
     @Autowired
     private MonHocRepository monHocRepository;
 
-    @Autowired
-    private LichGdService lichGdService;
     // CREATE - Thêm môn học mới
     @PostMapping
     public ResponseEntity<?> createMonHoc(@Valid @RequestBody MonHocDto request) {
@@ -172,7 +170,7 @@ public class MonHocController {
     public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
             @RequestParam String maGv,
             @RequestParam int hocKy) {
-        return lichGdService.getMonHocByMaGvAndHocKy(maGv, hocKy);
+        return monHocRepository.findDistinctMonHocByGiaoVienAndHocKy(maGv, hocKy);
     }
 
 

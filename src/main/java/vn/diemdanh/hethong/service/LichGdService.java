@@ -9,12 +9,7 @@ import java.util.List;
 
 @Service
 public class LichGdService {
-    @Autowired private LichGdRepository lichGdRepository;
 
-//    public List<MonHocDto> getMonHocByMaGvAndHocKy(String maGv, int hocKy) {
-//        return null;
-//    }
-    public List<MonHocDto> getMonHocByMaGvAndHocKy(String maGv, int hocKy) {
-        return lichGdRepository.findDistinctMonHocByGiaoVienAndHocKy(maGv, hocKy);
-    }
+
+
 }

@@ -16,7 +16,7 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
         WHERE lg.ma_gv = :maGv AND lg.hoc_ky = :hocKy
         """, nativeQuery = true)
     List<MonHocDto> findDistinctMonHocByGiaoVienAndHocKy(
-            @Param("maGv") String maGv,
-            @Param("hocKy") int hocKy
+    @Param("maGv") String maGv,
+    @Param("hocKy") int hocKy
     );
 } 
