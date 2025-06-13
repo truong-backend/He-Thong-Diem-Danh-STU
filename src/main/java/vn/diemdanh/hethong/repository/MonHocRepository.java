@@ -9,6 +9,7 @@ import vn.diemdanh.hethong.entity.MonHoc;
 import java.util.List;
 
 public interface MonHocRepository extends JpaRepository<MonHoc, String> {
+    //Lấy danh sách môn học của giảnh viên đó trong học kỳ đó
     @Query(value = """
         SELECT DISTINCT mh.ma_mh AS maMh, mh.ten_mh AS tenMh
         FROM lich_gd lg
@@ -19,4 +20,13 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
     @Param("maGv") String maGv,
     @Param("hocKy") int hocKy
     );
+    // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
+    @Query(value = "SELECT DISTINCT lg.nmh " +
+            "FROM lich_gd lg " +
+            "WHERE lg.ma_gv = :maGv " +
+            "AND lg.ma_mh = :maMh " +
+            "AND lg.hoc_ky = :hocKy", nativeQuery = true)
+    List<Integer> findDistinctNhomMonHocByMaGvAndMaMhAndHocKy(@Param("maGv") String maGv,
+                                                              @Param("maMh") String maMh,
+                                                              @Param("hocKy") int hocKy);
 } 

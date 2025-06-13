@@ -175,7 +175,7 @@ public class MonHocController {
     public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
             @RequestParam String maGv,
             @RequestParam int hocKy) {
-        return monHocService.getMonHocByMaGvAndHocKy(maGv, hocKy);
+        return monHocService.findDistinctMonHocByGiaoVienAndHocKy(maGv, hocKy);
     }
     // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
     @GetMapping("/nhom-mon-hoc")
