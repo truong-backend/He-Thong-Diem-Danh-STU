@@ -1,0 +1,4 @@
+package vn.diemdanh.hethong.repository;
+
+public interface TkbRepository1 extends org.springframework.data.jpa.repository.JpaRepository<vn.diemdanh.hethong.entity.Tkb, java.lang.Long> {
+  }

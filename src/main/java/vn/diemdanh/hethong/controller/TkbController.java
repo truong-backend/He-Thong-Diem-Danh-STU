@@ -15,8 +15,11 @@ import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.TkbService;
+
 import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +32,9 @@ public class TkbController {
 
     @Autowired
     private LichGdRepository lichGdRepository;
+
+    @Autowired
+    private  TkbService tkbService;
 
     @GetMapping("/all")
     public ResponseEntity<?> getAllTkbWithoutPaging() {
@@ -241,4 +247,15 @@ public class TkbController {
         return Arrays.asList("id", "ngayHoc", "phongHoc", "stBd", "stKt")
                 .contains(field);
     }
-} 
+
+    @GetMapping("/list-ngay-hoc")
+    public ResponseEntity<List<Date>> getNgayHoc(
+            @RequestParam String maGv,
+            @RequestParam String maMh,
+            @RequestParam int nhomMh,
+            @RequestParam int hocKy
+    ) {
+        List<Date> result = tkbService.getNgayHoc(maGv, maMh, nhomMh, hocKy);
+        return ResponseEntity.ok(result);
+    }
+}
