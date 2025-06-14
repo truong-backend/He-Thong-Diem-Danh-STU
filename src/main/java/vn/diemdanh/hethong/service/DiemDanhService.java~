@@ -3,8 +3,6 @@ package vn.diemdanh.hethong.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.repository.DiemDanhRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 
@@ -13,9 +11,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class DiemDanhService {
-
-    @Autowired
-    private DiemDanhRepository diemDanhRepository;
 
     @Autowired
     private TkbRepository tkbRepository;
@@ -28,19 +23,10 @@ public class DiemDanhService {
                 .distinct()
                 .collect(Collectors.toList());
     }
-    // 6. ĐIỂM DANH THỦ CÔNG
-    @Transactional
-    public void markAttendanceManual(DiemDanhRequest request) {
-        try {
-            diemDanhRepository.markAttendanceManual(
-                    request.getMaTkb(),
-                    request.getMaSv(),
-                    request.getNgayHoc(),
-                    request.getGhiChu()
-            );
-        } catch (Exception e) {
 
-            throw new RuntimeException("Không thể điểm danh thủ công", e);
-        }
-    }
+
+
+//    public List<Object[]> getDanhSachdiemDanhByMH_PH(String tenMH,String phongHoc) {
+//       return diemDanhRepository.getDanhSachDiemDanhByMH_PH(tenMH, phongHoc);
+//    }
 }

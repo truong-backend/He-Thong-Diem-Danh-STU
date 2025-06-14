@@ -27,7 +27,7 @@ public class DiemDanhController {
     @Autowired
     private DiemDanhService diemDanhService;
     // 6. ĐIỂM DANH THỦ CÔNG
-    @PostMapping("/diem-danh-thu-cong")
+    @PostMapping("/manual")
     public ResponseEntity<String> markAttendanceManual(@Valid @RequestBody DiemDanhRequest request) {
         diemDanhService.markAttendanceManual(request);
         return ResponseEntity.ok("Điểm danh thành công");
