@@ -2,6 +2,8 @@ package vn.diemdanh.hethong.helper;
 
 import com.opencsv.CSVReader;
 import org.apache.commons.math3.analysis.function.Sinh;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTOExcel;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.entity.SinhVien;
 
@@ -41,6 +43,28 @@ public class csvImport {
             }
         }catch (Exception e) {
             throw new RuntimeException("Lỗi đọc CSV: " + e.getMessage());
+        }
+        return list;
+    }
+    public static List<GiaoVienDTOExcel> importCSVGiaoVien(InputStream is){
+        List<GiaoVienDTOExcel> list = new ArrayList<>();
+        try(BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is,"UTF-8"));
+        CSVReader csvReader = new CSVReader(bufferedReader)){
+            String[] nextLine;
+            csvReader.readNext();
+            while( (nextLine = csvReader.readNext()) != null){
+                GiaoVienDTOExcel dto = new GiaoVienDTOExcel();
+                dto.setMaGv(nextLine[0]);
+                dto.setTenGv(nextLine[1]);
+                dto.setPhai(Byte.parseByte(nextLine[2]));
+                dto.setDiaChi(nextLine[3]);
+                dto.setSdt(nextLine[4]);
+                dto.setEmail(nextLine[5]);
+                dto.setAvatar("NULL".equals(nextLine[6]) ? "NULL" : nextLine[6]);
+                list.add(dto);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return list;
     }
