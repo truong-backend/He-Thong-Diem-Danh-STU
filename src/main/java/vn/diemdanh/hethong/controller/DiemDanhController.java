@@ -21,7 +21,7 @@ import vn.diemdanh.hethong.service.DiemDanhService;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/getDanhSachDiemDanh")
+@RequestMapping("/api/diemdanh")
 public class DiemDanhController {
 
     @Autowired
