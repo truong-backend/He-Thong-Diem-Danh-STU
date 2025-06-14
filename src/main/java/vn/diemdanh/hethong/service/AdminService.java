@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.diemdanh.hethong.dto.admin.AdminDto;
 import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
 import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
+import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTOExcel;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.entity.Admin;
@@ -44,6 +47,8 @@ public class AdminService implements UserDetailsService {
 
     @Autowired
     private SinhVienService sinhVienService;
+    @Autowired
+    private GiaoVienService giaoVienService;
 
     @Transactional
     public void saveImportData(List<SinhVienExcelDto> sinhVienExcelDtos) {
@@ -57,7 +62,30 @@ public class AdminService implements UserDetailsService {
             }
         }
     }
-
+    @Transactional
+    public void saveImportGiaoVienExcel(List<GiaoVienDTOExcel> giaovienExcelDtos) {
+        for(GiaoVienDTOExcel dto : giaovienExcelDtos) {
+            try {
+                CreateGiaoVienRequest request = convertToCreateReqGiaoVien(dto);
+                giaoVienService.createGiaoVien(request);
+            }catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Lỗi khi thêm giáo viên mã: " + dto.getMaGv() + " -> " + e.getMessage());
+            }
+        }
+    }
+    public CreateGiaoVienRequest convertToCreateReqGiaoVien(GiaoVienDTOExcel dto) {
+        CreateGiaoVienRequest request = new CreateGiaoVienRequest();
+        request.setMaGv(dto.getMaGv());
+        request.setTenGv(dto.getTenGv());
+        request.setNgaySinh(dto.getNgaySinh());
+        request.setPhai(dto.getPhai());
+        request.setDiaChi(dto.getDiaChi());
+        request.setSdt(dto.getSdt());
+        request.setEmail(dto.getEmail());
+        request.setCreateAccount(true);
+        return request;
+    }
 
     public CreateSinhVienRequest convertToCreateRequest(SinhVienExcelDto excelDto) {
         CreateSinhVienRequest request = new CreateSinhVienRequest();
