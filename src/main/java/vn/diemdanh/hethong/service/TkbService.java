@@ -15,9 +15,6 @@ import java.util.stream.Collectors;
 public class TkbService {
     @Autowired
     private TkbRepository tkbRepository;
-    public List<Date> getNgayHoc(String maGv, String maMh, int nhomMh, int hocKy) {
-        return tkbRepository.findNgayHocByLichGd(maGv, maMh, nhomMh, hocKy);
-    }
     // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
     public List<NgayGiangDayDTO> getClassDates(Integer maGd) {
         List<Object[]> results = tkbRepository.findClassDates(maGd);

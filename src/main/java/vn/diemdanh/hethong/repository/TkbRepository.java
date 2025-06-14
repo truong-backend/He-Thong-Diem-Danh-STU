@@ -19,23 +19,6 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
     Page<Tkb> findByNgayHoc(LocalDate ngayHoc, Pageable pageable);
     Page<Tkb> findByNgayHocBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
-    //Phần điểm danh QR code
-    @Query(value = """
-        SELECT tkb.ngay_hoc 
-        FROM tkb 
-        JOIN lich_gd ON tkb.ma_gd = lich_gd.ma_gd 
-        WHERE lich_gd.ma_gv = :maGv 
-          AND lich_gd.ma_mh = :maMh 
-          AND lich_gd.nmh = :nmh 
-          AND lich_gd.hoc_ky = :hocKy 
-        ORDER BY tkb.ngay_hoc ASC
-        """, nativeQuery = true)
-    List<Date> findNgayHocByLichGd(
-            @Param("maGv") String maGv,
-            @Param("maMh") String maMh,
-            @Param("nmh") int nhomMh,
-            @Param("hocKy") int hocKy
-    );
 
     // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY CỦA NHÓM MÔN HỌC
     @Query(value = """

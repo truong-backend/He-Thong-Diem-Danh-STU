@@ -250,16 +250,7 @@ public class TkbController {
                 .contains(field);
     }
 
-    @GetMapping("/list-ngay-hoc")
-    public ResponseEntity<List<Date>> getNgayHoc(
-            @RequestParam String maGv,
-            @RequestParam String maMh,
-            @RequestParam int nhomMh,
-            @RequestParam int hocKy
-    ) {
-        List<Date> result = tkbService.getNgayHoc(maGv, maMh, nhomMh, hocKy);
-        return ResponseEntity.ok(result);
-    }
+
     // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
 
     @GetMapping("/danh-sach-ngay-giang-day")
