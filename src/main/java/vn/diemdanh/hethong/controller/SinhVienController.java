@@ -7,9 +7,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.dto.khoa.KhoaDto;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
 import vn.diemdanh.hethong.dto.sinhvien.UpdateSinhVienRequest;
 import vn.diemdanh.hethong.entity.*;
@@ -44,6 +48,18 @@ public class SinhVienController {
     @Autowired
     private SinhVienService sinhVienService;
 
+    @GetMapping("/profile")
+    public ResponseEntity<?> getProfileSinhVien(@AuthenticationPrincipal UserDetails userDetails){
+        String email = userDetails.getUsername();
+        SinhVienDTOProfile sinhVienDTOProfile = sinhVienService.getSinhVienProfile(email);
+        return ResponseEntity.ok(sinhVienDTOProfile);
+    }
+
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfileTeacher(@AuthenticationPrincipal UserDetails userDetails,@RequestBody @Valid SinhVienDTOProfile sinhVienDTOProfile) {
+        String email = userDetails.getUsername();
+        return ResponseEntity.ok(sinhVienService.updateProfileSinhVien(email,sinhVienDTOProfile));
+    }
     // ✅ API lấy danh sách không phân trang
     @GetMapping("/all")
     public ResponseEntity<?> getAllSinhVienNoPagination() {
