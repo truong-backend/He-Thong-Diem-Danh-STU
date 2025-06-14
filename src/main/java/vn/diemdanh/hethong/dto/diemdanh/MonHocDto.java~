@@ -1,0 +1,4 @@
+package vn.diemdanh.hethong.dto.diemdanh;
+
+public class MonHocDto {
+}

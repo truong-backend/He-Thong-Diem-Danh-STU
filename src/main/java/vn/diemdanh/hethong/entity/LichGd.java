@@ -55,6 +55,6 @@ public class LichGd {
 
     @NotNull
     @Column(name = "hoc_ky", nullable = false)
-    private Integer hocKy;
+    private String hocKy;
 
 }

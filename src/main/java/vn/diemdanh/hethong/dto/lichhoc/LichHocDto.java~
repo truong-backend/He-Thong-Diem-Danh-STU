@@ -18,5 +18,5 @@ public class LichHocDto {
     private LocalDate ngayKt= null;
     private Integer stBd= 0;
     private Integer stKt= 0;
-    private String hocKy= "";
+    private Integer hocKy= 0;
 } 

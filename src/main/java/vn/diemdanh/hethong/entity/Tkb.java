@@ -43,4 +43,5 @@ public class Tkb {
     @Column(name = "ghi_chu")
     private String ghiChu;
 
+
 }

@@ -174,7 +174,7 @@ public class MonHocController {
     @GetMapping("/mon-hoc-theo-giao-vien")
     public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
             @RequestParam String maGv,
-            @RequestParam String hocKy) {
+            @RequestParam int hocKy) {
         return monHocService.getMonHocByMaGvAndHocKy(maGv, hocKy);
     }
     // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó

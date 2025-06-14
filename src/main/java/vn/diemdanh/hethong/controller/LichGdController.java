@@ -16,8 +16,11 @@ import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.DiemDanhService;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lichgd")
@@ -32,6 +35,8 @@ public class LichGdController {
     @Autowired
     private MonHocRepository monHocRepository;
 
+    @Autowired
+    private DiemDanhService diemDanhService;
 
 
     // CREATE - Thêm lịch giảng dạy mới
@@ -201,6 +206,18 @@ public class LichGdController {
             return ResponseEntity.badRequest().body("Lỗi khi xóa lịch giảng dạy: " + e.getMessage());
         }
     }
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllLichGd() {
+        try {
+            List<LichGd> lichGds = lichGdRepository.findAll();
+            List<LichGdDto> dtos = lichGds.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách lịch giảng dạy: " + e.getMessage());
+        }
+    }
 
     // Helper method to convert LichGd to LichGdDto
     private LichGdDto convertToDto(LichGd lichGd) {
@@ -224,5 +241,15 @@ public class LichGdController {
     private boolean isValidSortField(String field) {
         return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy")
                 .contains(field);
+    }
+    // Lấy danh sách học kỳ
+    @GetMapping("/danh-sach-hocky")
+    public ResponseEntity<List<String>> getHocKyList() {
+        try {
+            List<String> hocKyList = diemDanhService.getHocKyList();
+            return ResponseEntity.ok(hocKyList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 } 
