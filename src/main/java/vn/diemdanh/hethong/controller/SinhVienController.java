@@ -6,10 +6,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.khoa.KhoaDto;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
 import vn.diemdanh.hethong.dto.sinhvien.UpdateSinhVienRequest;
 import vn.diemdanh.hethong.entity.*;
@@ -247,18 +249,13 @@ public class SinhVienController {
             return ResponseEntity.badRequest().body("Lỗi khi xóa sinh viên: " + e.getMessage());
         }
     }
-    //Lấy danh sách sinh viên theo ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
-    @GetMapping("/Danh-sach-sinh-vien-theo-lich")
-    public ResponseEntity<?> getSinhVienTheoLich(
-            @RequestParam String maGv,
-            @RequestParam String maMh,
-            @RequestParam int nhom,
-            @RequestParam int hocKy,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayHoc
-    ) {
-        List<Map<String, Object>> result = sinhVienService.getSinhVienTheoLich(maGv, maMh, nhom, hocKy, ngayHoc);
-        return ResponseEntity.ok(result);
+    // 5. LẤY DANH SÁCH SINH VIÊN CHO ĐIỂM DANH
+    @GetMapping("/students/{maTkb}")
+    public ResponseEntity<List<SinhVienDiemDanhDTO>> getStudentsForAttendance(@PathVariable Integer maTkb) {
+        List<SinhVienDiemDanhDTO> students = sinhVienService.getStudentsForAttendance(maTkb);
+        return ResponseEntity.ok(students);
     }
+
 
 
 } 

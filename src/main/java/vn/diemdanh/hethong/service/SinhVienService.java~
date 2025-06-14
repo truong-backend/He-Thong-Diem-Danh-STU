@@ -80,8 +80,26 @@ public class SinhVienService {
         return sinhVienRepository.findAll();
     }
 
+    //Lấy danh sách sinh viên theo ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
 
+    public List<Map<String, Object>> getSinhVienTheoLich(
+            String maGv,
+            String maMh,
+            int nhom,
+            int hocKy,
+            LocalDate ngayHoc
+    ) {
+        List<Object[]> rawResults = sinhVienRepository.findSinhVienTheoLichGiangDay(maGv, maMh, nhom, hocKy, ngayHoc);
 
+        return rawResults.stream().map(row -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("ma_sv", row[0]);
+            map.put("ten_sv", row[1]);
+            map.put("email", row[2]);
+            map.put("ma_lop", row[3]);
+            return map;
+        }).collect(Collectors.toList());
+    }
     // 5. LẤY DANH SÁCH SINH VIÊN CHO ĐIỂM DANH
     public List<SinhVienDiemDanhDTO> getStudentsForAttendance(Integer maTkb) {
 //        log.info("Fetching students for attendance, class: {}", maTkb);
