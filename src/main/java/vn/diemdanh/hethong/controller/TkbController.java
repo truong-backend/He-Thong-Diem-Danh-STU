@@ -253,7 +253,7 @@ public class TkbController {
             @RequestParam String maGv,
             @RequestParam String maMh,
             @RequestParam int nhomMh,
-            @RequestParam int hocKy
+            @RequestParam String hocKy
     ) {
         List<Date> result = tkbService.getNgayHoc(maGv, maMh, nhomMh, hocKy);
         return ResponseEntity.ok(result);

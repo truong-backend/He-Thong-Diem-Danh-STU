@@ -175,14 +175,14 @@ public class MonHocController {
     public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
             @RequestParam String maGv,
             @RequestParam int hocKy) {
-        return monHocService.findDistinctMonHocByGiaoVienAndHocKy(maGv, hocKy);
+        return monHocService.getMonHocByMaGvAndHocKy(maGv, hocKy);
     }
     // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
     @GetMapping("/nhom-mon-hoc")
     public ResponseEntity<List<Integer>> getNhomMonHoc(
             @RequestParam String maGv,
             @RequestParam String maMh,
-            @RequestParam int hocKy) {
+            @RequestParam String hocKy) {
 
         List<Integer> dsNhom = monHocService.getNhomMonHoc(maGv, maMh, hocKy);
         return ResponseEntity.ok(dsNhom);

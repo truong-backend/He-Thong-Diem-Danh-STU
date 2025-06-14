@@ -16,5 +16,5 @@ public class LichGdDto {
     private LocalDate ngayKt;
     private Integer stBd;
     private Integer stKt;
-    private String hocKy;
+    private Integer hocKy;
 } 

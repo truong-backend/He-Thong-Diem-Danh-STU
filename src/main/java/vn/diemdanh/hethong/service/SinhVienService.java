@@ -84,7 +84,7 @@ public class SinhVienService {
             String maGv,
             String maMh,
             int nhom,
-            int hocKy,
+            String hocKy,
             LocalDate ngayHoc
     ) {
         List<Object[]> rawResults = sinhVienRepository.findSinhVienTheoLichGiangDay(maGv, maMh, nhom, hocKy, ngayHoc);

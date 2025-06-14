@@ -253,7 +253,7 @@ public class SinhVienController {
             @RequestParam String maGv,
             @RequestParam String maMh,
             @RequestParam int nhom,
-            @RequestParam int hocKy,
+            @RequestParam String hocKy,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayHoc
     ) {
         List<Map<String, Object>> result = sinhVienService.getSinhVienTheoLich(maGv, maMh, nhom, hocKy, ngayHoc);

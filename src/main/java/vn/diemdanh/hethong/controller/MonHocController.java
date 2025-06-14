@@ -174,7 +174,7 @@ public class MonHocController {
     @GetMapping("/mon-hoc-theo-giao-vien")
     public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
             @RequestParam String maGv,
-            @RequestParam int hocKy) {
+            @RequestParam String hocKy) {
         return monHocService.getMonHocByMaGvAndHocKy(maGv, hocKy);
     }
     // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
@@ -182,7 +182,7 @@ public class MonHocController {
     public ResponseEntity<List<Integer>> getNhomMonHoc(
             @RequestParam String maGv,
             @RequestParam String maMh,
-            @RequestParam int hocKy) {
+            @RequestParam String hocKy) {
 
         List<Integer> dsNhom = monHocService.getNhomMonHoc(maGv, maMh, hocKy);
         return ResponseEntity.ok(dsNhom);

@@ -32,7 +32,7 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
             @Param("maGv") String maGv,
             @Param("maMh") String maMh,
             @Param("nhom") int nhom,
-            @Param("hocKy") int hocKy,
+            @Param("hocKy") String hocKy,
             @Param("ngayHoc") LocalDate ngayHoc
     );
 }

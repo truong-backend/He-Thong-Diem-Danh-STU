@@ -34,6 +34,6 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
             @Param("maGv") String maGv,
             @Param("maMh") String maMh,
             @Param("nmh") int nhomMh,
-            @Param("hocKy") String hocKy
+            @Param("hocKy") int hocKy
     );
 } 

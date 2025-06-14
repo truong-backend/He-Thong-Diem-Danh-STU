@@ -14,11 +14,11 @@ public class MonHocService {
     private MonHocRepository monHocRepository;
 
     //Lấy danh sách môn học của giảnh viên đó trong học kỳ đó
-    public List<MonHocDto> getMonHocByMaGvAndHocKy(String maGv, int hocKy) {
+    public List<MonHocDto> getMonHocByMaGvAndHocKy(String maGv, String hocKy) {
         return monHocRepository.findDistinctMonHocByGiaoVienAndHocKy(maGv, hocKy);
     }
     // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
-    public List<Integer> getNhomMonHoc(String maGv, String maMh, int hocKy) {
+    public List<Integer> getNhomMonHoc(String maGv, String maMh, String hocKy) {
         return monHocRepository.findDistinctNhomMonHocByMaGvAndMaMhAndHocKy(maGv, maMh, hocKy);
     }
 }

@@ -243,7 +243,7 @@ public class LichGdController {
                 .contains(field);
     }
     // Lấy danh sách học kỳ
-    @GetMapping("/hocky")
+    @GetMapping("/danh-sach-hocky")
     public ResponseEntity<List<String>> getHocKyList() {
         try {
             List<String> hocKyList = diemDanhService.getHocKyList();
