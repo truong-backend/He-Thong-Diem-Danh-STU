@@ -263,8 +263,8 @@ public class TkbController {
     // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
 
     @GetMapping("/danh-sach-ngay-giang-day")
-    public ResponseEntity<List<NgayGiangDayDTO>> getClassDates(@RequestParam Integer groupId) {
-        List<NgayGiangDayDTO> classDates = tkbService.getClassDates(groupId);
+    public ResponseEntity<List<NgayGiangDayDTO>> getClassDates(@RequestParam Integer maGd) {
+        List<NgayGiangDayDTO> classDates = tkbService.getClassDates(maGd);
         return ResponseEntity.ok(classDates);
     }
 }

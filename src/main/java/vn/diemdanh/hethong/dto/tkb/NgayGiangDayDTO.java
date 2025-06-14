@@ -15,6 +15,6 @@ public class NgayGiangDayDTO {
     private String maGv;
     private String tenGv;
     private String tenMh;
-    private String nhomMonHoc;
+    private Integer nhomMonHoc;
     private String trangThai;
 }

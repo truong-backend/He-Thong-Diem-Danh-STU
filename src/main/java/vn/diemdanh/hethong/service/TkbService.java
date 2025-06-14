@@ -31,7 +31,7 @@ public class TkbService {
                         .maGv((String) row[4])
                         .tenGv((String) row[5])
                         .tenMh((String) row[6])
-                        .nhomMonHoc((String) row[7])
+                        .nhomMonHoc((Integer) row[7])
                         .trangThai((String) row[8])
                         .build())
                 .collect(Collectors.toList());
