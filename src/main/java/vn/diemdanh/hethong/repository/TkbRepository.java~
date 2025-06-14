@@ -36,30 +36,4 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
             @Param("nmh") int nhomMh,
             @Param("hocKy") int hocKy
     );
-
-    // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY CỦA NHÓM MÔN HỌC
-    @Query(value = """
-        SELECT 
-            t.ma_tkb,
-            t.ngay_hoc,
-            t.phong_hoc,
-            CONCAT('Tiết ', t.st_bd, ' - ', t.st_kt) as ca_hoc,
-            lg.ma_gv,
-            gv.ten_gv,
-            mh.ten_mh,
-            lg.nmh as nhom_mon_hoc,
-            CASE 
-                WHEN t.ngay_hoc < CURDATE() THEN 'Đã qua'
-                WHEN t.ngay_hoc = CURDATE() THEN 'Hôm nay'
-                ELSE 'Sắp tới'
-            END as trang_thai
-        FROM tkb t
-        JOIN lich_gd lg ON t.ma_gd = lg.ma_gd
-        JOIN giao_vien gv ON lg.ma_gv = gv.ma_gv
-        JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
-        WHERE t.ma_gd = :maGd
-        ORDER BY t.ngay_hoc DESC
-        """, nativeQuery = true)
-    List<Object[]> findClassDates(@Param("maGd") Integer maGd);
-
 } 
