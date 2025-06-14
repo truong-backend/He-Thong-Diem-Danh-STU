@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTOExcel;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.dto.admin.AdminDto;
 import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
@@ -35,23 +36,39 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
-        @PostMapping(value = "/importExcel-SinhVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-        public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
-            String fileName = file.getOriginalFilename();
-            try {
-                List<SinhVienExcelDto> sinhvienlist = new ArrayList<>();
-                if(fileName.endsWith(".csv")){
-                    sinhvienlist = csvImport.csvImportFile(file.getInputStream());
-                }
-                else if(fileName.endsWith(".xls") || fileName.endsWith(".xlsx")){
-                    sinhvienlist = excel_Import.excelImportFile(file.getInputStream());
-                }
-                adminService.saveImportData(sinhvienlist);
-                return ResponseEntity.ok("Import thành công");
-            } catch (Exception e) {
-               return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    @PostMapping(value = "/importExcel-SinhVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importExcelSinhVien(@RequestParam("file") MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        try {
+            List<SinhVienExcelDto> sinhvienlist = new ArrayList<>();
+            if (fileName.endsWith(".csv")) {
+                sinhvienlist = csvImport.csvImportFile(file.getInputStream());
+            } else if (fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) {
+                sinhvienlist = excel_Import.excelImportFile(file.getInputStream());
             }
+            adminService.saveImportData(sinhvienlist);
+            return ResponseEntity.ok("Import thành công");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
+    }
+
+    @PostMapping(value = "/importExcel-GiaoVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importExcelGiaoVien(@RequestParam("file") MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        try {
+            List<GiaoVienDTOExcel> giaoVienDtoList = new ArrayList<>();
+            if (fileName.endsWith(".csv")) {
+                giaoVienDtoList = csvImport.importCSVGiaoVien(file.getInputStream());
+            } else if (fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) {
+                giaoVienDtoList = excel_Import.importGiaoVienExcel(file.getInputStream());
+            }
+            adminService.saveImportGiaoVienExcel(giaoVienDtoList);
+            return ResponseEntity.ok("Import thành công");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
 
     @GetMapping
     public ResponseEntity<Page<AdminDto>> getAllAdmins(
@@ -91,7 +108,7 @@ public class AdminController {
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateAdmin(@PathVariable Integer id,
-                                       @Valid @RequestBody UpdateAdminRequest request) {
+                                         @Valid @RequestBody UpdateAdminRequest request) {
         try {
             AdminDto updatedAdmin = adminService.updateAdmin(id, request);
             return ResponseEntity.ok(updatedAdmin);
