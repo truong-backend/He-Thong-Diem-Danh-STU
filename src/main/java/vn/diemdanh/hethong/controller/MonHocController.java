@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.giaovien.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.repository.MonHocRepository;
@@ -170,13 +171,6 @@ public class MonHocController {
         return Arrays.asList("maMh", "tenMh", "soTiet").contains(field);
     }
 
-    //Lấy danh sách môn học của giảnh viên đó trong học kỳ đó
-    @GetMapping("/mon-hoc-theo-giao-vien")
-    public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
-            @RequestParam String maGv,
-            @RequestParam int hocKy) {
-        return monHocService.getMonHocByMaGvAndHocKy(maGv, hocKy);
-    }
     // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
     @GetMapping("/nhom-mon-hoc")
     public ResponseEntity<List<Integer>> getNhomMonHoc(
@@ -187,6 +181,14 @@ public class MonHocController {
         List<Integer> dsNhom = monHocService.getNhomMonHoc(maGv, maMh, hocKy);
         return ResponseEntity.ok(dsNhom);
     }
-
+    @GetMapping("/mon-hoc-theo-giao-vien")
+    public ResponseEntity<List<MonHocGiangVienDTO>> getMonHocByGiaoVien(
+            @RequestParam String maGv,
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc
+    ) {
+        List<MonHocGiangVienDTO> dsMonHoc = monHocService.getSubjectsByTeacher(maGv, hocKy, namHoc);
+        return ResponseEntity.ok(dsMonHoc);
+    }
 
 } 

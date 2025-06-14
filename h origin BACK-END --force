@@ -1,0 +1,86 @@
+* [33m74d296b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mBACK-END[m[33m)[m Lấy danh sách học kỳ theo quy luật hk1 9-1, học kỳ 2 2-6, học kỳ 3 7-8
+[31m|[m * [33m9b69c8b[m[33m ([m[1;31morigin/BACK-END[m[33m)[m Thay kiểu dữ liệu học kỳ từ int sang String để thỏa mãn yêu cầu
+[31m|[m[31m/[m  
+* [33m7672d91[m Lấy danh sách sinh viên của  ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
+* [33m47c5215[m Lấy danh sách ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
+* [33md522595[m Lấy danh sách nhóm môm học của môn học đó của giảng viên đó trong học kỳ đó
+* [33m111471a[m Chỉnh sửa lại vị trí của lấy danh sách môn học của giảng viên đó theo học kỳ đó
+* [33me20eabd[m Lấy danh sách môn học của giảng viên đó theo học kỳ đó
+* [33m1ad72ec[m Lấy danh sách học kỳ
+* [33m0a5e799[m BACK UP lại dữ liệu trước
+* [33m3806a07[m ĐẨY CHỨC NĂNG EXPORT DANH SÁCH SINH VIÊN
+* [33mb3c195b[m Cấu trúc thư mục lại cho dể đọc REPOSI
+* [33md4c7501[m Cấu trúc thư mục lại cho dể đọc
+* [33m2b7c591[m Chỉnh lại serviver SinhVien
+*   [33m821ccb4[m[33m ([m[1;31morigin/Hiep-With-BE[m[33m)[m Merge branch 'BACK-END' of https://github.com/truong-backend/He-Thong-Diem-Danh-STU into Hiep-With-BE
+[33m|[m[34m\[m  
+[33m|[m * [33m8d4e778[m Bổ sung API lấy danh sách lớp không phân trang cho danh sách sinh viên để cập nhật thông tin sinh viên
+* [34m|[m [33med375e7[m controller cập nhật và lấy thông tin cá nhân giáo viên
+* [34m|[m [33m24d195e[m service xử lý hiển thị profile và update profile giáo viên
+* [34m|[m [33m65151d8[m tạo giáo viên dto lấy thông tin cần hiển thị profile
+* [34m|[m [33m5dc9774[m Merge remote-tracking branch 'origin/BACK-END' into Hiep-With-BE
+[35m|[m[34m\[m[34m|[m 
+[35m|[m * [33mec2a173[m Bổ sung API
+[35m|[m * [33m7c9e941[m Danh sách giảng viên
+[35m|[m * [33m3e5b193[m Lấy danh sách giảng viên và sinh viên theo role
+* [36m|[m [33mfe81748[m dto sinh viên cho file excel
+* [36m|[m [33m268170e[m importExcel kiểm tra định dạng csv hoặc xlsx để thực hiện import theo định dạng excel
+* [36m|[m [33m1f49482[m saveImport để lưu data từ file excel
+* [36m|[m [33m3c30079[m helper import file excel csv và xlsx
+* [36m|[m [33m0e29880[m dùng @Query truy vấn lớp LichGDTO hiển thị lịch giảng dạy
+* [36m|[m [33m538acf6[m thêm controller lấy ds lịch giảng dạy theo mã GV
+* [36m|[m [33m2537cb4[m Service lấy DS lịch giảng dạy theo mã GV
+* [36m|[m [33md0bfbde[m Thêm anotation @Query truy vấn dữ liệu từ Entity và function lấy danh sách điểm danh
+* [36m|[m [33m721bc7c[m Service lấy danh sách điểm danh
+* [36m|[m [33m8bfc9f1[m Controller lấy danh sách điểm danh theo môn học,phòng học
+[36m|[m[36m/[m  
+* [33m32d5237[m Cập nhật User.java
+* [33ma54285d[m Thêm API để quản lý lịch giảng và lịch khóa học với các chức năng tạo, đọc, cập nhật và xóa và điểm danh
+* [33mbfab6ce[m Thêm API quản lý lịch giảng dạy và thời khóa biểu với các chức năng tạo, đọc, cập nhật và xóa
+* [33me238109[m Thêm API quản lý môn học với các chức năng tạo, đọc, cập nhật và xóa
+* [33mf4be2ba[m Thêm API chức năng quản lý lớp và khoa
+* [33ma0cebe8[m Thêm các điểm cuối để đăng nhập người dùng và quản trị viên
+* [33m72f38f4[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m Tái cấu trúc các điểm cuối xác thực và quản lý người dùng
+* [33mdc028ec[m Tái cấu trúc các điểm cuối xác thực và quản lý người dùng
+* [33mf731f43[m Thêm hỗ trợ Docker và viết tài liệu
+* [33m6589a88[m tính năng: Thêm API để xóa tài khoản quản trị viên
+* [33mce1b350[m tính năng: Thêm API để cập nhật thông tin quản trị viên
+* [33mab90a5d[m tính năng: Thêm API để cập nhật thông tin quản trị viên
+* [33m76314f5[m feat: Thêm API để tạo người dùng quản trị
+* [33ma5cf332[m tính năng: Thêm API lấy người dùng theo id (số nguyên) cho quản trị viên
+* [33mda6e188[m tính năng: Thêm API lấy người dùng theo id (số nguyên) cho quản trị viên
+* [33m7f9142c[m tính năng: Thêm API lấy danh sách người dùng cho quản trị viên
+* [33mb276ec2[m tính năng: Thêm API lấy danh sách người dùng cho quản trị viên
+* [33m90f4903[m tính năng: Thêm chức năng quên mật khẩu cho cả Người dùng và Quản trị viên
+* [33mbcf2c1d[m feat: Add admin authentication and JWT token support
+* [33mcd048b5[m feat: Add admin authentication and JWT token support
+[36m|[m * [33m5463bff[m[33m ([m[1;31morigin/revert-2-BACK-END[m[33m)[m Revert "BACK-END"
+[36m|[m *   [33md0cc7d9[m[33m ([m[1;31morigin/FRONT-END[m[33m)[m Merge pull request #2 from truong-backend/BACK-END
+[36m|[m [1;32m|[m[1;33m\[m  
+[36m|[m [1;32m|[m * [33m97fdc74[m Cấu hình Hibernate không tự động update database
+[36m|[m [1;32m|[m * [33md92ff00[m feat: Thêm chức năng đặt lại mật khẩu với OTP qua email
+[36m|[m [1;32m|[m[36m/[m  
+[36m|[m[36m/[m[1;32m|[m   
+* [1;32m|[m [33mc24c61f[m feat: Thêm chức năng đặt lại mật khẩu với OTP qua email
+* [1;32m|[m [33m249c7a4[m fix: Sửa lỗi đăng nhập
+* [1;32m|[m [33mee61633[m Cấu hình JWT và đăng nhập với JWT
+* [1;32m|[m [33m46f931b[m Thêm entity và cấu hình datasource MySQL
+* [1;32m|[m [33mf6f0201[m Thêm MySQL Connector và cấu hình datasource MySQL
+* [1;32m|[m [33m88795af[m first commit
+* [1;32m|[m [33m0197b02[m Initial commit
+* [1;32m|[m [33mb06db79[m Xóa toàn bộ file cũ
+* [1;32m|[m [33mb9e535d[m Thêm toàn bộ code mới
+[1;33m|[m *   [33mf6a72fb[m Merge pull request #1 from truong-backend/BACK-END
+[1;33m|[m [1;34m|[m[1;33m\[m  
+[1;33m|[m [1;34m|[m[1;33m/[m  
+[1;33m|[m[1;33m/[m[1;34m|[m   
+* [1;34m|[m [33m58ee813[m Xóa toàn bộ file cũ
+[1;34m|[m[1;34m/[m  
+* [33mb6c078b[m[33m ([m[1;31morigin/Truong[m[33m)[m resposive Admin gần như hoàn tất
+* [33m1a7ce89[m responsive AdminDashboard và menu của admin
+* [33me5b943d[m Tái cấu trúc mã
+* [33md3ebf0c[m responsive Trang Admin
+*   [33m3129d1c[m Hoàn thành Giao diện chức năng cho bên PDT
+[1;36m|[m[31m\[m  
+[1;36m|[m * [33m8829bd5[m Initial commit
+* [33m6a39069[m[33m ([m[1;31morigin/Hiep[m[33m)[m Giao Dien Vừa Hoàn Thanh Sơ bộ chưa phải chính thức

@@ -3,18 +3,39 @@ package vn.diemdanh.hethong.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.diemdanh.MonHocDto;
+import vn.diemdanh.hethong.dto.giaovien.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MonHocService {
     @Autowired
     private MonHocRepository monHocRepository;
 
+    //Lấy danh sách môn học của giảnh viên đó trong học kỳ đó
     public List<MonHocDto> getMonHocByMaGvAndHocKy(String maGv, int hocKy) {
         return monHocRepository.findDistinctMonHocByGiaoVienAndHocKy(maGv, hocKy);
     }
+    // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
+    public List<Integer> getNhomMonHoc(String maGv, String maMh, int hocKy) {
+        return monHocRepository.findDistinctNhomMonHocByMaGvAndMaMhAndHocKy(maGv, maMh, hocKy);
+    }
 
+    // 2. LẤY DANH SÁCH MÔN HỌC CỦA GIẢNG VIÊN
+    public List<MonHocGiangVienDTO> getSubjectsByTeacher(String maGv, Integer hocKy, Integer namHoc) {
+//        log.info("Fetching subjects for teacher: {}, semester: {}, year: {}", maGv, hocKy, namHoc);
+        List<Object[]> results = monHocRepository.findSubjectsByTeacher(maGv, hocKy, namHoc);
+
+        return results.stream()
+                .map(row -> MonHocGiangVienDTO.builder()
+                        .maMh((String) row[0])
+                        .tenMh((String) row[1])
+                        .hocKy((Integer) row[2])
+                        .namHoc(((Number) row[3]).intValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }

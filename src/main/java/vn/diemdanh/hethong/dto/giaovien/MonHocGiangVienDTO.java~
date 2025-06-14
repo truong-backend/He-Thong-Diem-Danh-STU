@@ -1,0 +1,12 @@
+package vn.diemdanh.hethong.dto.giaovien;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MonHocGiangVienDTO {
+    private String maMh;
+    private String tenMh;
+    private Integer hocKy;
+    private Integer namHoc;
+}
