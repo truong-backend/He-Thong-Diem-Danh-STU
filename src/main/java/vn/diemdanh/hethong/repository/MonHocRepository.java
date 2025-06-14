@@ -9,15 +9,7 @@ import vn.diemdanh.hethong.entity.MonHoc;
 import java.util.List;
 
 public interface MonHocRepository extends JpaRepository<MonHoc, String> {
-    // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
-    @Query(value = "SELECT DISTINCT lg.nmh " +
-            "FROM lich_gd lg " +
-            "WHERE lg.ma_gv = :maGv " +
-            "AND lg.ma_mh = :maMh " +
-            "AND lg.hoc_ky = :hocKy", nativeQuery = true)
-    List<Integer> findDistinctNhomMonHocByMaGvAndMaMhAndHocKy(@Param("maGv") String maGv,
-                                                              @Param("maMh") String maMh,
-                                                              @Param("hocKy") int hocKy);
+
 
     // 2. LẤY DANH SÁCH MÔN HỌC CỦA GIẢNG VIÊN THEO HỌC KỲ VÀ NĂM
     @Query(value = """
@@ -36,4 +28,26 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
     List<Object[]> findSubjectsByTeacher(@Param("maGv") String maGv,
                                          @Param("hocKy") Integer hocKy,
                                          @Param("namHoc") Integer namHoc);
+    // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
+    @Query(value = """
+        SELECT DISTINCT
+            lg.ma_gd,
+            lg.nmh as nhom_mon_hoc,
+            mh.ten_mh,
+            lg.phong_hoc,
+            lg.ngay_bd,
+            lg.ngay_kt,
+            CONCAT('Tiết ', lg.st_bd, ' - ', lg.st_kt) as ca_hoc
+        FROM lich_gd lg
+        JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
+        WHERE lg.ma_gv = :maGv
+            AND lg.ma_mh = :maMh
+            AND lg.hoc_ky = :hocKy
+            AND YEAR(lg.ngay_bd) = :namHoc
+        ORDER BY lg.nmh
+        """, nativeQuery = true)
+    List<Object[]> findSubjectGroups(@Param("maGv") String maGv,
+                                     @Param("maMh") String maMh,
+                                     @Param("hocKy") Integer hocKy,
+                                     @Param("namHoc") Integer namHoc);
 } 
