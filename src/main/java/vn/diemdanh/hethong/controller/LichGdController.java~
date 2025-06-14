@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
 import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
 import vn.diemdanh.hethong.entity.GiaoVien;
 import vn.diemdanh.hethong.entity.LichGd;
@@ -16,6 +17,7 @@ import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.DiemDanhService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -238,5 +240,12 @@ public class LichGdController {
     private boolean isValidSortField(String field) {
         return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy")
                 .contains(field);
+    }
+
+    // 1. LẤY DANH SÁCH HỌC KỲ
+    @GetMapping
+    public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
+        List<HocKyDTO> hocKyList = lichGdRepository.getAllSemesters();
+        return ResponseEntity.ok(hocKyList);
     }
 } 

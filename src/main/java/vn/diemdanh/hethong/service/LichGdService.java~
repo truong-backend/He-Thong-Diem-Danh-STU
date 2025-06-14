@@ -16,6 +16,7 @@ public class LichGdService {
     @Autowired
     private LichGdRepository lichGdRepository;
     public List<HocKyDTO> getAllSemesters() {
+//        log.info("Fetching all semesters");
         List<Object[]> results = lichGdRepository.findAllSemesters();
 
         return results.stream()

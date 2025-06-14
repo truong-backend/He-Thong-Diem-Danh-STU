@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
 import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
 import vn.diemdanh.hethong.entity.GiaoVien;
 import vn.diemdanh.hethong.entity.LichGd;
@@ -17,6 +18,7 @@ import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.DiemDanhService;
+import vn.diemdanh.hethong.service.LichGdService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +37,6 @@ public class LichGdController {
     @Autowired
     private MonHocRepository monHocRepository;
 
-    @Autowired
-    private DiemDanhService diemDanhService;
 
 
     // CREATE - Thêm lịch giảng dạy mới
@@ -242,14 +242,13 @@ public class LichGdController {
         return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy")
                 .contains(field);
     }
-    // Lấy danh sách học kỳ
-    @GetMapping("/hocky")
-    public ResponseEntity<List<String>> getHocKyList() {
-        try {
-            List<String> hocKyList = diemDanhService.getHocKyList();
-            return ResponseEntity.ok(hocKyList);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-        }
+
+    // 1. LẤY DANH SÁCH HỌC KỲ
+    @Autowired
+    private LichGdService lichGdService;
+    @GetMapping("/hoc-ky")
+    public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
+        List<HocKyDTO> hocKyList = lichGdService.getAllSemesters();
+        return ResponseEntity.ok(hocKyList);
     }
 } 
