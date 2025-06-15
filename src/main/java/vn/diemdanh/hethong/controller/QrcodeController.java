@@ -17,7 +17,7 @@ public class QrcodeController {
     // 8. TẠO QR CODE MỚI
     @PostMapping("/qr/TaoQRCode")
     public ResponseEntity<QRCodeDTO> generateQRCode(@Valid @RequestBody TaoQRCodeRequest request) {
-        QRCodeDTO qrCode = qrcodeService.createQRCodeWithDebug(request); // Use debug version first
+        QRCodeDTO qrCode = qrcodeService.createQRCode(request); // Use debug version first
         return ResponseEntity.ok(qrCode);
     }
 

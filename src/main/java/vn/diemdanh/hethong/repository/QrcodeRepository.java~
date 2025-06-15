@@ -19,7 +19,7 @@ public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
         VALUES (:maTkb, DATE_ADD(NOW(), INTERVAL 15 MINUTE))
         """, nativeQuery = true)
     void createQRCode(@Param("maTkb") Integer maTkb);
-
+    
     @Query(value = """
         SELECT 
             qr.id,
