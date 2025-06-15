@@ -1,0 +1,81 @@
+package vn.diemdanh.hethong.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+import vn.diemdanh.hethong.entity.Qrcode;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
+    // 8. TẠO QRCODE MỚI CHO ĐIỂM DANH
+    @Modifying
+    @Transactional
+    @Query(value = """
+        INSERT INTO qrcode (ma_tkb, thoi_gian_kt)
+        VALUES (:maTkb, DATE_ADD(NOW(), INTERVAL 15 MINUTE))
+        """, nativeQuery = true)
+    void createQRCode(@Param("maTkb") Integer maTkb);
+
+    // Alternative approach 1: Use List instead of Object[]
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            'Còn hiệu lực' as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.ma_tkb = :maTkb
+        ORDER BY qr.id DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<List<Object>> getLatestQRCodeAsList(@Param("maTkb") Integer maTkb);
+
+    // Alternative approach 2: Get just the ID first, then query the entity
+    @Query(value = """
+        SELECT qr.id
+        FROM qrcode qr
+        WHERE qr.ma_tkb = :maTkb
+        ORDER BY qr.id DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<Long> getLatestQRCodeId(@Param("maTkb") Integer maTkb);
+
+    // Then get the full data
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            'Còn hiệu lực' as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :id
+        """, nativeQuery = true)
+    Optional<Object[]> getQRCodeById(@Param("id") Long id);
+
+    // Original method (keep for comparison)
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            'Còn hiệu lực' as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.ma_tkb = :maTkb
+        ORDER BY qr.id DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<Object[]> getLatestQRCode(@Param("maTkb") Integer maTkb);
+}
