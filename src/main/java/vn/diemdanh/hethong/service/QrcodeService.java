@@ -3,6 +3,7 @@ package vn.diemdanh.hethong.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.diemdanh.hethong.dto.qrcode.DiemDanhQRRequest;
 import vn.diemdanh.hethong.dto.qrcode.QRCodeDTO;
 import vn.diemdanh.hethong.dto.qrcode.TaoQRCodeRequest;
 import vn.diemdanh.hethong.repository.QrcodeRepository;
@@ -34,5 +35,19 @@ public class QrcodeService {
             throw new RuntimeException("Không thể tạo QR Code", e);
         }
     }
+    // 9. ĐIỂM DANH BẰNG QR CODE
+    @Transactional
+    public void markAttendanceByQR(DiemDanhQRRequest request) {
+        // Kiểm tra QR code còn hiệu lực không
+        Optional<Object[]> qrCode = qrcodeRepository.checkQRCodeValidity(request.getQrId());
+        if (qrCode.isEmpty()) {
+            throw new RuntimeException("QR Code đã hết hiệu lực hoặc không tồn tại");
+        }
 
+        try {
+            qrcodeRepository.markAttendanceByQR(request.getQrId(), request.getMaSv());
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể điểm danh bằng QR Code", e);
+        }
+    }
 }

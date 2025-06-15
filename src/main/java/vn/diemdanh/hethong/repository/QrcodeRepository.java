@@ -35,4 +35,47 @@ public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
         LIMIT 1
         """, nativeQuery = true)
     Optional<Object[][]> getLatestQRCode(@Param("maTkb") Integer maTkb);
+
+    // 7. KIỂM TRA QRCODE CÒN HỢP LỆ KHÔNG
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            CASE 
+                WHEN NOW() <= qr.thoi_gian_kt THEN 'Còn hiệu lực'
+                ELSE 'Hết hiệu lực'
+            END as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND NOW() <= qr.thoi_gian_kt
+        """, nativeQuery = true)
+    Optional<Object[]> checkQRCodeValidity(@Param("qrId") Long qrId);
+
+    // 9. ĐIỂM DANH BẰNG QRCODE
+    @Modifying
+    @Transactional
+    @Query(value = """
+        INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
+        SELECT 
+            qr.ma_tkb,
+            :maSv,
+            t.ngay_hoc,
+            NOW(),
+            'Điểm danh bằng QR Code'
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND NOW() <= qr.thoi_gian_kt
+        ON DUPLICATE KEY UPDATE 
+            diem_danh2 = CASE 
+                WHEN diem_danh1 IS NOT NULL AND diem_danh2 IS NULL THEN NOW()
+                ELSE diem_danh2
+            END,
+            ghi_chu = CONCAT(diem_danh.ghi_chu, ' - QR Code lần 2')
+        """, nativeQuery = true)
+    void markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
 }
