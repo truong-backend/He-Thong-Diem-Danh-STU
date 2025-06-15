@@ -24,7 +24,7 @@ public class QrcodeService {
                     .map(row -> QRCodeDTO.builder()
                             .id((Long) row[0][0])
                             .maTkb((Integer) row[0][1])
-                            .thoiGianKt(((Timestamp) row[0][2]).toLocalDateTime())
+                            .thoiGianKt(((java.sql.Date) row[0][3]).toLocalDate())
                             .ngayHoc(((java.sql.Date) row[0][3]).toLocalDate())
                             .phongHoc((String) row[0][4])
                             .trangThai((String) row[0][5])

@@ -14,11 +14,11 @@ public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
     // 8. TẠO QRCODE MỚI CHO ĐIỂM DANH
     @Modifying
     @Transactional
-    @Query(value = """
-        INSERT INTO qrcode (ma_tkb, thoi_gian_kt)
-        VALUES (:maTkb, DATE_ADD(NOW(), INTERVAL 15 MINUTE))
-        """, nativeQuery = true)
-    void createQRCode(@Param("maTkb") Integer maTkb);
+    @Query(
+            value = "INSERT INTO qrcode (ma_tkb, thoi_gian_kt) VALUES (:maTkb, DATE_ADD(NOW(), INTERVAL :soPhut MINUTE))",
+            nativeQuery = true
+    )
+    void createQRCode(@Param("maTkb") Integer maTkb, @Param("soPhut") Integer soPhut);
 
     @Query(value = """
         SELECT 
