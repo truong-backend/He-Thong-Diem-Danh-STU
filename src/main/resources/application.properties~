@@ -36,5 +36,5 @@ springdoc.api-docs.path=/api-docs
 springdoc.swagger-ui.path=/swagger-ui.html
 springdoc.swagger-ui.operationsSorter=method
 
-# Cau hinh Port cho Render
+# Cau hinh Port cho 
 server.port=${PORT:8080}
