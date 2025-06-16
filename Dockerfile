@@ -11,4 +11,8 @@ COPY --from=builder /app/target/*.jar app.jar
 
 ENV PORT=8080
 
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && \
+    echo "Asia/Ho_Chi_Minh" > /etc/timezone
+
 ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT} -jar /app.jar"]
