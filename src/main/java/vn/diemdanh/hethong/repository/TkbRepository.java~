@@ -41,7 +41,7 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
         JOIN giao_vien gv ON lg.ma_gv = gv.ma_gv
         JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
         WHERE t.ma_gd = :maGd
-        ORDER BY t.ngay_hoc ASC
+        ORDER BY t.ngay_hoc DESC
         """, nativeQuery = true)
     List<Object[]> findClassDates(@Param("maGd") Integer maGd);
 
