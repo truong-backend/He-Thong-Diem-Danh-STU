@@ -11,8 +11,10 @@ COPY --from=builder /app/target/*.jar app.jar
 
 ENV PORT=8080
 
+# Set timezone to Asia/Ho_Chi_Minh
 RUN apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime && \
     echo "Asia/Ho_Chi_Minh" > /etc/timezone
 
-ENTRYPOINT ["sh", "-c", "java -Dserver.port=${PORT} -jar /app.jar"]
+# Run Java and print server time at startup
+ENTRYPOINT ["sh", "-c", "date && java -Duser.timezone=Asia/Ho_Chi_Minh -Dserver.port=${PORT} -jar /app.jar"]
