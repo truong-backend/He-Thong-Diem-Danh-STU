@@ -2,10 +2,12 @@ package vn.diemdanh.hethong.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,4 +50,22 @@ public class MonHocService {
                         .build())
                 .collect(Collectors.toList());
     }
+    // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN
+    public List<MonHocSinhVienDto> getMonHocCuaSinhVien(String maSv) {
+        List<Object[]> results = monHocRepository.findMonHocByMaSv(maSv);
+
+        return results.stream()
+                .map(r -> MonHocSinhVienDto.builder()
+                        .maMh((String) r[0])
+                        .tenMh((String) r[1])
+                        .soTiet(((Number) r[2]).intValue()) // an toàn nếu là Integer/BigInteger
+                        .nmh((Integer) r[3])
+                        .hocKy((Integer) r[4])
+                        .phongHoc((String) r[5])
+                        .ngayBd(((java.sql.Date) r[6])) // nếu dùng LocalDate
+                        .ngayKt(((java.sql.Date) r[7]))
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 }

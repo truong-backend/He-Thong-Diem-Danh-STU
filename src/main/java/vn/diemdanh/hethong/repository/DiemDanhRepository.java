@@ -11,15 +11,9 @@ import vn.diemdanh.hethong.entity.DiemDanh;
 import vn.diemdanh.hethong.entity.Tkb;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
-
-    Page<DiemDanh> findByMaTkb(Tkb tkb, Pageable pageable);
-    Page<DiemDanh> findByMaSv(String maSv, Pageable pageable);
-    Page<DiemDanh> findByMaTkbAndMaSv(Tkb tkb, String maSv, Pageable pageable);
-    Page<DiemDanh> findByNgayHoc(LocalDate ngayHoc, Pageable pageable);
-    Page<DiemDanh> findByNgayHocBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
-    Page<DiemDanh> findByMaSvAndNgayHocBetween(String maSv, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     // 6. ĐIỂM DANH THỦ CÔNG - INSERT/UPDATE
     @Modifying
@@ -38,4 +32,18 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                               @Param("maSv") String maSv,
                               @Param("ngayHoc") LocalDate ngayHoc,
                               @Param("ghiChu") String ghiChu);
+    //lấy danh sách điểm danh của sinh viên theo mã sinh viên và mã môn học
+    @Query(value = """
+        SELECT 
+            dd.ma_dd, mh.ma_mh, mh.ten_mh, tkb.ngay_hoc, 
+            dd.diem_danh1, dd.diem_danh2, dd.ghi_chu
+        FROM diem_danh dd
+        JOIN tkb ON dd.ma_tkb = tkb.ma_tkb
+        JOIN lich_gd lgd ON tkb.ma_gd = lgd.ma_gd
+        JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
+        WHERE dd.ma_sv = :maSv AND mh.ma_mh = :maMh
+        ORDER BY tkb.ngay_hoc
+    """, nativeQuery = true)
+    List<Object[]> findDiemDanhByMaSvAndMaMh(@Param("maSv") String maSv, @Param("maMh") String maMh);
+
 } 

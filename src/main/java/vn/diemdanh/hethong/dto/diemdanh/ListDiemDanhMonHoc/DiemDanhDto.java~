@@ -1,0 +1,4 @@
+package vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc;
+
+public class DiemDanhDto {
+}

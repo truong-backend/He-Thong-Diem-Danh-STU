@@ -3,7 +3,6 @@ package vn.diemdanh.hethong.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import vn.diemdanh.hethong.dto.diemdanh.MonHocDto;
 import vn.diemdanh.hethong.entity.MonHoc;
 
 import java.util.List;
@@ -50,4 +49,16 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
                                      @Param("maMh") String maMh,
                                      @Param("hocKy") Integer hocKy,
                                      @Param("namHoc") Integer namHoc);
+    // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN đang hoc
+    @Query(value = """
+        SELECT 
+            mh.ma_mh, mh.ten_mh, mh.so_tiet, lgd.nmh,
+            lgd.hoc_ky, lgd.phong_hoc, lgd.ngay_bd, lgd.ngay_kt
+        FROM sinh_vien sv
+        JOIN lich_hoc lh ON sv.ma_sv = lh.ma_sv
+        JOIN lich_gd lgd ON lh.ma_gd = lgd.ma_gd
+        JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
+        WHERE sv.ma_sv = :maSv
+    """, nativeQuery = true)
+    List<Object[]> findMonHocByMaSv(@Param("maSv") String maSv);
 } 

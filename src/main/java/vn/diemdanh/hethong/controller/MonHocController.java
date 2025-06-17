@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
@@ -153,20 +154,22 @@ public class MonHocController {
         dto.setSoTiet(monHoc.getSoTiet());
         return dto;
     }
+
     @GetMapping("/all")
     public ResponseEntity<?> getAllMonHocWithoutPaging() {
         try {
             List<MonHoc> monHocs = monHocRepository.findAll(Sort.by("maMh").ascending());
 
             List<MonHocDto> dtos = monHocs.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách môn học: " + e.getMessage());
         }
     }
+
     // Helper method to validate sort fields
     private boolean isValidSortField(String field) {
         return Arrays.asList("maMh", "tenMh", "soTiet").contains(field);
@@ -183,6 +186,7 @@ public class MonHocController {
         List<MonHocGiangVienDTO> dsMonHoc = monHocService.getSubjectsByTeacher(maGv, hocKy, namHoc);
         return ResponseEntity.ok(dsMonHoc);
     }
+
     // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
     @GetMapping("/danh-sach-nhom-mon-hoc")
     public ResponseEntity<List<NhomMonHocDTO>> getSubjectGroups(
@@ -194,4 +198,10 @@ public class MonHocController {
         return ResponseEntity.ok(groups);
     }
 
-} 
+    // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN
+    @GetMapping("/danh-sach-mon-hoc-cua-sinh-vien")
+    public ResponseEntity<List<MonHocSinhVienDto>> getMonHocCuaSinhVien(@RequestParam String maSv) {
+        List<MonHocSinhVienDto> result = monHocService.getMonHocCuaSinhVien(maSv);
+        return ResponseEntity.ok(result);
+    }
+}

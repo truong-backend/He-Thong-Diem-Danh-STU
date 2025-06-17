@@ -4,19 +4,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import vn.diemdanh.hethong.entity.DiemDanh;
 import vn.diemdanh.hethong.entity.Tkb;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
-
-    Page<DiemDanh> findByMaTkb(Tkb tkb, Pageable pageable);
-    Page<DiemDanh> findByMaSv(String maSv, Pageable pageable);
-    Page<DiemDanh> findByMaTkbAndMaSv(Tkb tkb, String maSv, Pageable pageable);
-    Page<DiemDanh> findByNgayHoc(LocalDate ngayHoc, Pageable pageable);
-    Page<DiemDanh> findByNgayHocBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
-    Page<DiemDanh> findByMaSvAndNgayHocBetween(String maSv, LocalDate startDate, LocalDate endDate, Pageable pageable);
 
     // 6. ĐIỂM DANH THỦ CÔNG - INSERT/UPDATE
     @Modifying
@@ -35,4 +32,18 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                               @Param("maSv") String maSv,
                               @Param("ngayHoc") LocalDate ngayHoc,
                               @Param("ghiChu") String ghiChu);
+    //lấy danh sách điểm danh của sinh viên theo mã sinh viên và mã môn học
+    List<Object[]> findDiemDanhByMaSvAndMaMh(@Param("maSv") String maSv, @Param("maMh") String maMh);
+
+    @Query(value = """
+        SELECT 
+            mh.ma_mh, mh.ten_mh, mh.so_tiet, lgd.nmh,
+            lgd.hoc_ky, lgd.phong_hoc, lgd.ngay_bd, lgd.ngay_kt
+        FROM sinh_vien sv
+        JOIN lich_hoc lh ON sv.ma_sv = lh.ma_sv
+        JOIN lich_gd lgd ON lh.ma_gd = lgd.ma_gd
+        JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
+        WHERE sv.ma_sv = :maSv
+    """, nativeQuery = true)
+    List<Object[]> findMonHocByMaSv(@Param("maSv") String maSv);
 } 
