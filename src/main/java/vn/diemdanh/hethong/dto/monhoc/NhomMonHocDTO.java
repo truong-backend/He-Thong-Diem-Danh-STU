@@ -1,0 +1,22 @@
+package vn.diemdanh.hethong.dto.monhoc;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class NhomMonHocDTO {
+    private Integer maGd;
+    private Integer nhomMonHoc;
+    private String tenMh;
+    private String phongHoc;
+    private LocalDate ngayBd;
+    private LocalDate ngayKt;
+    private String caHoc;
+}

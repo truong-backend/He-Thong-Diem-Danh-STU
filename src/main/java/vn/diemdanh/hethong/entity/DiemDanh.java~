@@ -16,7 +16,6 @@ import java.time.LocalDate;
 public class DiemDanh {
     @Id
     @Column(name = "ma_dd", columnDefinition = "int UNSIGNED not null")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull

@@ -2,18 +2,35 @@ package vn.diemdanh.hethong.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import vn.diemdanh.hethong.dto.tkb.NgayGiangDayDTO;
 import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TkbService {
     @Autowired
     private TkbRepository tkbRepository;
-    public List<Date> getNgayHoc(String maGv, String maMh, int nhomMh, String hocKy) {
-        return tkbRepository.findNgayHocByLichGd(maGv, maMh, nhomMh, hocKy);
+    // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
+    public List<NgayGiangDayDTO> getClassDates(Integer maGd) {
+        List<Object[]> results = tkbRepository.findClassDates(maGd);
+
+        return results.stream()
+                .map(row -> NgayGiangDayDTO.builder()
+                        .maTkb((Integer) row[0])
+                        .ngayHoc(((java.sql.Date) row[1]).toLocalDate())
+                        .phongHoc((String) row[2])
+                        .caHoc((String) row[3])
+                        .maGv((String) row[4])
+                        .tenGv((String) row[5])
+                        .tenMh((String) row[6])
+                        .nhomMonHoc((Integer) row[7])
+                        .trangThai((String) row[8])
+                        .build())
+                .collect(Collectors.toList());
     }
 }

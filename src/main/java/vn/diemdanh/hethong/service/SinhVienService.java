@@ -1,9 +1,12 @@
 package vn.diemdanh.hethong.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
 import vn.diemdanh.hethong.entity.Lop;
 import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.entity.User;
@@ -11,6 +14,7 @@ import vn.diemdanh.hethong.repository.LopRepository;
 import vn.diemdanh.hethong.repository.SinhVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -32,6 +36,48 @@ public class SinhVienService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public SinhVienDTOProfile getSinhVienProfile(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException("Không tìm thấy user hoặc email"));
+        SinhVien sinhVien = user.getMaSv();
+
+        SinhVienDTOProfile svDTO = new SinhVienDTOProfile();
+        svDTO.setMaSv(sinhVien.getMaSv());
+        svDTO.setTenSv(sinhVien.getTenSv());
+        svDTO.setTenLop(sinhVien.getMaLop().getTenLop());
+        svDTO.setNgaySinh(sinhVien.getNgaySinh());
+        svDTO.setPhai(sinhVien.getPhai());
+        svDTO.setDiaChi(sinhVien.getDiaChi());
+        svDTO.setEmail(sinhVien.getEmail());
+        svDTO.setSdt(sinhVien.getSdt());
+        svDTO.setAvatar(sinhVien.getAvatar());
+        return svDTO;
+    }
+
+    public SinhVienDTOProfile maptoDTO(SinhVien sv){
+        return new SinhVienDTOProfile(
+          sv.getMaSv(),
+          sv.getTenSv(),
+          sv.getMaLop().getTenLop(),
+          sv.getNgaySinh(),
+          sv.getPhai(),
+          sv.getDiaChi(),
+          sv.getEmail(),
+          sv.getSdt(), sv.getAvatar()
+        );
+    }
+    public SinhVienDTOProfile updateProfileSinhVien(String email,SinhVienDTOProfile svDTO){
+        User user = userRepository.findByEmail(email).orElseThrow(()
+                -> new EntityNotFoundException("Không tìm thấy user hoặc email"));
+
+        SinhVien updateSV = user.getMaSv();
+        updateSV.setSdt(svDTO.getSdt());
+        updateSV.setDiaChi(svDTO.getDiaChi());
+        SinhVien saved = sinhVienRepository.save(updateSV);
+        return maptoDTO(saved);
+
+    }
 
     public void createSinhVien(CreateSinhVienRequest request) {
         // Kiểm tra mã sinh viên
@@ -78,25 +124,27 @@ public class SinhVienService {
         return sinhVienRepository.findAll();
     }
 
-    //Lấy danh sách sinh viên theo ngày giảng dạy của nhóm môn học đó của môn học đó của giảng viên đó trong học kỳ đó
 
-    public List<Map<String, Object>> getSinhVienTheoLich(
-            String maGv,
-            String maMh,
-            int nhom,
-            String hocKy,
-            LocalDate ngayHoc
-    ) {
-        List<Object[]> rawResults = sinhVienRepository.findSinhVienTheoLichGiangDay(maGv, maMh, nhom, hocKy, ngayHoc);
+    // 5. LẤY DANH SÁCH SINH VIÊN CHO ĐIỂM DANH
+    public List<SinhVienDiemDanhDTO> getStudentsForAttendance(Integer maTkb) {
+//        log.info("Fetching students for attendance, class: {}", maTkb);
+        List<Object[]> results = sinhVienRepository.findStudentsForAttendance(maTkb);
 
-        return rawResults.stream().map(row -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("ma_sv", row[0]);
-            map.put("ten_sv", row[1]);
-            map.put("email", row[2]);
-            map.put("ma_lop", row[3]);
-            return map;
-        }).collect(Collectors.toList());
+        return results.stream()
+                .map(row -> SinhVienDiemDanhDTO.builder()
+                        .maSv((String) row[0])
+                        .tenSv((String) row[1])
+                        .email((String) row[2])
+                        .tenLop((String) row[3])
+                        .tenKhoa((String) row[4])
+                        .diemDanh1(row[5] != null ? ((Timestamp) row[5]).toLocalDateTime() : null)
+                        .diemDanh2(row[6] != null ? ((Timestamp) row[6]).toLocalDateTime() : null)
+                        .ghiChu((String) row[7])
+                        .trangThaiDiemDanh((String) row[8])
+                        .ngayHoc(((java.sql.Date) row[9]).toLocalDate())
+                        .phongHoc((String) row[10])
+                        .caHoc((String) row[11])
+                        .build())
+                .collect(Collectors.toList());
     }
-
 }

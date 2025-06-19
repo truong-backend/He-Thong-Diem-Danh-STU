@@ -3,25 +3,36 @@ package vn.diemdanh.hethong.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vn.diemdanh.hethong.dto.diemdanh.DiemDanhDto;
+import vn.diemdanh.hethong.dto.monhoc.listMonHocSV.DiemDanhDto;
+import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.service.DiemDanhService;
 
 import jakarta.validation.Valid;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import vn.diemdanh.hethong.service.DiemDanhService;
 
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/getDanhSachDiemDanh")
+@RequestMapping("/api/diemdanh")
 public class DiemDanhController {
 
-    // Lấy danh sách môn học theo học kỳ của giảng viên đó
+    @Autowired
+    private DiemDanhService diemDanhService;
+    // 6. ĐIỂM DANH THỦ CÔNG
+    @PostMapping("/diem-danh-thu-cong")
+    public ResponseEntity<String> markAttendanceManual(@Valid @RequestBody DiemDanhRequest request) {
+        diemDanhService.markAttendanceManual(request);
+        return ResponseEntity.ok("Điểm danh thành công");
+    }
+    @GetMapping("/diemdanh_sinhvien")
+    public ResponseEntity<List<DiemDanhDto>> getDiemDanhTheoSvVaMon(
+            @RequestParam String maSv,
+            @RequestParam String maMh) {
+        List<DiemDanhDto> result = diemDanhService.getDiemDanhBySinhVienVaMonHoc(maSv, maMh);
+        return ResponseEntity.ok(result);
+    }
+
+
 
 }

@@ -33,17 +33,17 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                               @Param("ngayHoc") LocalDate ngayHoc,
                               @Param("ghiChu") String ghiChu);
     //lấy danh sách điểm danh của sinh viên theo mã sinh viên và mã môn học
-    @Query(value = """
-        SELECT 
-            dd.ma_dd, mh.ma_mh, mh.ten_mh, tkb.ngay_hoc, 
-            dd.diem_danh1, dd.diem_danh2, dd.ghi_chu
-        FROM diem_danh dd
-        JOIN tkb ON dd.ma_tkb = tkb.ma_tkb
-        JOIN lich_gd lgd ON tkb.ma_gd = lgd.ma_gd
-        JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
-        WHERE dd.ma_sv = :maSv AND mh.ma_mh = :maMh
-        ORDER BY tkb.ngay_hoc
-    """, nativeQuery = true)
     List<Object[]> findDiemDanhByMaSvAndMaMh(@Param("maSv") String maSv, @Param("maMh") String maMh);
 
+    @Query(value = """
+        SELECT 
+            mh.ma_mh, mh.ten_mh, mh.so_tiet, lgd.nmh,
+            lgd.hoc_ky, lgd.phong_hoc, lgd.ngay_bd, lgd.ngay_kt
+        FROM sinh_vien sv
+        JOIN lich_hoc lh ON sv.ma_sv = lh.ma_sv
+        JOIN lich_gd lgd ON lh.ma_gd = lgd.ma_gd
+        JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
+        WHERE sv.ma_sv = :maSv
+    """, nativeQuery = true)
+    List<Object[]> findMonHocByMaSv(@Param("maSv") String maSv);
 } 

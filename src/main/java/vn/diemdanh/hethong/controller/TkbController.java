@@ -6,8 +6,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.tkb.NgayGiangDayDTO;
 import vn.diemdanh.hethong.dto.tkb.TkbDto;
 import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.Tkb;
@@ -248,14 +250,12 @@ public class TkbController {
                 .contains(field);
     }
 
-    @GetMapping("/list-ngay-hoc")
-    public ResponseEntity<List<Date>> getNgayHoc(
-            @RequestParam String maGv,
-            @RequestParam String maMh,
-            @RequestParam int nhomMh,
-            @RequestParam String hocKy
-    ) {
-        List<Date> result = tkbService.getNgayHoc(maGv, maMh, nhomMh, hocKy);
-        return ResponseEntity.ok(result);
+
+    // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
+
+    @GetMapping("/danh-sach-ngay-giang-day")
+    public ResponseEntity<List<NgayGiangDayDTO>> getClassDates(@RequestParam Integer maGd) {
+        List<NgayGiangDayDTO> classDates = tkbService.getClassDates(maGd);
+        return ResponseEntity.ok(classDates);
     }
 }

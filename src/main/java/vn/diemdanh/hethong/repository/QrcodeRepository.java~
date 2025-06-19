@@ -1,0 +1,62 @@
+package vn.diemdanh.hethong.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+import vn.diemdanh.hethong.entity.Qrcode;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
+    // 8. TẠO QRCODE MỚI CHO ĐIỂM DANH
+    @Modifying
+    @Transactional
+    @Query(
+            value = "INSERT INTO qrcode (ma_tkb, thoi_gian_kt) VALUES (:maTkb, DATE_ADD(NOW(), INTERVAL :soPhut MINUTE))",
+            nativeQuery = true
+    )
+    void createQRCode(@Param("maTkb") Integer maTkb, @Param("soPhut") Integer soPhut);
+
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            'Còn hiệu lực' as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.ma_tkb = :maTkb
+        ORDER BY qr.id DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<Object[][]> getLatestQRCode(@Param("maTkb") Integer maTkb);
+
+    // 9. ĐIỂM DANH BẰNG QRCODE
+    @Modifying
+    @Transactional
+    @Query(value = """
+        INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
+        SELECT 
+            qr.ma_tkb,
+            :maSv,
+            t.ngay_hoc,
+            NOW(),
+            'Điểm danh bằng QR Code'
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND NOW() <= qr.thoi_gian_kt
+        ON DUPLICATE KEY UPDATE 
+            diem_danh2 = CASE 
+                WHEN diem_danh1 IS NOT NULL AND diem_danh2 IS NULL THEN NOW()
+                ELSE diem_danh2
+            END,
+            ghi_chu = CONCAT(diem_danh.ghi_chu, ' - QR Code lần 2')
+        """, nativeQuery = true)
+    void markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
+}

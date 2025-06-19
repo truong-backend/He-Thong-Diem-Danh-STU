@@ -18,7 +18,6 @@ import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.DiemDanhService;
-import vn.diemdanh.hethong.service.LichGdService;
 
 import java.util.Arrays;
 import java.util.List;
@@ -244,11 +243,9 @@ public class LichGdController {
     }
 
     // 1. LẤY DANH SÁCH HỌC KỲ
-    @Autowired
-    private LichGdService lichGdService;
-    @GetMapping("/hoc-ky")
+    @GetMapping
     public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
-        List<HocKyDTO> hocKyList = lichGdService.getAllSemesters();
+        List<HocKyDTO> hocKyList = lichGdRepository.getAllSemesters();
         return ResponseEntity.ok(hocKyList);
     }
 } 

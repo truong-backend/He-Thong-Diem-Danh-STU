@@ -19,21 +19,29 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
     Page<Tkb> findByNgayHoc(LocalDate ngayHoc, Pageable pageable);
     Page<Tkb> findByNgayHocBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
 
-    //Phần điểm danh QR code
+
+    // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY CỦA NHÓM MÔN HỌC
     @Query(value = """
-        SELECT tkb.ngay_hoc 
-        FROM tkb 
-        JOIN lich_gd ON tkb.ma_gd = lich_gd.ma_gd 
-        WHERE lich_gd.ma_gv = :maGv 
-          AND lich_gd.ma_mh = :maMh 
-          AND lich_gd.nmh = :nmh 
-          AND lich_gd.hoc_ky = :hocKy 
-        ORDER BY tkb.ngay_hoc ASC
+        SELECT 
+            t.ma_tkb,
+            t.ngay_hoc,
+            t.phong_hoc,
+            CONCAT('Tiết ', t.st_bd, ' - ', t.st_kt) as ca_hoc,
+            lg.ma_gv,
+            gv.ten_gv,
+            mh.ten_mh,
+            lg.nmh as nhom_mon_hoc,
+            CASE 
+                WHEN t.ngay_hoc < CURDATE() THEN 'Đã qua'
+                WHEN t.ngay_hoc = CURDATE() THEN 'Hôm nay'
+                ELSE 'Sắp tới'
+            END as trang_thai
+        FROM tkb t
+        JOIN lich_gd lg ON t.ma_gd = lg.ma_gd
+        JOIN giao_vien gv ON lg.ma_gv = gv.ma_gv
+        JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
+        WHERE t.ma_gd = :maGd
+        ORDER BY t.ngay_hoc ASC
         """, nativeQuery = true)
-    List<Date> findNgayHocByLichGd(
-            @Param("maGv") String maGv,
-            @Param("maMh") String maMh,
-            @Param("nmh") int nhomMh,
-            @Param("hocKy") String hocKy
-    );
-} 
+    List<Object[]> findClassDates(@Param("maGd") Integer maGd);
+}

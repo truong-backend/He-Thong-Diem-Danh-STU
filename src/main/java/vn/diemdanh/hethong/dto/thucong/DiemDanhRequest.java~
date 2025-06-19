@@ -1,0 +1,4 @@
+package vn.diemdanh.hethong.dto.thucong;
+
+public class DiemDanhRequest {
+}

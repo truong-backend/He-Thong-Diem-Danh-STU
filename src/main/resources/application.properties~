@@ -46,9 +46,9 @@ springdoc.swagger-ui.operationsSorter=method
 # spring.datasource.username=your_username
 # spring.datasource.password=your_password
 
-#server.port=${PORT:8080}
-#
-#spring.jackson.time-zone=Asia/Ho_Chi_Minh
-#spring.datasource.time-zone=Asia/Ho_Chi_Minh
+server.port=${PORT:8080}
+
+spring.jackson.time-zone=Asia/Ho_Chi_Minh
+spring.datasource.time-zone=Asia/Ho_Chi_Minh
 #spring.datasource.hikari.connection-init-sql=SET time_zone = 'Asia/Ho_Chi_Minh'
 

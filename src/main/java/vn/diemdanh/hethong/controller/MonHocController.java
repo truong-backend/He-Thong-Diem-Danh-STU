@@ -1,19 +1,22 @@
 package vn.diemdanh.hethong.controller;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc.MonHocSinhVienDto;
+import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
+import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
 import jakarta.validation.Valid;
-import vn.diemdanh.hethong.service.DiemDanhService;
-import vn.diemdanh.hethong.service.LichGdService;
 import vn.diemdanh.hethong.service.MonHocService;
 
 import java.util.Arrays;
@@ -151,42 +154,53 @@ public class MonHocController {
         dto.setSoTiet(monHoc.getSoTiet());
         return dto;
     }
+
     @GetMapping("/all")
     public ResponseEntity<?> getAllMonHocWithoutPaging() {
         try {
             List<MonHoc> monHocs = monHocRepository.findAll(Sort.by("maMh").ascending());
 
             List<MonHocDto> dtos = monHocs.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách môn học: " + e.getMessage());
         }
     }
+
     // Helper method to validate sort fields
     private boolean isValidSortField(String field) {
         return Arrays.asList("maMh", "tenMh", "soTiet").contains(field);
     }
 
-    //Lấy danh sách môn học của giảnh viên đó trong học kỳ đó
-    @GetMapping("/mon-hoc-theo-giao-vien")
-    public List<vn.diemdanh.hethong.dto.diemdanh.MonHocDto> getMonHocByGiaoVienAndHocKy(
+    // 2. LẤY DANH SÁCH MÔN HỌC CỦA GIẢNG VIÊN
+    @GetMapping("/danh-sach-mon-hoc-theo-giao-vien")
+    public ResponseEntity<List<MonHocGiangVienDTO>> getMonHocByGiaoVien(
             @RequestParam String maGv,
-            @RequestParam String hocKy) {
-        return monHocService.getMonHocByMaGvAndHocKy(maGv, hocKy);
-    }
-    // Lấy danh sách nhóm môn học của môn hoc đó của giảng viên đó trong học kỳ đó
-    @GetMapping("/nhom-mon-hoc")
-    public ResponseEntity<List<Integer>> getNhomMonHoc(
-            @RequestParam String maGv,
-            @RequestParam String maMh,
-            @RequestParam String hocKy) {
-
-        List<Integer> dsNhom = monHocService.getNhomMonHoc(maGv, maMh, hocKy);
-        return ResponseEntity.ok(dsNhom);
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc
+    ) {
+        List<MonHocGiangVienDTO> dsMonHoc = monHocService.getSubjectsByTeacher(maGv, hocKy, namHoc);
+        return ResponseEntity.ok(dsMonHoc);
     }
 
+    // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
+    @GetMapping("/danh-sach-nhom-mon-hoc")
+    public ResponseEntity<List<NhomMonHocDTO>> getSubjectGroups(
+            @RequestParam String teacherId,
+            @RequestParam String subjectId,
+            @RequestParam Integer semester,
+            @RequestParam Integer year) {
+        List<NhomMonHocDTO> groups = monHocService.getSubjectGroups(teacherId, subjectId, semester, year);
+        return ResponseEntity.ok(groups);
+    }
 
-} 
+    // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN
+    @GetMapping("/danh-sach-mon-hoc-cua-sinh-vien")
+    public ResponseEntity<List<MonHocSinhVienDto>> getMonHocCuaSinhVien(@RequestParam String maSv) {
+        List<MonHocSinhVienDto> result = monHocService.getMonHocCuaSinhVien(maSv);
+        return ResponseEntity.ok(result);
+    }
+}
