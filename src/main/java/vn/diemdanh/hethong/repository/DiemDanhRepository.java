@@ -12,6 +12,7 @@ import vn.diemdanh.hethong.entity.Tkb;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
 
@@ -42,8 +43,39 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
         JOIN lich_gd lgd ON tkb.ma_gd = lgd.ma_gd
         JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
         WHERE dd.ma_sv = :maSv AND mh.ma_mh = :maMh
-        ORDER BY tkb.ngay_hoc
+        ORDER BY tkb.ngay_hoc 
     """, nativeQuery = true)
     List<Object[]> findDiemDanhByMaSvAndMaMh(@Param("maSv") String maSv, @Param("maMh") String maMh);
 
-} 
+    //Điểm danh quét QR sinh viên
+    @Modifying
+    @Transactional
+    @Query(value = """
+            insert into diem_danh(ma_tkb, ma_sv, ngay_hoc, diem_danh1,diem_danh2, ghi_chu)
+            select 
+                  :ma_tkb,
+                  :ma_sv,
+                  :ngay_hoc,
+                  Now(),
+                  NULL,
+                  'Quét QR sinh viên - điểm danh lần 1'
+            from tkb t join lich_gd gd on gd.ma_gd = t.ma_gd
+                       join lich_hoc lh on lh.ma_gd = gd.ma_gd
+                       join sinh_vien sv on sv.ma_sv = lh.ma_sv
+            where t.ma_tkb = :ma_tkb and gd.ma_gv = :ma_gv and lh.ma_sv = :ma_sv limit 1         
+            """,nativeQuery = true)
+    int diemDanhQuetMaQRSinhVien(@Param("ma_tkb")int ma_tkb,@Param("ma_sv")String ma_sv,@Param("ngay_hoc")LocalDate ngay_hoc,@Param("ma_gv")String ma_gv);
+
+    //Điểm danh lần 2 ghi đè cho record điểm danh trên
+    @Modifying
+    @Transactional
+    @Query(value = """
+        update diem_danh
+        set diem_danh2 = now(),
+                ghi_chu = concat(ifnull(ghi_chu,''),' Quét QR sinh viên - điểm danh lần 2')
+        where ma_tkb = :maTkb and ma_sv = :maSv and ngay_hoc = :ngayHoc
+            and diem_danh1 IS NOT NULL 
+            and diem_danh2 IS NULL
+    """,nativeQuery = true)
+    int diemDanhQuetMaQRSinhVienLan2(@Param("maTkb")int maTkb,@Param("maSv")String maSv,@Param("ngayHoc")LocalDate ngayHoc);
+}
