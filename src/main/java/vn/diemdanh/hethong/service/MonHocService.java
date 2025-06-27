@@ -2,12 +2,11 @@ package vn.diemdanh.hethong.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc.MonHocSinhVienDto;
+import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
