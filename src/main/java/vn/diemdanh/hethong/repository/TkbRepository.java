@@ -44,4 +44,5 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
         ORDER BY t.ngay_hoc ASC
         """, nativeQuery = true)
     List<Object[]> findClassDates(@Param("maGd") Integer maGd);
+
 }
