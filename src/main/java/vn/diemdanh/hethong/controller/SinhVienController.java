@@ -11,12 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.dto.khoa.KhoaDto;
+import vn.diemdanh.hethong.dto.sinhvien.*;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
-import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
-import vn.diemdanh.hethong.dto.sinhvien.UpdateSinhVienRequest;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.LopRepository;
 import vn.diemdanh.hethong.repository.SinhVienRepository;
@@ -47,11 +43,27 @@ public class SinhVienController {
     @Autowired
     private SinhVienService sinhVienService;
 
+    @GetMapping("/qr-sinhvien")
+    public ResponseEntity<?> getQRSinhVienInfo(@AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            String email = userDetails.getUsername();
+            QRSinhVienInfoDTO qrSV = sinhVienService.getQRSinhVien(email);
+            return ResponseEntity.ok(qrSV);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy QR sinh viên: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/profile")
     public ResponseEntity<?> getProfileSinhVien(@AuthenticationPrincipal UserDetails userDetails){
-        String email = userDetails.getUsername();
-        SinhVienDTOProfile sinhVienDTOProfile = sinhVienService.getSinhVienProfile(email);
-        return ResponseEntity.ok(sinhVienDTOProfile);
+        try {
+            String email = userDetails.getUsername();
+            SinhVienDTOProfile sinhVienDTOProfile = sinhVienService.getSinhVienProfile(email);
+            return ResponseEntity.ok(sinhVienDTOProfile);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin sinh viên: " + e.getMessage());
+
+        }
     }
 
     @PutMapping("/update-profile")
