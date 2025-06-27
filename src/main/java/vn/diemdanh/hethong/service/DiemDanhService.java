@@ -2,15 +2,21 @@ package vn.diemdanh.hethong.service;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.monhoc.listMonHocSV.DiemDanhDto;
 import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.repository.DiemDanhRepository;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
+import vn.diemdanh.hethong.repository.LichHocRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +29,36 @@ public class DiemDanhService {
 
     @Autowired
     private TkbRepository tkbRepository;
+    @Autowired
+    private GiaoVienRepository giaoVienRepository;
+    @Autowired
+    LichHocRepository lichHocRepository;
+    @Transactional
+    public int diemDanhMaQRSinhVien(DiemDanhQRSinhVienRequest request) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        String maGv = giaoVienRepository.findMaGvByEmail(email);
+        Integer existSinhVien = lichHocRepository.findSinhVienByMaTkb(request.getMaSv(),request.getMaTkb());
+        if(existSinhVien == 0 || existSinhVien == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Sinh viên không có thời khóa biểu của buổi học này");
+        }
 
+        int diemdanh = diemDanhRepository.diemDanhQuetMaQRSinhVienLan2(
+                request.getMaTkb(),
+                request.getMaSv(),
+                request.getNgayHoc()
+        );
+
+        if(diemdanh == 0){
+            return diemDanhRepository.diemDanhQuetMaQRSinhVien(
+                    request.getMaTkb(),
+                    request.getMaSv(),
+                    request.getNgayHoc(),
+                    maGv
+            );
+        }
+        return diemdanh;
+    }
 
     // Lấy danh sách học kỳ
     public List<String> getHocKyList() {
