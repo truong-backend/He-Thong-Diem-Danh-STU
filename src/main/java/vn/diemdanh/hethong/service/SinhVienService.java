@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
+import vn.diemdanh.hethong.dto.sinhvien.QRSinhVienInfoDTO;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
 import vn.diemdanh.hethong.entity.Lop;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,6 +38,18 @@ public class SinhVienService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public QRSinhVienInfoDTO getQRSinhVien(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException("Không tìm thấy user hoặc email"));
+        SinhVien sinhVien = user.getMaSv();
+
+        QRSinhVienInfoDTO qRSinhVienInfoDTO = new QRSinhVienInfoDTO();
+        qRSinhVienInfoDTO.setMaSv(sinhVien.getMaSv());
+        qRSinhVienInfoDTO.setTenSv(sinhVien.getTenSv());
+        qRSinhVienInfoDTO.setTenLop(sinhVien.getMaLop().getTenLop());
+        return qRSinhVienInfoDTO;
+    }
 
     public SinhVienDTOProfile getSinhVienProfile(String email){
         User user = userRepository.findByEmail(email).orElseThrow(() ->
