@@ -14,8 +14,8 @@ public class LichGdService {
     // 1. LẤY DANH SÁCH HỌC KỲ
     @Autowired
     private LichGdRepository lichGdRepository;
-    public List<HocKyDTO> getAllSemesters() {
-        List<Object[]> results = lichGdRepository.findAllSemesters();
+    public List<HocKyDTO> getAllSemesters(String maGv) {
+        List<Object[]> results = lichGdRepository.findAllSemesters(maGv);
 
         return results.stream()
                 .map(row -> HocKyDTO.builder()
