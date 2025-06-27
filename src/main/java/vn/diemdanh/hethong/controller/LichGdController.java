@@ -246,9 +246,9 @@ public class LichGdController {
     // 1. LẤY DANH SÁCH HỌC KỲ
     @Autowired
     private LichGdService lichGdService;
-    @GetMapping("/hoc-ky")
-    public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
-        List<HocKyDTO> hocKyList = lichGdService.getAllSemesters();
+    @GetMapping("/hoc-ky/{maGv}")
+    public ResponseEntity<List<HocKyDTO>> getAllHocKy(@PathVariable String maGv) {
+        List<HocKyDTO> hocKyList = lichGdService.getAllSemesters(maGv);
         return ResponseEntity.ok(hocKyList);
     }
 } 
