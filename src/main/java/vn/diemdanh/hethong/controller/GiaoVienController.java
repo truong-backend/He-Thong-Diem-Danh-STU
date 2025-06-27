@@ -5,11 +5,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
@@ -19,6 +22,7 @@ import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 
 import jakarta.validation.Valid;
+import vn.diemdanh.hethong.service.DiemDanhService;
 import vn.diemdanh.hethong.service.GiaoVienService;
 
 import java.time.Instant;
@@ -40,7 +44,23 @@ public class GiaoVienController {
     @Autowired GiaoVienService GiaoVienService;
     @Autowired
     private PasswordEncoder passwordEncoder;
- 
+
+    @Autowired
+    DiemDanhService diemDanhService;
+
+    @PostMapping("/diemdanhnguoc")
+    public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhQRSinhVienRequest request) {
+        try {
+            int result = diemDanhService.diemDanhMaQRSinhVien(request);
+            if (result > 0) {
+                return ResponseEntity.ok("Điểm danh thành công");
+            } else {
+                return ResponseEntity.ok("Lỗi điểm danh");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Điểm danh thất bại: " + e.getMessage());
+        }
+    }
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfileTeacher(@AuthenticationPrincipal UserDetails userDetails) {
