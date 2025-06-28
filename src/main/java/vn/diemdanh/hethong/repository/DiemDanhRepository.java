@@ -12,7 +12,6 @@ import vn.diemdanh.hethong.entity.Tkb;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
 
@@ -33,6 +32,15 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                               @Param("maSv") String maSv,
                               @Param("ngayHoc") LocalDate ngayHoc,
                               @Param("ghiChu") String ghiChu);
+    //Xóa điểm danh thủ công và đã điềm danh
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM diem_danh WHERE ma_sv = :maSv AND ma_tkb = :maTkb AND ngay_hoc = :ngayHoc", nativeQuery = true)
+    int deleteDiemDanhByMaSvAndMaTkbAndNgayHoc(
+            @Param("maSv") String maSv,
+            @Param("maTkb") Long maTkb,
+            @Param("ngayHoc") LocalDate ngayHoc
+    );
     //lấy danh sách điểm danh của sinh viên theo mã sinh viên và mã môn học
     @Query(value = """
         SELECT 
@@ -43,7 +51,7 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
         JOIN lich_gd lgd ON tkb.ma_gd = lgd.ma_gd
         JOIN mon_hoc mh ON lgd.ma_mh = mh.ma_mh
         WHERE dd.ma_sv = :maSv AND mh.ma_mh = :maMh
-        ORDER BY tkb.ngay_hoc 
+        ORDER BY tkb.ngay_hoc
     """, nativeQuery = true)
     List<Object[]> findDiemDanhByMaSvAndMaMh(@Param("maSv") String maSv, @Param("maMh") String maMh);
 
@@ -78,4 +86,5 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
             and diem_danh2 IS NULL
     """,nativeQuery = true)
     int diemDanhQuetMaQRSinhVienLan2(@Param("maTkb")int maTkb,@Param("maSv")String maSv,@Param("ngayHoc")LocalDate ngayHoc);
+
 }

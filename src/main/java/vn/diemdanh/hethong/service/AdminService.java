@@ -13,9 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.diemdanh.hethong.dto.admin.AdminDto;
 import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
 import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
-import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
-import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTOExcel;
-import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
 import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.entity.Admin;
@@ -47,8 +44,6 @@ public class AdminService implements UserDetailsService {
 
     @Autowired
     private SinhVienService sinhVienService;
-    @Autowired
-    private GiaoVienService giaoVienService;
 
     @Transactional
     public void saveImportData(List<SinhVienExcelDto> sinhVienExcelDtos) {
@@ -62,30 +57,7 @@ public class AdminService implements UserDetailsService {
             }
         }
     }
-    @Transactional
-    public void saveImportGiaoVienExcel(List<GiaoVienDTOExcel> giaovienExcelDtos) {
-        for(GiaoVienDTOExcel dto : giaovienExcelDtos) {
-            try {
-                CreateGiaoVienRequest request = convertToCreateReqGiaoVien(dto);
-                giaoVienService.createGiaoVien(request);
-            }catch (Exception e) {
-                e.printStackTrace();
-                System.out.println("Lỗi khi thêm giáo viên mã: " + dto.getMaGv() + " -> " + e.getMessage());
-            }
-        }
-    }
-    public CreateGiaoVienRequest convertToCreateReqGiaoVien(GiaoVienDTOExcel dto) {
-        CreateGiaoVienRequest request = new CreateGiaoVienRequest();
-        request.setMaGv(dto.getMaGv());
-        request.setTenGv(dto.getTenGv());
-        request.setNgaySinh(dto.getNgaySinh());
-        request.setPhai(dto.getPhai());
-        request.setDiaChi(dto.getDiaChi());
-        request.setSdt(dto.getSdt());
-        request.setEmail(dto.getEmail());
-        request.setCreateAccount(true);
-        return request;
-    }
+
 
     public CreateSinhVienRequest convertToCreateRequest(SinhVienExcelDto excelDto) {
         CreateSinhVienRequest request = new CreateSinhVienRequest();
@@ -149,14 +121,14 @@ public class AdminService implements UserDetailsService {
     public Optional<AdminDto> getAdminDtoById(Integer id) {
         return adminRepository.findById(id)
                 .map(admin -> new AdminDto(
-                    admin.getId(),
-                    admin.getUsername(),
-                    admin.getEmail(),
-                    admin.getFullName(),
-                    admin.getRole(),
-                    admin.getAvatar(),
-                    admin.getCreatedAt(),
-                    admin.getUpdatedAt()
+                        admin.getId(),
+                        admin.getUsername(),
+                        admin.getEmail(),
+                        admin.getFullName(),
+                        admin.getRole(),
+                        admin.getAvatar(),
+                        admin.getCreatedAt(),
+                        admin.getUpdatedAt()
                 ));
     }
 
@@ -172,7 +144,7 @@ public class AdminService implements UserDetailsService {
         }
 
         Admin admin = new Admin();
-;
+        ;
         admin.setUsername(request.getUsername());
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
         admin.setEmail(request.getEmail());
@@ -236,17 +208,21 @@ public class AdminService implements UserDetailsService {
     public List<SinhVienExcelDto> getAllSinhVienForExcel() {
         List<SinhVien> sinhViens = sinhVienRepository.findAll();
         return sinhViens.stream()
-            .map(sv -> new SinhVienExcelDto(
-                sv.getMaSv(),
-                sv.getTenSv(),
-                sv.getNgaySinh(),
-                sv.getPhai(),
-                sv.getDiaChi(),
-                sv.getSdt(),
-                sv.getEmail(),
-                sv.getMaLop().getMaLop(),
-                sv.getAvatar()
-            ))
-            .collect(Collectors.toList());
+                .map(sv -> new SinhVienExcelDto(
+                        sv.getMaSv(),
+                        sv.getTenSv(),
+                        sv.getNgaySinh(),
+                        sv.getPhai(),
+                        sv.getDiaChi(),
+                        sv.getSdt(),
+                        sv.getEmail(),
+                        sv.getMaLop().getMaLop(),
+                        sv.getAvatar()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public List<Admin> findAll() {
+        return adminRepository.findAll();
     }
 }

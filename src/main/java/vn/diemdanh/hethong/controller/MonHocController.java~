@@ -14,7 +14,6 @@ import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
-import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
 import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 

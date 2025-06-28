@@ -13,13 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
+import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTOExcel;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
 import vn.diemdanh.hethong.dto.admin.AdminDto;
 import vn.diemdanh.hethong.dto.admin.CreateAdminRequest;
 import vn.diemdanh.hethong.dto.admin.UpdateAdminRequest;
-import vn.diemdanh.hethong.entity.Admin;
-import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.helper.ExcelExporter;
 import vn.diemdanh.hethong.helper.csvImport;
 import vn.diemdanh.hethong.helper.excel_Import;
@@ -30,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -40,17 +37,33 @@ public class AdminController {
     private AdminService adminService;
 
     @PostMapping(value = "/importExcel-SinhVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> importExcel(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> importExcelSinhVien(@RequestParam("file") MultipartFile file) {
         String fileName = file.getOriginalFilename();
         try {
             List<SinhVienExcelDto> sinhvienlist = new ArrayList<>();
-            if(fileName.endsWith(".csv")){
+            if (fileName.endsWith(".csv")) {
                 sinhvienlist = csvImport.csvImportFile(file.getInputStream());
-            }
-            else if(fileName.endsWith(".xls") || fileName.endsWith(".xlsx")){
+            } else if (fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) {
                 sinhvienlist = excel_Import.excelImportFile(file.getInputStream());
             }
             adminService.saveImportData(sinhvienlist);
+            return ResponseEntity.ok("Import thành công");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
+    @PostMapping(value = "/importExcel-GiaoVien", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> importExcelGiaoVien(@RequestParam("file") MultipartFile file) {
+        String fileName = file.getOriginalFilename();
+        try {
+            List<GiaoVienDTOExcel> giaoVienDtoList = new ArrayList<>();
+            if (fileName.endsWith(".csv")) {
+                giaoVienDtoList = csvImport.importCSVGiaoVien(file.getInputStream());
+            } else if (fileName.endsWith(".xls") || fileName.endsWith(".xlsx")) {
+                giaoVienDtoList = excel_Import.importGiaoVienExcel(file.getInputStream());
+            }
+            adminService.saveImportGiaoVienExcel(giaoVienDtoList);
             return ResponseEntity.ok("Import thành công");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
@@ -138,32 +151,4 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    // ✅ API lấy danh sách tài khoản không phân trang
-    @GetMapping("/all")
-    public ResponseEntity<?> getAllSinhVienNoPagination() {
-        try {
-            List<Admin> admins = adminService.findAll();
-            List<AdminDto> dtos = admins.stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách sinh viên: " + e.getMessage());
-        }
-    }
-    public AdminDto convertToDto(Admin admin) {
-        if (admin == null) {
-            return null; // Hoặc ném ngoại lệ tùy theo yêu cầu
-        }
-        AdminDto adminDto = new AdminDto();
-        adminDto.setId(admin.getId());
-        adminDto.setUsername(admin.getUsername());
-        adminDto.setEmail(admin.getEmail());
-        adminDto.setFullName(admin.getFullName());
-        adminDto.setRole(admin.getRole());
-        adminDto.setAvatar(admin.getAvatar());
-        adminDto.setCreatedAt(admin.getCreatedAt());
-        adminDto.setUpdatedAt(admin.getUpdatedAt());
-        return adminDto;
-    }
-}
+} 

@@ -47,20 +47,20 @@ public class GiaoVienController {
 
     @Autowired
     DiemDanhService diemDanhService;
-
-    @PostMapping("/diemdanhnguoc")
-    public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhQRSinhVienRequest request) {
-        try {
-            int result = diemDanhService.diemDanhMaQRSinhVien(request);
-            if (result > 0) {
-                return ResponseEntity.ok("Điểm danh thành công");
-            } else {
-                return ResponseEntity.ok("Lỗi điểm danh");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Điểm danh thất bại: " + e.getMessage());
-        }
-    }
+//
+//    @PostMapping("/diemdanhnguoc")
+//    public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhQRSinhVienRequest request) {
+//        try {
+//            int result = diemDanhService.diemDanhMaQRSinhVien(request);
+//            if (result > 0) {
+//                return ResponseEntity.ok("Điểm danh thành công");
+//            } else {
+//                return ResponseEntity.ok("Lỗi điểm danh");
+//            }
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Điểm danh thất bại: " + e.getMessage());
+//        }
+//    }
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfileTeacher(@AuthenticationPrincipal UserDetails userDetails) {

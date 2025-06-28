@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.dto.diemdanh.ListDiemDanhMonHoc;
+package vn.diemdanh.hethong.dto.diemdanh;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

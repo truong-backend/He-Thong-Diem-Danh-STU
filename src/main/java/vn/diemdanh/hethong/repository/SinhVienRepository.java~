@@ -26,8 +26,7 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
                 dd.ghi_chu,
                 CASE 
                     WHEN dd.diem_danh1 IS NOT NULL and dd.diem_danh2 IS NOT NULL THEN 'Đã điểm danh lần 2'
-                    WHEN dd.diem_danh1 IS NOT NULL THEN 'Đã điểm danh lần 1'
-                    WHEN dd.diem_danh1 IS NULL THEN 'Chưa điểm danh'
+                    WHEN dd.diem_danh1 IS NOT NULL THEN 'Đã điểm danh'
                     ELSE 'Vắng'
                 END as trang_thai_diem_danh,
                 t.ngay_hoc,

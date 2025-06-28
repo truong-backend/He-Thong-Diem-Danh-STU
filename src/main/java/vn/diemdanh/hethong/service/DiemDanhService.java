@@ -17,6 +17,8 @@ import vn.diemdanh.hethong.repository.LichHocRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,36 +31,7 @@ public class DiemDanhService {
 
     @Autowired
     private TkbRepository tkbRepository;
-    @Autowired
-    private GiaoVienRepository giaoVienRepository;
-    @Autowired
-    LichHocRepository lichHocRepository;
-    @Transactional
-    public int diemDanhMaQRSinhVien(DiemDanhQRSinhVienRequest request) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        String maGv = giaoVienRepository.findMaGvByEmail(email);
-        Integer existSinhVien = lichHocRepository.findSinhVienByMaTkb(request.getMaSv(),request.getMaTkb());
-        if(existSinhVien == 0 || existSinhVien == null){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Sinh viên không có thời khóa biểu của buổi học này");
-        }
 
-        int diemdanh = diemDanhRepository.diemDanhQuetMaQRSinhVienLan2(
-                request.getMaTkb(),
-                request.getMaSv(),
-                request.getNgayHoc()
-        );
-
-        if(diemdanh == 0){
-            return diemDanhRepository.diemDanhQuetMaQRSinhVien(
-                    request.getMaTkb(),
-                    request.getMaSv(),
-                    request.getNgayHoc(),
-                    maGv
-            );
-        }
-        return diemdanh;
-    }
 
     // Lấy danh sách học kỳ
     public List<String> getHocKyList() {
@@ -99,5 +72,49 @@ public class DiemDanhService {
                         .build()
                 )
                 .collect(Collectors.toList());
+    }
+
+    //Xóa điêm danh thủ công
+    public boolean huyDiemDanh(String maSv, Long maTkb, LocalDate ngayHoc) {
+        int deletedCount = diemDanhRepository.deleteDiemDanhByMaSvAndMaTkbAndNgayHoc(maSv, maTkb, ngayHoc);
+        return deletedCount > 0;
+    }
+    @Autowired
+    private GiaoVienRepository giaoVienRepository;
+    @Autowired
+    LichHocRepository lichHocRepository;
+    @Transactional
+    public int diemDanhMaQRSinhVien(DiemDanhQRSinhVienRequest request) {
+        // 获取当前用户的认证信息
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        // 获取当前用户的邮箱
+        String email = auth.getName();
+        // 根据邮箱获取教师的编号
+        String maGv = giaoVienRepository.findMaGvByEmail(email);
+        // 根据学生的编号和教师的编号查找学生的课程表
+        Integer existSinhVien = lichHocRepository.findSinhVienByMaTkb(request.getMaSv(),request.getMaTkb());
+        // 如果学生没有课程表，则抛出异常
+        if(existSinhVien == 0 || existSinhVien == null){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Sinh viên không có thời khóa biểu của buổi học này");
+        }
+
+        // 学生第二次扫码签到
+        int diemdanh = diemDanhRepository.diemDanhQuetMaQRSinhVienLan2(
+                request.getMaTkb(),
+                request.getMaSv(),
+                request.getNgayHoc()
+        );
+
+        // 如果学生没有签到，则进行第一次签到
+        if(diemdanh == 0){
+            return diemDanhRepository.diemDanhQuetMaQRSinhVien(
+                    request.getMaTkb(),
+                    request.getMaSv(),
+                    request.getNgayHoc(),
+                    maGv
+            );
+        }
+        // 返回签到结果
+        return diemdanh;
     }
 }
