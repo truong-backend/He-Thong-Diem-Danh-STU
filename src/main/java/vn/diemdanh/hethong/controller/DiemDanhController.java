@@ -5,6 +5,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import vn.diemdanh.hethong.dto.diemdanh.DiemDanhAdmin;
 import vn.diemdanh.hethong.dto.monhoc.listMonHocSV.DiemDanhDto;
 import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.service.DiemDanhService;
@@ -47,7 +48,18 @@ public class DiemDanhController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy bản ghi để xóa");
         }
     }
-
+    //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
+    @GetMapping("/report")
+    public ResponseEntity<List<DiemDanhAdmin>> getAttendanceReport(
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc) {
+        try {
+            List<DiemDanhAdmin> report = diemDanhService.getAttendanceReportByHocKyAndNam(hocKy, namHoc);
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
 
 }

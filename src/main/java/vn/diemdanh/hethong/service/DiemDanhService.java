@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import vn.diemdanh.hethong.dto.diemdanh.DiemDanhAdmin;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.monhoc.listMonHocSV.DiemDanhDto;
 import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
@@ -116,5 +117,19 @@ public class DiemDanhService {
         }
         // 返回签到结果
         return diemdanh;
+    }
+    //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
+    public List<DiemDanhAdmin> getAttendanceReportByHocKyAndNam(Integer hocKy, Integer namHoc) {
+        List<Object[]> results = diemDanhRepository.findAttendanceReportByHocKyAndNam(hocKy, namHoc);
+        return results.stream()
+                .map(row -> new DiemDanhAdmin(
+                        (String) row[0],
+                        (String) row[1],
+                        (String) row[2],
+                        ((Number) row[3]).longValue(),
+                        ((Number) row[4]).longValue(),
+                        ((Number) row[5]).longValue()
+                ))
+                .collect(Collectors.toList());
     }
 }

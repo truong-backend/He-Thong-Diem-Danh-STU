@@ -1,0 +1,20 @@
+package vn.diemdanh.hethong.dto.diemdanh;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+//danh sách điểm danh cho trang quan trị vien
+public class DiemDanhAdmin {
+    private String mssv;
+    private String hoVaTen;
+    private String tenLop;
+    private Long soBuoiHoc;
+    private Long soBuoiDiemDanh;
+    private Long soBuoiVang;
+}

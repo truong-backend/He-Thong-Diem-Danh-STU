@@ -87,4 +87,24 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
     """,nativeQuery = true)
     int diemDanhQuetMaQRSinhVienLan2(@Param("maTkb")int maTkb,@Param("maSv")String maSv,@Param("ngayHoc")LocalDate ngayHoc);
 
+    //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
+    @Query(value = """
+        SELECT
+            sv.ma_sv,
+            sv.ten_sv,
+            l.ten_lop,
+            COUNT(DISTINCT tkb.ma_tkb),
+            COUNT(DISTINCT dd.ma_dd),
+            COUNT(DISTINCT tkb.ma_tkb) - COUNT(DISTINCT dd.ma_dd)
+        FROM sinh_vien sv
+        JOIN lop l ON sv.ma_lop = l.ma_lop
+        JOIN lich_hoc lh ON sv.ma_sv = lh.ma_sv
+        JOIN lich_gd lgd ON lh.ma_gd = lgd.ma_gd
+        JOIN tkb ON lgd.ma_gd = tkb.ma_gd
+        LEFT JOIN diem_danh dd ON dd.ma_tkb = tkb.ma_tkb AND dd.ma_sv = sv.ma_sv
+        WHERE lgd.hoc_ky = :hocKy AND YEAR(lgd.ngay_bd) = :namHoc
+        GROUP BY sv.ma_sv, sv.ten_sv, l.ten_lop
+        """, nativeQuery = true)
+    List<Object[]> findAttendanceReportByHocKyAndNam(@Param("hocKy") Integer hocKy,
+                                                     @Param("namHoc") Integer namHoc);
 }
