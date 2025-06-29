@@ -251,4 +251,14 @@ public class LichGdController {
         List<HocKyDTO> hocKyList = lichGdService.getAllSemesters(maGv);
         return ResponseEntity.ok(hocKyList);
     }
+    ////lấy tất danh sách học kỳ cho admin
+    @GetMapping("/hoc-ky")
+    public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
+        try {
+            List<HocKyDTO> hocKyList = lichGdService.getAllHocKy();
+            return ResponseEntity.ok(hocKyList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 } 

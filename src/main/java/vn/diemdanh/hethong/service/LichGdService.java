@@ -25,5 +25,16 @@ public class LichGdService {
                         .build())
                 .collect(Collectors.toList());
     }
+    //lấy tất danh sách học kỳ cho admin
 
+    public List<HocKyDTO> getAllHocKy() {
+        List<Object[]> results = lichGdRepository.findAllHocKy();
+        return results.stream()
+                .map(row -> new HocKyDTO(
+                        (Integer) row[0],
+                        (String) row[1],
+                        (Integer) row[2]
+                ))
+                .collect(Collectors.toList());
+    }
 }
