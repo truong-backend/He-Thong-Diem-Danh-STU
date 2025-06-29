@@ -13,10 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
-import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
-import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
-import vn.diemdanh.hethong.dto.giaovien.GiaoVienDto;
-import vn.diemdanh.hethong.dto.giaovien.UpdateGiaoVienRequest;
+import vn.diemdanh.hethong.dto.giaovien.*;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
@@ -47,6 +44,8 @@ public class GiaoVienController {
 
     @Autowired
     DiemDanhService diemDanhService;
+    @Autowired
+    private GiaoVienService giaoVienService;
 
     @PostMapping("/diemdanhnguoc")
     public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhQRSinhVienRequest request) {
@@ -292,6 +291,18 @@ public class GiaoVienController {
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách giáo viên: " + e.getMessage());
+        }
+    }
+    @GetMapping("/giao-vien")
+    public ResponseEntity<List<GiaoVienInfo>> getGiaoVienByMonHoc(
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc,
+            @RequestParam String maMh) {
+        try {
+            List<GiaoVienInfo> giaoVienList = giaoVienService.getGiaoVienByHocKyNamAndMonHoc(hocKy, namHoc, maMh);
+            return ResponseEntity.ok(giaoVienList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 } 

@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
 import vn.diemdanh.hethong.dto.giaovien.CreateGiaoVienRequest;
-import vn.diemdanh.hethong.dto.giaovien.GiaoVienInfo;
 import vn.diemdanh.hethong.entity.GiaoVien;
 import vn.diemdanh.hethong.entity.Lop;
 import vn.diemdanh.hethong.entity.GiaoVien;
@@ -16,8 +15,6 @@ import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 
 import java.time.Instant;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class GiaoVienService {
@@ -106,14 +103,5 @@ public class GiaoVienService {
 
         userRepository.save(user);
     }
-    //lấy danh sach giao vien theo mon hoc hoc ky va nam
-    public List<GiaoVienInfo> getGiaoVienByHocKyNamAndMonHoc(Integer hocKy, Integer namHoc, String maMh) {
-        List<Object[]> results = giaoVienRepository.findGiaoVienByHocKyNamAndMonHoc(hocKy, namHoc, maMh);
-        return results.stream()
-                .map(row -> new GiaoVienInfo(
-                        (String) row[0],
-                        (String) row[1]
-                ))
-                .collect(Collectors.toList());
-    }
+    
 }
