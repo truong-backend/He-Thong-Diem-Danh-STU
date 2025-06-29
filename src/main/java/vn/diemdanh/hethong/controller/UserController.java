@@ -12,6 +12,8 @@ import vn.diemdanh.hethong.entity.User;
 import vn.diemdanh.hethong.service.UserService;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -124,4 +126,13 @@ public class UserController {
         Page<UserDto> dtoPage = userPage.map(this::convertToDto);
         return ResponseEntity.ok(dtoPage);
     }
+    @GetMapping("/role/all{role}")
+    public ResponseEntity<List<UserDto>> getAllUsersByRole(@PathVariable String role) {
+        List<User> users = userService.getAllUsersByRole(role);
+        List<UserDto> dtoList = users.stream()
+                .map(this::convertToDto)
+                .toList();
+        return ResponseEntity.ok(dtoList);
+    }
+
 }

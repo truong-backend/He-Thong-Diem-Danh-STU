@@ -72,7 +72,7 @@ public class UserService implements UserDetailsService {
     // New method to search users with pagination
     public Page<User> searchUsers(String keyword, Pageable pageable) {
         if (keyword != null && !keyword.isEmpty()) {
-            return userRepository.findByUsernameContainingOrEmailContaining(keyword, keyword, pageable);
+            return userRepository.searchByKeyword(keyword, pageable);
         }
         return userRepository.findAll(pageable);
     }
@@ -142,10 +142,9 @@ public class UserService implements UserDetailsService {
         if (keyword == null || keyword.isEmpty()) {
             return getUsersByRole(role, pageable);
         }
-        return userRepository.findByRoleAndUsernameContainingOrRoleAndEmailContaining(
-                role, keyword,
-                role, keyword,
-                pageable
-        );
+        return userRepository.searchByRoleAndKeyword(role, keyword, pageable);
+    }
+    public List<User> getAllUsersByRole(String role) {
+        return userRepository.findByRole(role);
     }
 }
