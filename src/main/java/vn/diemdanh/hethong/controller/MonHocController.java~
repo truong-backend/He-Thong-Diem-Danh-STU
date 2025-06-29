@@ -14,6 +14,7 @@ import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
+import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
 import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
@@ -215,5 +216,17 @@ public class MonHocController {
     @GetMapping("/danh-sach-mon-hoc/{maSv}")
     public List<ThoiKhoaBieuDTO> getThoiKhoaBieu(@PathVariable String maSv) {
         return monHocService.getThoiKhoaBieuByMaSv(maSv);
+    }
+    //    //lay danh sach mon hoc cho trong quan tri vien
+    @GetMapping("/mon-hoc")
+    public ResponseEntity<List<MonHocDto>> getMonHocByHocKyAndNam(
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc) {
+        try {
+            List<MonHocDto> monHocList = monHocService.getMonHocByHocKyAndNam(hocKy, namHoc);
+            return ResponseEntity.ok(monHocList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

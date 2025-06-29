@@ -110,4 +110,16 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
         ORDER BY MIN(tkb.ngay_hoc), MIN(tkb.st_bd)
         """, nativeQuery = true)
     List<Object[]> findThoiKhoaBieuByMaSv(@Param("maSv") String maSv);
+    //lay danh sach mon hoc cho trong quan tri vien
+    @Query(value = """
+        SELECT DISTINCT
+            mh.ma_mh,
+            mh.ten_mh,
+            mh.so_tiet
+        FROM mon_hoc mh
+        JOIN lich_gd lgd ON mh.ma_mh = lgd.ma_mh
+        WHERE lgd.hoc_ky = :hocKy AND YEAR(lgd.ngay_bd) = :namHoc
+        """, nativeQuery = true)
+    List<Object[]> findMonHocByHocKyAndNam(@Param("hocKy") Integer hocKy,
+                                           @Param("namHoc") Integer namHoc);
 }

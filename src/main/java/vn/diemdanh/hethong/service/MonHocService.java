@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
+import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
@@ -101,6 +102,17 @@ public class MonHocService {
                 .tuanNgayBatDauKetThuc((String) obj[9])
                 .build()
         ).collect(Collectors.toList());
+    }
+    //    //lay danh sach mon hoc cho trong quan tri vien
+    public List<MonHocDto> getMonHocByHocKyAndNam(Integer hocKy, Integer namHoc) {
+        List<Object[]> results = monHocRepository.findMonHocByHocKyAndNam(hocKy, namHoc);
+        return results.stream()
+                .map(row -> MonHocDto.builder()
+                        .maMh((String) row[0])
+                        .tenMh((String) row[1])
+                        .soTiet((Integer) row[2])
+                        .build())
+                .collect(Collectors.toList());
     }
 
 }

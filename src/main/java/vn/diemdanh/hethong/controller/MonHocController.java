@@ -217,4 +217,16 @@ public class MonHocController {
     public List<ThoiKhoaBieuDTO> getThoiKhoaBieu(@PathVariable String maSv) {
         return monHocService.getThoiKhoaBieuByMaSv(maSv);
     }
+    //    //lay danh sach mon hoc cho trong quan tri vien
+    @GetMapping("/mon-hoc-theo-hoc-ky-nam")
+    public ResponseEntity<List<MonHocDto>> getMonHocByHocKyAndNam(
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc) {
+        try {
+            List<MonHocDto> monHocList = monHocService.getMonHocByHocKyAndNam(hocKy, namHoc);
+            return ResponseEntity.ok(monHocList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
