@@ -217,7 +217,7 @@ public class MonHocController {
     public List<ThoiKhoaBieuDTO> getThoiKhoaBieu(@PathVariable String maSv) {
         return monHocService.getThoiKhoaBieuByMaSv(maSv);
     }
-    //    //lay danh sach mon hoc cho trong quan tri vien
+    //lay danh sach mon hoc cho trong quan tri vien
     @GetMapping("/mon-hoc-theo-hoc-ky-nam")
     public ResponseEntity<List<MonHocDto>> getMonHocByHocKyAndNam(
             @RequestParam Integer hocKy,

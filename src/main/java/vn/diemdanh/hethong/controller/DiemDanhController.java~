@@ -49,7 +49,7 @@ public class DiemDanhController {
         }
     }
     //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
-    @GetMapping("/report")
+    @GetMapping("/report-hoc-ky")
     public ResponseEntity<List<DiemDanhAdmin>> getAttendanceReport(
             @RequestParam Integer hocKy,
             @RequestParam Integer namHoc) {
@@ -60,6 +60,31 @@ public class DiemDanhController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-
+    //lay danh sách diem danh theo mon hoc va hoc ky cho quan tri vien
+    @GetMapping("/report/mon-hoc")
+    public ResponseEntity<List<DiemDanhAdmin>> getAttendanceReportByMonHoc(
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc,
+            @RequestParam String maMh) {
+        try {
+            List<DiemDanhAdmin> report = diemDanhService.getAttendanceReportByHocKyNamAndMonHoc(hocKy, namHoc, maMh);
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    //    //lay danh sach diem danh theo giao vien cua mon hoc do trong hoc ky do cua nam do
+    @GetMapping("/report/full")
+    public ResponseEntity<List<DiemDanhAdmin>> getFullAttendanceReport(
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc,
+            @RequestParam String maMh,
+            @RequestParam String maGv) {
+        try {
+            List<DiemDanhAdmin> report = diemDanhService.getAttendanceReportByAllParams(hocKy, namHoc, maMh, maGv);
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }

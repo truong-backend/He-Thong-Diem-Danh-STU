@@ -293,8 +293,7 @@ public class GiaoVienController {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách giáo viên: " + e.getMessage());
         }
     }
-    //Lầy danh sách giáo viên để hiển thị danh sach diem danh cua sinh vien cho quan tri vien
-    @GetMapping("/danh-sach-giao-vien")
+    @GetMapping("/giao-vien")
     public ResponseEntity<List<GiaoVienInfo>> getGiaoVienByMonHoc(
             @RequestParam Integer hocKy,
             @RequestParam Integer namHoc,

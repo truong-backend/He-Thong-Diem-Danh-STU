@@ -146,4 +146,18 @@ public class DiemDanhService {
                 ))
                 .collect(Collectors.toList());
     }
+    //lay danh sach diem danh theo giao vien cua mon hoc do trong hoc ky do cua nam do
+    public List<DiemDanhAdmin> getAttendanceReportByAllParams(Integer hocKy, Integer namHoc, String maMh, String maGv) {
+        List<Object[]> results = diemDanhRepository.findAttendanceReportByAllParams(hocKy, namHoc, maMh, maGv);
+        return results.stream()
+                .map(row -> new DiemDanhAdmin(
+                        (String) row[0],
+                        (String) row[1],
+                        (String) row[2],
+                        ((Number) row[3]).longValue(),
+                        ((Number) row[4]).longValue(),
+                        ((Number) row[5]).longValue()
+                ))
+                .collect(Collectors.toList());
+    }
 }
