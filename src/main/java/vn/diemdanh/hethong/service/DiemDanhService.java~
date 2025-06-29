@@ -132,18 +132,4 @@ public class DiemDanhService {
                 ))
                 .collect(Collectors.toList());
     }
-    //lay danh sách diem danh theo mon hoc va hoc ky cho quan tri vien
-    public List<DiemDanhAdmin> getAttendanceReportByHocKyNamAndMonHoc(Integer hocKy, Integer namHoc, String maMh) {
-        List<Object[]> results = diemDanhRepository.findAttendanceReportByHocKyNamAndMonHoc(hocKy, namHoc, maMh);
-        return results.stream()
-                .map(row -> new DiemDanhAdmin(
-                        (String) row[0],
-                        (String) row[1],
-                        (String) row[2],
-                        ((Number) row[3]).longValue(),
-                        ((Number) row[4]).longValue(),
-                        ((Number) row[5]).longValue()
-                ))
-                .collect(Collectors.toList());
-    }
 }

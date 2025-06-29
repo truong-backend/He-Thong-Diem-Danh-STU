@@ -60,18 +60,6 @@ public class DiemDanhController {
             return ResponseEntity.badRequest().build();
         }
     }
-    //lay danh sách diem danh theo mon hoc va hoc ky cho quan tri vien
-    @GetMapping("/report/mon-hoc")
-    public ResponseEntity<List<DiemDanhAdmin>> getAttendanceReportByMonHoc(
-            @RequestParam Integer hocKy,
-            @RequestParam Integer namHoc,
-            @RequestParam String maMh) {
-        try {
-            List<DiemDanhAdmin> report = diemDanhService.getAttendanceReportByHocKyNamAndMonHoc(hocKy, namHoc, maMh);
-            return ResponseEntity.ok(report);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
+
 
 }
