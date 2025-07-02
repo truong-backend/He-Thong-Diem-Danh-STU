@@ -1,0 +1,44 @@
+@startuml
+!theme plain
+title 5. Lưu thông tin và Chuyển hướng
+
+actor User as U
+participant "LoginForm.jsx" as LF
+participant "AuthContext.jsx" as AC
+participant "api.js" as API
+
+== Lưu thông tin đăng nhập và chuyển hướng ==
+
+API -> AC: Successful login response
+note right: Response chứa:\n- accessToken\n- user info\n- role
+
+AC -> AC: Lưu vào localStorage:
+note right of AC
+- accessToken
+- user (thông tin người dùng)
+- userRole (STUDENT/TEACHER/ADMIN)
+end note
+
+AC -> AC: Cập nhật AuthContext state:
+note right of AC
+- user
+- userRole
+- isAuthenticated = true
+end note
+
+AC -> U: Chuyển hướng đến dashboard tương ứng:
+note right
+- STUDENT → /student/dashboard
+- TEACHER → /teacher/dashboard
+- ADMIN → /admin/dashboard
+end note
+
+== Xử lý lỗi từ Backend ==
+
+alt Có lỗi từ API
+    API -> AC: Error response
+    AC -> LF: Truyền thông báo lỗi
+    LF -> U: Hiển thị thông báo lỗi
+end
+
+@enduml

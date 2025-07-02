@@ -1,0 +1,39 @@
+@startuml
+!theme plain
+title 4. Đăng nhập Quản trị viên (Admin Login)
+
+participant "api.js" as API
+participant "AuthController" as AUTH
+participant "AdminService" as AS
+participant "JwtTokenProvider" as JWT
+database "AdminRepository" as AR
+
+== Xử lý đăng nhập cho Quản trị viên ==
+
+API -> AUTH: POST /api/admin/login\n{email, password}
+
+AUTH -> AUTH: Kiểm tra email KHÔNG có đuôi @student.stu.edu.vn
+
+alt Email có đuôi sinh viên
+    AUTH -> API: 400 "Tài khoản sinh viên không được phép\nđăng nhập vào trang quản trị"
+    note right: Chặn sinh viên truy cập admin
+else Email hợp lệ cho admin
+    AUTH -> AUTH: Tạo UsernamePasswordAuthenticationToken
+    AUTH -> AS: Xác thực qua AuthenticationManager
+    AS -> AR: loadUserByUsername(email)
+
+    alt Không tìm thấy admin hoặc sai password
+        AR -> AS: Admin not found/Invalid password
+        AS -> AUTH: BadCredentialsException
+        AUTH -> API: 400 "Email hoặc mật khẩu không chính xác"
+    else Xác thực thành công
+        AR -> AS: CustomAdminDetails (ROLE_ADMIN)
+        AS -> AUTH: Authentication success
+        AUTH -> JWT: generateTokenForAdmin(adminDetails)
+        note right: JWT chứa:\n- adminId, email, role\n- username, fullName, userType="ADMIN"
+        JWT -> AUTH: JWT token
+        AUTH -> API: AdminLoginResponse:\n{accessToken, id, username, email, fullName, role="ADMIN"}
+    end
+end
+
+@enduml

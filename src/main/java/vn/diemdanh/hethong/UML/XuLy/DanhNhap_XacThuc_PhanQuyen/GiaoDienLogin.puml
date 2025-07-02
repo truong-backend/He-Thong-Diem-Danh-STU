@@ -1,0 +1,31 @@
+@startuml
+!theme plain
+title 1. Khởi tạo và Validation - Frontend
+
+actor User as U
+participant "LoginForm.jsx" as LF
+participant "AuthContext.jsx" as AC
+participant "api.js" as API
+
+== Bước 1: Gửi yêu cầu đăng nhập từ Frontend ==
+
+U -> LF: Nhập email và password
+note right: User chọn loại đăng nhập:\n- Student\n- Teacher\n- Admin
+
+LF -> LF: Validate form với react-hook-form & yup
+note right: Kiểm tra định dạng email\nvà các trường bắt buộc
+
+alt Validation thất bại
+    LF -> U: Hiển thị lỗi validation
+else Validation thành công
+    LF -> AC: onSubmit() → gọi login(email, password, userType)
+
+    AC -> API: Gọi API tương ứng với userType:
+    note right of API
+    - STUDENT: authAPI.loginStudent()
+    - TEACHER: authAPI.loginTeacher()
+    - ADMIN: authAPI.loginAdmin()
+    end note
+end
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml
+!theme plain
+title 6. Xử lý Lỗi Đặc biệt
+
+participant "AuthController" as AUTH
+participant "UserService" as US
+participant "AdminService" as AS
+participant "api.js" as API
+
+== Các trường hợp lỗi đặc biệt ==
+
+note over AUTH, AS
+**Các loại lỗi có thể xảy ra:**
+
+1. **ClassCastException**
+   - Tài khoản không đúng loại
+   - Response: "Tài khoản không hợp lệ cho đăng nhập"
+
+2. **AccountStatusException**
+   - Tài khoản bị khóa/vô hiệu hóa
+   - Response: "Tài khoản đã bị khóa"
+
+3. **DataAccessException**
+   - Lỗi kết nối database
+   - Response: "Lỗi hệ thống, vui lòng thử lại"
+
+4. **JwtException**
+   - Lỗi tạo JWT token
+   - Response: "Lỗi xác thực, vui lòng thử lại"
+
+5. **BadCredentialsException**
+   - Email hoặc password sai
+   - Response: "Email hoặc mật khẩu không chính xác"
+end note
+
+AUTH -> API: Trả về lỗi với status code tương ứng:
+note right
+- 400: Bad Request (validation, credentials)
+- 401: Unauthorized (authentication failed)
+- 403: Forbidden (access denied)
+- 500: Internal Server Error (system error)
+end note
+
+@enduml
