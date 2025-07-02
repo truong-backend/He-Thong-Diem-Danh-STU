@@ -1,0 +1,67 @@
+@startuml
+!theme plain
+title 4. Xử lý Verify OTP - Backend
+
+participant "api.js" as API
+participant "Backend Controller" as BC
+participant "UserRepository" as UR
+participant "AdminRepository" as AR
+participant "BCryptPasswordEncoder" as BCE
+database "Database/Cache" as DB
+
+== Xử lý xác thực OTP và đặt lại mật khẩu ==
+
+API -> BC: POST /api/password-reset/{user|admin}/verify-otp\n{email, otp, newPassword}
+
+BC -> DB: Kiểm tra OTP:
+note right of BC
+- So sánh OTP với giá trị trong DB/cache
+- Kiểm tra OTP còn hiệu lực (chưa hết hạn)
+end note
+
+alt OTP không hợp lệ hoặc hết hạn
+    DB -> BC: OTP invalid/expired
+    BC -> API: 400 "OTP không hợp lệ hoặc hết hạn"
+else OTP hợp lệ
+    DB -> BC: OTP valid
+
+    alt Cho USER (STUDENT/TEACHER)
+        BC -> UR: findByEmail(email)
+        alt Email không khớp
+            UR -> BC: null
+            BC -> API: 400 "Email không khớp"
+        else Email khớp
+            UR -> BC: User entity
+            BC -> BCE: encode(newPassword)
+            BCE -> BC: Encoded password
+            BC -> BC: Cập nhật User.password = encodedPassword
+            BC -> UR: save(updatedUser)
+            BC -> DB: Xóa OTP khỏi DB/cache
+            BC -> API: 200 "Mật khẩu đã được cập nhật thành công"
+        end
+
+    else Cho ADMIN
+        BC -> AR: findByEmail(email)
+        alt Email không khớp
+            AR -> BC: null
+            BC -> API: 400 "Email không khớp"
+        else Email khớp
+            AR -> BC: Admin entity
+            BC -> BCE: encode(newPassword)
+            BCE -> BC: Encoded password
+            BC -> BC: Cập nhật Admin.password = encodedPassword
+            BC -> AR: save(updatedAdmin)
+            BC -> DB: Xóa OTP khỏi DB/cache
+            BC -> API: 200 "Mật khẩu đã được cập nhật thành công"
+        end
+    end
+end
+
+note over BC, DB
+**Các lỗi có thể xảy ra:**
+- OTP không hợp lệ hoặc hết hạn → 400
+- Email không khớp → 400
+- Lỗi cập nhật mật khẩu → 500
+end note
+
+@enduml

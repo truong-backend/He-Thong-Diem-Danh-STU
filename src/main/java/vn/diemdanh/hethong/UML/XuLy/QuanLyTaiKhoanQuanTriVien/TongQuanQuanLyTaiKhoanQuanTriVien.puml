@@ -1,0 +1,25 @@
+@startuml
+!theme plain
+title Tổng quan hệ thống quản lý tài khoản quản trị viên
+
+actor Admin as admin
+participant "Sidebar.jsx" as sidebar
+participant "DashboardLayout.jsx" as layout
+participant "DanhSachTaiKhoanQuanTriPage.jsx" as page
+participant "DanhSachTaiKhoanAdminComponents.jsx" as component
+participant "adminService.js" as service
+participant "AdminController.java" as controller
+participant "AdminService.java" as adminService
+participant "AdminRepository.java" as repository
+database "Database" as db
+
+admin -> sidebar: Truy cập menu quản lý
+sidebar -> layout: Điều hướng /admin/account-account
+layout -> page: Render trang
+page -> component: Mount component chính
+component -> service: Gọi API
+service -> controller: HTTP Request
+controller -> adminService: Xử lý logic
+adminService -> repository: Truy vấn DB
+repository -> db: SQL Query
+@enduml

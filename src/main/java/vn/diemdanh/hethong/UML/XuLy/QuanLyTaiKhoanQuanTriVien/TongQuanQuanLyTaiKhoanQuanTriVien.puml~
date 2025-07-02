@@ -1,0 +1,63 @@
+@startuml
+title 3. Luồng Hiển Thị Danh Sách Tài Khoản Admin
+
+participant "DanhSachTaiKhoanAdminComponents.jsx" as component
+participant "adminService.js" as service
+participant "JwtAuthenticationFilter.java" as authFilter
+participant "AdminController.java" as controller
+participant "AdminService.java" as adminService
+participant "AdminRepository.java" as repository
+database "Database" as db
+actor "Admin User" as admin
+
+== Component Mount và Fetch Data ==
+component -> component: useEffect() - Component mounted
+component -> component: Gọi fetchAdmins()
+component -> service: adminService.getAdminsKphanTrang()
+
+== API Request ==
+service -> authFilter: GET /api/admin/all\nHeader: Authorization: Bearer <JWT>
+authFilter -> authFilter: Validate JWT token
+authFilter -> authFilter: Check ROLE_ADMIN permission
+authFilter -> controller: Forward request to getAllAdmins()
+
+== Backend Processing ==
+controller -> adminService: findAll()
+adminService -> repository: findAll()
+repository -> db: SELECT id, username, email, fullName, role, avatar, createdAt, updatedAt FROM admins
+db --> repository: List<Admin> entities
+
+== Data Transformation ==
+repository --> adminService: List<Admin>
+adminService -> adminService: Convert to List<AdminDto>:\n- id\n- username\n- email\n- fullName\n- role\n- avatar\n- createdAt\n- updatedAt
+adminService --> controller: List<AdminDto>
+
+== Response Processing ==
+controller --> authFilter: JSON Response với List<AdminDto>
+authFilter --> service: HTTP 200 + Admin list data
+service --> component: Parsed admin data
+
+== Frontend Rendering ==
+component -> component: Update state: setAdmins(data)
+component -> component: Prepare table columns:\n- ID, Avatar, Họ tên, Username\n- Email, Vai trò, Ngày tạo, Ngày cập nhật\n- Thao tác (Sửa, Xóa)
+component -> component: Format dates với moment.js
+component -> component: Render Ant Design Table
+component --> admin: Hiển thị bảng danh sách admin
+
+== Search Functionality ==
+admin -> component: Nhập từ khóa tìm kiếm
+component -> component: handleSearch(value)
+component -> component: setSearchText(value.toLowerCase())
+component -> component: Filter admins array:\nfilter by fullName, email, username
+component -> component: Update filteredData state
+component --> admin: Hiển thị kết quả tìm kiếm (client-side filtering)
+
+== Error Handling ==
+alt API Error
+    authFilter --> service: HTTP 4xx/5xx Error
+    service --> component: Error response
+    component -> component: console.error + message.error()
+    component --> admin: Hiển thị thông báo lỗi
+end
+
+@enduml

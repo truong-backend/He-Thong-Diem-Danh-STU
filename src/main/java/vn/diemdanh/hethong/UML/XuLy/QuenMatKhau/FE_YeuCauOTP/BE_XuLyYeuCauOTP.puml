@@ -1,0 +1,63 @@
+@startuml
+!theme plain
+title 2. Xử lý OTP Request - Backend
+
+participant "api.js" as API
+participant "Backend Controller" as BC
+participant "UserRepository" as UR
+participant "AdminRepository" as AR
+participant "EmailService" as ES
+database "Database/Cache" as DB
+
+== Xử lý yêu cầu OTP từ Backend ==
+
+API -> BC: POST /api/password-reset/{user|admin}/request-otp\n{email}
+
+BC -> BC: Kiểm tra loại user và email:
+note right of BC
+- STUDENT: Email phải có đuôi @student.stu.edu.vn
+- ADMIN: Email KHÔNG được có đuôi @student.stu.edu.vn
+end note
+
+alt Kiểm tra email cho STUDENT/TEACHER
+    BC -> UR: findByEmail(email)
+    alt Email không tồn tại
+        UR -> BC: null
+        BC -> API: 400 "Email không tồn tại"
+    else Email tồn tại
+        UR -> BC: User found
+        BC -> BC: Tạo mã OTP (6 chữ số)
+        BC -> DB: Lưu OTP với thời hạn 60 giây
+        BC -> ES: sendEmail(email, "Mã OTP đặt lại mật khẩu", "Mã OTP của bạn là: " + otp)
+
+        alt Gửi email thành công
+            ES -> BC: Email sent successfully
+            BC -> API: 200 "OTP đã được gửi"
+        else Gửi email thất bại
+            ES -> BC: SMTP Error
+            BC -> API: 500 "Lỗi gửi email"
+        end
+    end
+
+else Kiểm tra email cho ADMIN
+    BC -> AR: findByEmail(email)
+    alt Email không tồn tại
+        AR -> BC: null
+        BC -> API: 400 "Email không tồn tại"
+    else Email tồn tại
+        AR -> BC: Admin found
+        BC -> BC: Tạo mã OTP (6 chữ số)
+        BC -> DB: Lưu OTP với thời hạn 60 giây
+        BC -> ES: sendEmail(email, "Mã OTP đặt lại mật khẩu", "Mã OTP của bạn là: " + otp)
+
+        alt Gửi email thành công
+            ES -> BC: Email sent successfully
+            BC -> API: 200 "OTP đã được gửi"
+        else Gửi email thất bại
+            ES -> BC: SMTP Error
+            BC -> API: 500 "Lỗi gửi email"
+        end
+    end
+end
+
+@enduml

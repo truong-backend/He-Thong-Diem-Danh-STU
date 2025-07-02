@@ -11,40 +11,22 @@ database "UserRepository" as UR
 == Xử lý đăng nhập cho Giảng viên ==
 
 API -> AUTH: POST /api/giangvien/login\n{email, password}
-activate AUTH
 
 AUTH -> AUTH: Tạo UsernamePasswordAuthenticationToken
-
 AUTH -> US: Xác thực qua AuthenticationManager
-activate US
-
 US -> UR: loadUserByUsername(email)
-activate UR
 
 alt Không tìm thấy user hoặc sai password
-    UR --> US: User not found/Invalid password
-    deactivate UR
-
-    US --> AUTH: BadCredentialsException
-    deactivate US
-
-    AUTH --> API: 400 "Email hoặc mật khẩu không chính xác"
-    deactivate AUTH
+    UR -> US: User not found/Invalid password
+    US -> AUTH: BadCredentialsException
+    AUTH -> API: 400 "Email hoặc mật khẩu không chính xác"
 else Xác thực thành công
-    UR --> US: CustomUserDetails (ROLE_TEACHER)
-    deactivate UR
-
-    US --> AUTH: Authentication success
-    deactivate US
-
+    UR -> US: CustomUserDetails (ROLE_TEACHER)
+    US -> AUTH: Authentication success
     AUTH -> JWT: generateToken(userDetails)
-    activate JWT
     note right: JWT chứa:\n- userId, email, role\n- username, userType="USER"
-    JWT --> AUTH: JWT token
-    deactivate JWT
-
-    AUTH --> API: UserLoginResponse:\n{accessToken, id, username, email, role="TEACHER"}
-    deactivate AUTH
+    JWT -> AUTH: JWT token
+    AUTH -> API: UserLoginResponse:\n{accessToken, id, username, email, role="TEACHER"}
 end
 
 @enduml

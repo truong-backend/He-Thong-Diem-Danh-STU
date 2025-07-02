@@ -33,26 +33,12 @@ note over AUTH, AS
    - Response: "Email hoặc mật khẩu không chính xác"
 end note
 
-activate AUTH
-AUTH -> US: Gọi xác thực người dùng
-activate US
-US -> US: Quá trình xác thực (gồm truy vấn DB và kiểm tra trạng thái)
-deactivate US
-
-AUTH -> AS: (Nếu là Admin) Gọi xác thực qua AdminService
-activate AS
-AS -> AS: Quá trình xác thực và quyền
-deactivate AS
-
-alt Xảy ra lỗi đặc biệt
-    AUTH -> API: Trả về lỗi với status code tương ứng
-    note right
-    - 400: Bad Request (validation, credentials)
-    - 401: Unauthorized (authentication failed)
-    - 403: Forbidden (access denied)
-    - 500: Internal Server Error (system error)
-    end note
-end
-deactivate AUTH
+AUTH -> API: Trả về lỗi với status code tương ứng:
+note right
+- 400: Bad Request (validation, credentials)
+- 401: Unauthorized (authentication failed)
+- 403: Forbidden (access denied)
+- 500: Internal Server Error (system error)
+end note
 
 @enduml

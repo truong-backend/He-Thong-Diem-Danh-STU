@@ -1,0 +1,28 @@
+@startuml
+!theme plain
+title Luồng tìm kiếm tài khoản quản trị viên
+
+actor Admin as admin
+participant "DanhSachTaiKhoanAdminComponents.jsx" as component
+
+admin -> component: Nhập từ khóa tìm kiếm
+activate component
+component -> component: handleSearch(value)
+component -> component: setState(searchText: value.toLowerCase())
+component -> component: Lọc dữ liệu filteredData
+note right
+Lọc theo các trường:
+- fullName.includes(searchText)
+- email.includes(searchText)
+- username.includes(searchText)
+end note
+component -> component: Re-render Table với filteredData
+component --> admin: Hiển thị kết quả lọc
+deactivate component
+
+note over component
+Tìm kiếm được thực hiện
+phía client, không cần
+gọi lại API
+end note
+@enduml

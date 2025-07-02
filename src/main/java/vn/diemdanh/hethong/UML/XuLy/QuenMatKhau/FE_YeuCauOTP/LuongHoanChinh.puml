@@ -1,0 +1,75 @@
+@startuml
+!theme plain
+title Luồng Quên Mật Khẩu Hoàn Chỉnh - Tổng Quan
+
+actor User as U
+box "Frontend Components" #LightBlue
+    participant "QuenMatKhauFORMComponents.jsx" as FP
+    participant "XacThucOtpFORMComponents.jsx" as VOF
+    participant "DatLaiMatKhauFORMComponents.jsx" as RPF
+    participant "LoginForm.jsx" as LF
+end box
+
+box "Services" #LightYellow
+    participant "matKhauService.js" as MS
+    participant "api.js" as API
+end box
+
+box "Backend" #LightGreen
+    participant "Backend Controller" as BC
+    participant "EmailService" as ES
+    participant "UserRepository" as UR
+    participant "AdminRepository" as AR
+end box
+
+database "Database/Cache" as DB
+
+== Giai đoạn 1: Yêu cầu OTP ==
+U -> FP: 1. Nhập email, chọn userType
+FP -> MS: 2. requestOTP(email, userType)
+MS -> API: 3. POST /api/password-reset/{user|admin}/request-otp
+API -> BC: 4. Xử lý request
+BC -> UR: 5. Kiểm tra email (User)
+BC -> AR: 5. Kiểm tra email (Admin)
+BC -> DB: 6. Lưu OTP (60s)
+BC -> ES: 7. Gửi email OTP
+FP -> U: 8. Chuyển hướng /verify-otp
+
+== Giai đoạn 2: Xác thực OTP và Đặt lại mật khẩu ==
+U -> VOF: 9. Nhập OTP + mật khẩu mới
+VOF -> MS: 10. verifyOTPAndResetPassword()
+MS -> API: 11. POST /api/password-reset/{user|admin}/verify-otp
+API -> BC: 12. Xác thực OTP
+BC -> DB: 13. Kiểm tra OTP hợp lệ
+BC -> UR: 14. Cập nhật password (User)
+BC -> AR: 14. Cập nhật password (Admin)
+BC -> DB: 15. Xóa OTP
+VOF -> U: 16. Chuyển hướng /login?reset=success
+
+== Giai đoạn 3: Đăng nhập với mật khẩu mới ==
+U -> LF: 17. Đăng nhập với mật khẩu mới
+LF -> U: 18. Hiển thị thông báo thành công
+LF -> API: 19. Xác thực đăng nhập
+API -> BC: 20. Kiểm tra credentials
+BC -> LF: 21. Trả về JWT token
+LF -> U: 22. Chuyển hướng dashboard
+
+== Luồng phụ: Reset bằng Token (nếu có) ==
+note over RPF
+Chỉ sử dụng nếu backend
+trả về resetToken thay vì
+cập nhật trực tiếp
+end note
+
+== Xử lý lỗi ==
+note over U, DB
+**Các trường hợp lỗi:**
+• Email không tồn tại → 400
+• Email không đúng format → 400
+• OTP sai/hết hạn → 400
+• Lỗi gửi email → 500
+• Lỗi cập nhật password → 500
+• Đăng nhập thất bại → 400/401
+end note
+
+@enduml

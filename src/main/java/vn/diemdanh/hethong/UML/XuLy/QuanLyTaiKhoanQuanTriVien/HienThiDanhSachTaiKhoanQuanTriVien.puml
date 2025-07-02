@@ -1,0 +1,60 @@
+@startuml
+!theme plain
+title Luồng hiển thị danh sách tài khoản quản trị viên
+
+participant "DanhSachTaiKhoanAdminComponents.jsx" as component
+participant "adminService.js" as service
+participant "JwtAuthenticationFilter.java" as jwtFilter
+participant "AdminController.java" as controller
+participant "AdminService.java" as adminService
+participant "AdminRepository.java" as repository
+database "Database" as db
+
+activate component
+component -> component: useEffect() - componentDidMount
+component -> service: fetchAdmins()
+activate service
+service -> service: getAdminsKphanTrang()
+service -> controller: GET /api/admin/all
+note right: Header: Authorization Bearer token
+
+activate controller
+controller -> jwtFilter: Kiểm tra JWT token
+activate jwtFilter
+jwtFilter -> jwtFilter: Xác thực token
+jwtFilter -> jwtFilter: Kiểm tra ROLE_ADMIN
+jwtFilter --> controller: Token hợp lệ
+deactivate jwtFilter
+
+controller -> adminService: findAll()
+activate adminService
+adminService -> repository: findAll()
+activate repository
+repository -> db: SELECT * FROM admin
+db --> repository: List<Admin>
+deactivate repository
+repository --> adminService: List<Admin>
+adminService -> adminService: Convert to AdminDto
+adminService --> controller: List<AdminDto>
+deactivate adminService
+controller --> service: JSON Response
+deactivate controller
+service --> component: List<AdminDto>
+deactivate service
+
+component -> component: setState(admins)
+component -> component: Render Table với dữ liệu
+note right
+Hiển thị các cột:
+- ID
+- Avatar
+- Họ tên
+- Username
+- Email
+- Vai trò
+- Ngày tạo
+- Ngày cập nhật
+- Thao tác
+end note
+deactivate component
+@enduml
