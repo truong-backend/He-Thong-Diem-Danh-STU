@@ -1,5 +1,5 @@
 @startuml
-title Cập nhật Tài khoản Sinh viên
+title Cập nhật Tài khoản Giảng viên
 
 actor "Admin" as admin
 participant "DanhSachTaiKhoanSV\nComponent" as frontend
