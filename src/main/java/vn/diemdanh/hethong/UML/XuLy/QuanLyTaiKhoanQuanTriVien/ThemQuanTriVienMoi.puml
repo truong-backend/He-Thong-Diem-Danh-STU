@@ -18,26 +18,14 @@ component -> modal: Mở modal
 activate modal
 modal -> form: Hiển thị form
 activate form
-note right of form
-Các trường form:
-- username (required)
-- password (required)
-- fullName (required)
-- email (required)
-- role (default: "admin")
-- avatar (optional)
-end note
+
 
 admin -> form: Điền thông tin
 admin -> form: Submit form
 form -> component: handleModalOk()
 component -> component: form.validateFields()
 component -> component: Tạo FormData
-note right
-FormData bao gồm:
-- username, password, fullName, email, role
-- avatar file (nếu có)
-end note
+
 
 component -> service: createAdmin(formData)
 activate service

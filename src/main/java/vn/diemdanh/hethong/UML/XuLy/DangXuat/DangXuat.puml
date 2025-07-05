@@ -1,0 +1,127 @@
+@startuml
+!theme plain
+title Phần 1: Kích hoạt hành động đăng xuất
+
+actor User as U
+participant "Dashboard\n(Admin/Student/Teacher)" as D
+participant "AuthContext\n(useAuth)" as AC
+
+U -> D : Nhấn nút "Đăng xuất"
+note right : onClick handler
+D -> AC : Gọi logout()
+note right : Từ useAuth hook
+@enduml
+
+@startuml
+!theme plain
+title Phần 2: Xử lý logout trong AuthContext
+
+participant "Dashboard" as D
+participant "AuthContext\n(AuthProvider)" as AC
+participant "localStorage" as LS
+
+D -> AC : logout()
+activate AC
+
+AC -> LS : removeItem('accessToken')
+AC -> LS : removeItem('user')
+AC -> LS : removeItem('userRole')
+
+AC -> AC : setUser(null)
+AC -> AC : setUserRole(null)
+
+note right : Cập nhật state context
+deactivate AC
+
+AC --> D : Hoàn thành logout
+@enduml
+
+@startuml
+!theme plain
+title Phần 3: Hậu quả sau khi đăng xuất
+
+participant "Application State" as AS
+participant "AuthContext" as AC
+participant "localStorage" as LS
+
+AS -> AC : Kiểm tra isAuthenticated
+AC -> LS : Không có accessToken
+AC -> LS : Không có user
+AC -> LS : Không có userRole
+
+AC --> AS : isAuthenticated = false
+note right : !!user = false
+
+AS -> AS : Coi người dùng đã đăng xuất
+@enduml
+
+@startuml
+!theme plain
+title Phần 4: Xử lý lỗi 401 và chuyển hướng (api.js interceptor)
+
+participant "Client Request" as CR
+participant "API Server" as API
+participant "Response Interceptor\n(api.js)" as RI
+participant "localStorage" as LS
+participant "Browser" as B
+
+CR -> API : Yêu cầu API sau khi logout
+API --> CR : Response 401 (Unauthorized)
+
+CR -> RI : Xử lý response error
+activate RI
+
+RI -> LS : removeItem('accessToken')
+RI -> LS : removeItem('user')
+RI -> LS : getItem('user') để lấy role
+
+alt user.role === 'ADMIN'
+    RI -> B : window.location.href = '/admin/login'
+else user.role === 'TEACHER'
+    RI -> B : window.location.href = '/teacher/login'
+else default (Student)
+    RI -> B : window.location.href = '/student/login'
+end
+
+deactivate RI
+
+RI --> CR : Promise.reject(error)
+@enduml
+
+@startuml
+!theme plain
+title Phần 5: Tổng quan luồng đăng xuất hoàn chỉnh
+
+actor User as U
+participant "Dashboard" as D
+participant "AuthContext" as AC
+participant "localStorage" as LS
+participant "API Server" as API
+participant "Response Interceptor" as RI
+participant "Browser" as B
+
+== Bước 1: Kích hoạt đăng xuất ==
+U -> D : Nhấn nút "Đăng xuất"
+D -> AC : Gọi logout()
+
+== Bước 2: Xử lý logout ==
+AC -> LS : Xóa accessToken, user, userRole
+AC -> AC : setUser(null), setUserRole(null)
+
+== Bước 3: Trạng thái sau logout ==
+AC --> D : isAuthenticated = false
+D -> D : Người dùng không còn được xác thực
+
+== Bước 4: Chuyển hướng (nếu có lỗi 401) ==
+opt Nếu có API request sau logout
+    D -> API : Yêu cầu API
+    API --> RI : Response 401
+    RI -> LS : Xóa dữ liệu còn lại
+    RI -> B : Chuyển hướng đến trang login phù hợp
+end
+
+note over U, B
+  Kết quả cuối: Người dùng phải đăng nhập lại
+  để tiếp tục sử dụng hệ thống
+end note
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+!theme plain
+title Luồng tìm kiếm và lọc lớp học
+
+participant "FilterControls" as filter
+participant "DanhSachLopComponents.jsx" as component
+
+== Tìm kiếm theo từ khóa ==
+filter -> component: Người dùng nhập từ khóa vào ô Search
+component -> component: handleSearchChange(value)
+component -> component: Cập nhật state searchText = value
+component -> component: Reset pagination.current = 1
+component -> component: Gọi applyFilters()
+
+== Lọc theo khoa ==
+filter -> component: Người dùng chọn khoa từ Select
+component -> component: handleKhoaChange(value)
+component -> component: Cập nhật state selectedKhoa = value
+component -> component: Reset pagination.current = 1
+component -> component: Gọi applyFilters()
+
+== Áp dụng bộ lọc (Client-side) ==
+component -> component: applyFilters(allLops, { selectedKhoa, searchText })
+
+alt Có từ khóa tìm kiếm
+    component -> component: Lọc theo maLop hoặc tenLop chứa từ khóa
+    note right: Chuyển về lowercase để so sánh
+end
+
+alt Có lọc theo khoa
+    component -> component: Lọc theo maKhoa === selectedKhoa
+end
+
+component -> component: Trả về danh sách đã lọc
+
+== Xử lý sau khi lọc ==
+component -> component: applySorting(filteredData)
+component -> component: applySorting theo sortField và sortOrder
+component -> component: applyPagination(sortedData)
+component -> component: Cập nhật state filteredLops
+component -> component: Re-render Table với dữ liệu mới
+
+note over component
+Tìm kiếm và lọc được thực hiện
+hoàn toàn phía client, không gửi
+request mới tới backend
+end note
+
+@enduml

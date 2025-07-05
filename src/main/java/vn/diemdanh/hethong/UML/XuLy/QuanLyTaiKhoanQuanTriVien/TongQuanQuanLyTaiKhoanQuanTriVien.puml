@@ -1,25 +1,347 @@
 @startuml
 !theme plain
-title Tổng quan hệ thống quản lý tài khoản quản trị viên
+title Tổng quan Hệ thống Quản lý Tài khoản - Admin Account Management System
 
-actor Admin as admin
-participant "Sidebar.jsx" as sidebar
-participant "DashboardLayout.jsx" as layout
-participant "DanhSachTaiKhoanQuanTriPage.jsx" as page
-participant "DanhSachTaiKhoanAdminComponents.jsx" as component
-participant "adminService.js" as service
-participant "AdminController.java" as controller
-participant "AdminService.java" as adminService
-participant "AdminRepository.java" as repository
-database "Database" as db
+actor "Quản trị viên\n(Admin)" as ADMIN
 
-admin -> sidebar: Truy cập menu quản lý
-sidebar -> layout: Điều hướng /admin/account-account
-layout -> page: Render trang
-page -> component: Mount component chính
-component -> service: Gọi API
-service -> controller: HTTP Request
-controller -> adminService: Xử lý logic
-adminService -> repository: Truy vấn DB
-repository -> db: SQL Query
+box "Frontend Layer" #LightBlue
+    participant "AdminDashboard.jsx" as AD
+    participant "UserManagement.jsx" as UM
+    participant "AuthContext.jsx" as AC
+    participant "api.js" as API
+end box
+
+box "Backend Layer" #LightGreen
+    participant "AdminController" as ADMINC
+    participant "UserController" as UC
+    participant "AdminService" as AS
+    participant "UserService" as US
+    participant "JwtTokenProvider" as JWT
+end box
+
+box "Data Layer" #LightYellow
+    database "UserRepository" as UR
+    database "AdminRepository" as AR
+end box
+
+== Phase 1: Admin Authentication & Dashboard Access ==
+
+group Admin Login & Dashboard
+    ADMIN -> AD: Truy cập Admin Dashboard
+    AD -> AC: Kiểm tra authentication status
+    AC -> AC: Verify JWT token & ROLE_ADMIN
+
+    alt Admin chưa đăng nhập
+        AC -> ADMIN: Chuyển hướng đến /admin/login
+    else Admin đã đăng nhập
+        AD -> API: Lấy dashboard data
+        API -> ADMINC: GET /api/admin/dashboard
+        ADMINC -> AS: getDashboardStats()
+        AS -> UR: Thống kê user data
+        UR -> AS: User statistics
+        AS -> ADMINC: Dashboard data
+        ADMINC -> API: Dashboard response
+        API -> AD: Hiển thị dashboard với stats
+        AD -> ADMIN: Dashboard với menu quản lý
+    end
+end
+
+== Phase 2: User Account Management Operations ==
+
+group User List & Search
+    ADMIN -> UM: Truy cập User Management
+    UM -> API: Lấy danh sách người dùng
+    API -> UC: GET /api/admin/users?page=1&size=10&search=...
+    UC -> US: getUserList(pagination, filters)
+    US -> UR: findUsers với điều kiện lọc
+    UR -> US: List<User> với pagination
+    US -> UC: UserListResponse
+    UC -> API: Response với user list
+    API -> UM: Hiển thị danh sách users
+    UM -> ADMIN: Table với thông tin users
+end
+
+group Create New User Account
+    ADMIN -> UM: Nhấp "Tạo tài khoản mới"
+    UM -> UM: Hiển thị form tạo user
+    ADMIN -> UM: Nhập thông tin (email, password, role, etc.)
+    UM -> UM: Validate form data
+
+    alt Validation thất bại
+        UM -> ADMIN: Hiển thị lỗi validation
+    else Validation thành công
+        UM -> API: Gửi request tạo user
+        API -> UC: POST /api/admin/users/create
+        UC -> US: createUser(userCreateRequest)
+        US -> UR: Kiểm tra email đã tồn tại
+
+        alt Email đã tồn tại
+            UR -> US: User exists
+            US -> UC: UserAlreadyExistsException
+            UC -> API: 400 "Email đã được sử dụng"
+            API -> UM: Hiển thị lỗi
+            UM -> ADMIN: Thông báo lỗi
+        else Email chưa tồn tại
+            UR -> US: Email available
+            US -> US: Hash password & create user
+            US -> UR: save(newUser)
+            UR -> US: User saved
+            US -> UC: User created successfully
+            UC -> API: 201 User created
+            API -> UM: Success response
+            UM -> ADMIN: Thông báo thành công & refresh list
+        end
+    end
+end
+
+group Update User Account
+    ADMIN -> UM: Chọn user & nhấp "Chỉnh sửa"
+    UM -> API: Lấy thông tin user detail
+    API -> UC: GET /api/admin/users/{id}
+    UC -> US: getUserById(id)
+    US -> UR: findById(id)
+    UR -> US: User details
+    US -> UC: UserDetailResponse
+    UC -> API: User data
+    API -> UM: Hiển thị form edit với data
+    UM -> ADMIN: Form edit với thông tin hiện tại
+
+    ADMIN -> UM: Cập nhật thông tin
+    UM -> API: Gửi request update
+    API -> UC: PUT /api/admin/users/{id}
+    UC -> US: updateUser(id, updateRequest)
+    US -> UR: Kiểm tra user tồn tại
+
+    alt User không tồn tại
+        UR -> US: User not found
+        US -> UC: UserNotFoundException
+        UC -> API: 404 "User not found"
+        API -> UM: Hiển thị lỗi
+        UM -> ADMIN: Thông báo lỗi
+    else User tồn tại
+        UR -> US: User found
+        US -> US: Update user information
+        US -> UR: save(updatedUser)
+        UR -> US: User updated
+        US -> UC: Update successful
+        UC -> API: 200 User updated
+        API -> UM: Success response
+        UM -> ADMIN: Thông báo thành công & refresh list
+    end
+end
+
+group Toggle User Status (Enable/Disable)
+    ADMIN -> UM: Chọn user & toggle status
+    UM -> API: Gửi request thay đổi status
+    API -> UC: PATCH /api/admin/users/{id}/status
+    UC -> US: toggleUserStatus(id)
+    US -> UR: findById(id)
+    UR -> US: User found
+    US -> US: Toggle enabled/disabled status
+    US -> UR: save(userWithNewStatus)
+    UR -> US: Status updated
+    US -> UC: Status change successful
+    UC -> API: 200 Status updated
+    API -> UM: Success response
+    UM -> ADMIN: Cập nhật status trong UI
+end
+
+group Delete User Account
+    ADMIN -> UM: Chọn user & nhấp "Xóa"
+    UM -> UM: Hiển thị confirmation dialog
+    ADMIN -> UM: Xác nhận xóa
+    UM -> API: Gửi request xóa user
+    API -> UC: DELETE /api/admin/users/{id}
+    UC -> US: deleteUser(id)
+    US -> UR: Kiểm tra user có tồn tại
+
+    alt User không tồn tại
+        UR -> US: User not found
+        US -> UC: UserNotFoundException
+        UC -> API: 404 "User not found"
+        API -> UM: Hiển thị lỗi
+        UM -> ADMIN: Thông báo lỗi
+    else User tồn tại & có thể xóa
+        UR -> US: User found
+        US -> US: Kiểm tra user có dữ liệu liên quan
+
+        alt User có dữ liệu liên quan (courses, assignments, etc.)
+            US -> UC: CannotDeleteUserException
+            UC -> API: 400 "Không thể xóa user có dữ liệu liên quan"
+            API -> UM: Hiển thị lỗi
+            UM -> ADMIN: Thông báo không thể xóa
+        else User có thể xóa an toàn
+            US -> UR: delete(user)
+            UR -> US: User deleted
+            US -> UC: Delete successful
+            UC -> API: 200 User deleted
+            API -> UM: Success response
+            UM -> ADMIN: Thông báo thành công & remove from list
+        end
+    end
+end
+
+== Phase 3: Advanced Management Features ==
+
+group Bulk Operations
+    ADMIN -> UM: Chọn multiple users
+    UM -> UM: Hiển thị bulk action menu
+
+    alt Bulk Status Change
+        ADMIN -> UM: Chọn "Enable/Disable selected"
+        UM -> API: POST /api/admin/users/bulk-status
+        API -> UC: bulkUpdateUserStatus(userIds, status)
+        UC -> US: updateMultipleUserStatus(userIds, status)
+        US -> UR: updateStatusForUsers(userIds, status)
+        UR -> US: Bulk update completed
+        US -> UC: Bulk operation result
+        UC -> API: Bulk update response
+        API -> UM: Success/failure summary
+        UM -> ADMIN: Hiển thị kết quả bulk operation
+
+    else Bulk Delete
+        ADMIN -> UM: Chọn "Delete selected"
+        UM -> UM: Confirmation dialog for bulk delete
+        ADMIN -> UM: Xác nhận bulk delete
+        UM -> API: POST /api/admin/users/bulk-delete
+        API -> UC: bulkDeleteUsers(userIds)
+        UC -> US: deleteMultipleUsers(userIds)
+        US -> US: Kiểm tra từng user có thể xóa
+        US -> UR: deleteUsersWherePossible(validUserIds)
+        UR -> US: Bulk delete result
+        US -> UC: Summary of deleted/failed users
+        UC -> API: Bulk delete response
+        API -> UM: Result summary
+        UM -> ADMIN: Hiển thị chi tiết kết quả
+    end
+end
+
+group Role Management
+    ADMIN -> UM: Truy cập Role Management
+    UM -> API: GET /api/admin/roles
+    API -> UC: getAllRoles()
+    UC -> AS: getRolesList()
+    AS -> AR: findAllRoles()
+    AR -> AS: List<Role>
+    AS -> UC: Role list
+    UC -> API: Roles response
+    API -> UM: Hiển thị role management
+
+    ADMIN -> UM: Assign/Remove roles for users
+    UM -> API: PUT /api/admin/users/{id}/roles
+    API -> UC: updateUserRoles(userId, roleIds)
+    UC -> US: assignRolesToUser(userId, roleIds)
+    US -> UR: updateUserRoles(userId, roleIds)
+    UR -> US: Roles updated
+    US -> UC: Role assignment successful
+    UC -> API: 200 Roles updated
+    API -> UM: Success response
+    UM -> ADMIN: Cập nhật roles trong UI
+end
+
+== Phase 4: System Monitoring & Reports ==
+
+group User Activity Monitoring
+    ADMIN -> AD: Truy cập User Activity Reports
+    AD -> API: GET /api/admin/reports/user-activity
+    API -> ADMINC: getUserActivityReport(dateRange, filters)
+    ADMINC -> AS: generateUserActivityReport()
+    AS -> UR: getLoginStatistics(), getActiveUsers()
+    UR -> AS: Activity data
+    AS -> ADMINC: Activity report
+    ADMINC -> API: Report data
+    API -> AD: Hiển thị charts & statistics
+    AD -> ADMIN: Dashboard với user activity insights
+end
+
+group System Logs & Audit
+    ADMIN -> AD: Truy cập System Logs
+    AD -> API: GET /api/admin/logs/audit
+    API -> ADMINC: getAuditLogs(pagination, filters)
+    ADMINC -> AS: retrieveAuditLogs()
+    AS -> AR: findAuditLogs(criteria)
+    AR -> AS: Audit log entries
+    AS -> ADMINC: Log data
+    ADMINC -> API: Logs response
+    API -> AD: Hiển thị audit logs table
+    AD -> ADMIN: Detailed logs với filtering options
+end
+
+== Phase 5: Error Handling & Security ==
+
+group Error Scenarios
+    alt Authentication Errors
+        JWT -> API: JWT expired/invalid
+        API -> AC: 401 Unauthorized
+        AC -> ADMIN: Redirect to login
+
+    else Authorization Errors
+        UC -> API: 403 Insufficient permissions
+        API -> UM: Permission denied
+        UM -> ADMIN: "Không có quyền thực hiện"
+
+    else Validation Errors
+        US -> UC: ValidationException
+        UC -> API: 400 Validation failed
+        API -> UM: Field validation errors
+        UM -> ADMIN: Highlight invalid fields
+
+    else System Errors
+        UR -> US: DataAccessException
+        US -> UC: 500 Internal server error
+        UC -> API: System error
+        API -> UM: "Lỗi hệ thống, vui lòng thử lại"
+        UM -> ADMIN: Error notification
+    end
+end
+
+group Security Features
+    note over ADMIN, AR
+    **Các tính năng bảo mật:**
+
+    1. **Role-based Access Control (RBAC)**
+       - Chỉ ROLE_ADMIN mới được truy cập
+       - Phân quyền chi tiết cho từng chức năng
+
+    2. **Audit Logging**
+       - Ghi log tất cả thao tác quan trọng
+       - Theo dõi ai làm gì, khi nào
+
+    3. **Input Validation & Sanitization**
+       - Validate tất cả input từ client
+       - Prevent SQL injection, XSS
+
+    4. **Rate Limiting**
+       - Giới hạn số request per minute
+       - Prevent brute force attacks
+
+    5. **Secure Password Handling**
+       - Hash password với BCrypt
+       - Enforce password complexity rules
+    end note
+end
+
+note across
+**Tóm tắt chức năng quản lý tài khoản:**
+
+**CRUD Operations:**
+- ✅ Create: Tạo tài khoản mới cho Student/Teacher
+- ✅ Read: Xem danh sách, chi tiết, tìm kiếm users
+- ✅ Update: Chỉnh sửa thông tin user
+- ✅ Delete: Xóa tài khoản (với validation)
+
+**Advanced Features:**
+- ✅ Bulk Operations: Thao tác hàng loạt
+- ✅ Status Management: Enable/Disable accounts
+- ✅ Role Assignment: Quản lý phân quyền
+- ✅ Activity Monitoring: Theo dõi hoạt động
+- ✅ Audit Logging: Ghi log hệ thống
+
+**Security & Reliability:**
+- ✅ Authentication & Authorization
+- ✅ Input Validation & Error Handling
+- ✅ Rate Limiting & Security Controls
+- ✅ Comprehensive Logging & Monitoring
+end note
+
 @enduml

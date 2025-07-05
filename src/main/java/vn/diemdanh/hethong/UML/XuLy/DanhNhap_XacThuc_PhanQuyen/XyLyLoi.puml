@@ -1,6 +1,6 @@
 @startuml
 !theme plain
-title 6. Xử lý Lỗi Đặc biệt
+title 4. Xử lý Lỗi Đặc biệt
 
 participant "AuthController" as AUTH
 participant "UserService" as US

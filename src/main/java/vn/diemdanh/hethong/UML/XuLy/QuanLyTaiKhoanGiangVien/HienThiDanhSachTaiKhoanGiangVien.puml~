@@ -1,0 +1,53 @@
+@startuml
+title Hiển thị Danh sách tài khoản Giảng viên
+
+actor "Admin" as admin
+participant "DanhSachTaiKhoanGV\nComponent" as frontend
+participant "userService.js" as service
+participant "UserController" as controller
+participant "UserService" as userService
+participant "UserRepository" as repository
+database "Database" as db
+
+'== Hiển thị Danh sách Giảng viên ==
+admin -> frontend: Truy cập trang quản lý khGV
+activate frontend
+frontend -> frontend: useEffect() được gọi khi component mount
+frontend -> frontend: Gọi fetchTeachers()
+frontend -> service: getUsersByRole('TEACHER', page, size, sortBy, sortDir)
+
+activate service
+service -> controller: GET /api/users/role/TEACHER?page=0&size=10
+activate controller
+controller -> controller: Kiểm tra quyền ROLE_ADMIN
+controller -> userService: getUsersByRole(role, pageable)
+activate userService
+userService -> repository: findByRole(TEACHER, pageable)
+activate repository
+repository -> db: SELECT * FROM users WHERE role='TEACHER'\nORDER BY id LIMIT 10 OFFSET 0
+db --> repository: List<User> entities
+repository --> userService: Page<User>
+deactivate repository
+
+userService -> userService: Convert entities to UserDto:
+userService --> controller: Page<UserDto>
+deactivate userService
+
+controller --> service: JSON Response with pagination info:\n{\n  "content": [...],\n  "totalElements": 50,\n  "totalPages": 5,\n  "number": 0,\n  "size": 10\n}
+deactivate controller
+
+service --> frontend: teachers data + pagination
+deactivate service
+
+frontend -> frontend: setState(teachers)
+frontend -> frontend: Update tableParams.pagination
+
+frontend -> frontend: Render Ant Design Table với columns:
+
+frontend -> frontend: Format dates với moment.js
+
+frontend -> admin: Hiển thị danh sách tài khoản GV trong bảng
+'note right: Bảng hiển thị:\n- Phân trang\n- Sắp xếp theo cột\n- Các nút thao tác (Sửa, Xóa)\n- Switch trạng thái
+deactivate frontend
+
+@enduml

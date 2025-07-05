@@ -1,0 +1,100 @@
+@startuml
+!theme plain
+title Luồng cập nhật lớp học
+
+participant "Table Actions" as table
+participant "LopModal" as modal
+participant "LopForm" as form
+participant "DanhSachLopComponents.jsx" as component
+participant "lopService.js" as lopService
+participant "LopController" as controller
+participant "LopService" as service
+participant "KhoaService" as khoaService
+participant "LopRepository" as repository
+database "Database" as db
+
+== Mở modal cập nhật ==
+table -> component: Người dùng nhấn nút "Sửa" (EditOutlined)
+component -> component: handleEdit(record)
+component -> component: setEditingMaLop(record.maLop)
+component -> form: form.setFieldsValue(record)
+component -> component: setModalVisible(true)
+component -> modal: Hiển thị modal với title "Cập nhật Lớp"
+
+note over form
+Form hiển thị với dữ liệu hiện có:
+- maLop: Ẩn (không cho sửa)
+- tenLop: Có thể sửa
+- maKhoa: Có thể sửa (Select)
+- gvcn: Có thể sửa
+- sdtGvcn: Có thể sửa
+end note
+
+== Submit cập nhật ==
+form -> component: Người dùng nhấn "Cập nhật"
+component -> form: form.validateFields()
+form -> component: Trả về values nếu valid
+
+alt Form validation thành công
+    component -> lopService: updateLop(editingMaLop, values)
+    lopService -> controller: PUT /api/lop/{maLop} với LopDto data
+
+    == Xử lý Backend ==
+    controller -> service: updateLop(maLop, request)
+    service -> repository: findById(maLop)
+    repository -> db: SELECT * FROM lop WHERE maLop = ?
+
+    alt Lớp không tồn tại
+        db --> repository: Empty result
+        repository --> service: Optional.empty()
+        service -> service: Ném RuntimeException("Lớp không tồn tại")
+        service --> controller: Exception
+        controller --> lopService: 404 Not Found
+        lopService --> component: Error response
+        component -> component: message.error("Lớp không tồn tại")
+    else Lớp tồn tại
+        db --> repository: Lop entity
+        repository --> service: Lop entity
+
+        alt maKhoa thay đổi
+            service -> khoaService: getKhoaById(newMaKhoa)
+            alt Khoa mới không tồn tại
+                khoaService -> khoaService: Ném RuntimeException("Khoa không tồn tại")
+                khoaService --> service: Exception
+                service --> controller: Exception
+                controller --> lopService: 400 Bad Request
+                lopService --> component: Error response
+                component -> component: message.error("Khoa không tồn tại")
+            else Khoa mới tồn tại
+                khoaService --> service: Entity Khoa mới
+                service -> service: Cập nhật entity Lop
+                note right: tenLop, maKhoa, gvcn, sdtGvcn
+            end
+        else maKhoa không thay đổi
+            service -> service: Cập nhật entity Lop
+            note right: tenLop, gvcn, sdtGvcn
+        end
+
+        service -> repository: save(updatedLopEntity)
+        repository -> db: UPDATE lop SET ... WHERE maLop = ?
+        db --> repository: Updated entity
+        repository --> service: Lop entity
+        service -> service: Chuyển đổi sang LopDto
+        service --> controller: LopDto
+        controller --> lopService: 200 OK với LopDto
+        lopService --> component: Success response
+
+        == Xử lý thành công ==
+        component -> component: message.success("Cập nhật thành công")
+        component -> component: setModalVisible(false)
+        component -> component: setEditingMaLop(null)
+        component -> form: form.resetFields()
+        component -> component: fetchData() - Làm mới danh sách
+    end
+
+else Form validation thất bại
+    form -> component: Validation errors
+    component -> component: Hiển thị lỗi trên form
+end
+
+@enduml

@@ -1,0 +1,63 @@
+@startuml
+!theme cerulean
+title Sơ đồ xác thực và phân quyền - Quản lý môn học
+
+actor "Admin User" as admin
+participant "Frontend" as frontend
+participant "JwtAuthenticationFilter.java" as jwtFilter
+participant "JwtTokenProvider.java" as tokenProvider
+participant "WebSecurityConfig.java" as security
+participant "MonHocController.java" as controller
+
+admin -> frontend: Gửi request với JWT token
+frontend -> jwtFilter: Request + Authorization Header
+activate jwtFilter
+
+jwtFilter -> tokenProvider: validateToken(token)
+activate tokenProvider
+
+alt Token hợp lệ
+    tokenProvider --> jwtFilter: Token valid
+    tokenProvider -> tokenProvider: Extract adminId, role, userType
+    tokenProvider --> jwtFilter: User details
+
+    jwtFilter -> security: Check ROLE_ADMIN permission
+    activate security
+
+    alt Có quyền ROLE_ADMIN
+        security --> jwtFilter: Authorization granted
+        deactivate security
+        jwtFilter -> controller: Forward request
+        controller --> jwtFilter: Response
+        jwtFilter --> frontend: Success response
+    else Không có quyền
+        security --> jwtFilter: 403 Forbidden
+        deactivate security
+        jwtFilter --> frontend: 403 Forbidden
+    end
+
+else Token không hợp lệ
+    tokenProvider --> jwtFilter: Token invalid
+    deactivate tokenProvider
+    jwtFilter --> frontend: 401 Unauthorized
+end
+
+deactivate jwtFilter
+
+note right of security
+  WebSecurityConfig yêu cầu:
+  - ROLE_ADMIN cho /apiAdmin/**
+  - Giả định /api/monhoc/*
+    cũng cần ROLE_ADMIN
+end note
+
+note right of tokenProvider
+  JWT chứa thông tin:
+  - adminId
+  - email
+  - role
+  - username
+  - fullName
+end note
+
+@enduml

@@ -1,0 +1,105 @@
+@startuml
+!theme cerulean
+title Sơ đồ xóa môn học
+
+actor "Admin User" as admin
+participant "Table Actions" as table
+participant "Popconfirm" as confirm
+participant "DanhSachMonHocComponents.jsx" as component
+participant "monHocService.js" as service
+participant "MonHocController.java" as controller
+participant "MonHocService.java" as backendService
+participant "MonHocRepository" as repository
+database "Database" as db
+
+admin -> table: Click "Xóa" button
+table -> confirm: Show Popconfirm
+confirm --> admin: "Bạn có chắc chắn muốn xóa môn học này?"
+
+alt Admin xác nhận xóa
+    admin -> confirm: Click "OK"
+    confirm -> component: handleDelete(maMh)
+    activate component
+
+    component -> service: deleteMonHoc(maMh)
+    activate service
+
+    service -> controller: DELETE /api/monhoc/{maMh}
+    activate controller
+
+    controller -> backendService: deleteMonHoc(maMh)
+    activate backendService
+
+    backendService -> repository: findById(maMh)
+    activate repository
+
+    repository -> db: SELECT * FROM monhoc WHERE ma_mh = ?
+
+    alt Môn học tồn tại
+        db --> repository: MonHoc entity
+        repository --> backendService: MonHoc entity
+
+        backendService -> repository: delete(monHocEntity)
+        repository -> db: DELETE FROM monhoc WHERE ma_mh = ?
+
+        alt Xóa thành công
+            db --> repository: Success
+            repository --> backendService: Deletion successful
+            deactivate repository
+
+            backendService --> controller: 204 No Content
+            deactivate backendService
+
+            controller --> service: Success response
+            deactivate controller
+
+            service --> component: Success
+            deactivate service
+
+            component -> component: message.success("Xóa môn học thành công")
+            component -> component: fetchMonHocs() - Refresh list
+            component --> admin: Thông báo xóa thành công
+
+        else Xóa thất bại (có ràng buộc)
+            db --> repository: Foreign key constraint error
+            repository --> backendService: Constraint violation
+            deactivate repository
+            backendService --> controller: 409 Conflict
+            deactivate backendService
+            controller --> service: Error response
+            deactivate controller
+            service --> component: Error
+            deactivate service
+            component -> component: message.error("Không thể xóa môn học")
+            component --> admin: Thông báo lỗi ràng buộc
+        end
+
+    else Môn học không tồn tại
+        db --> repository: null
+        repository --> backendService: null
+        deactivate repository
+        backendService --> controller: 404 Not Found
+        deactivate backendService
+        controller --> service: Error response
+        deactivate controller
+        service --> component: Error
+        deactivate service
+        component -> component: message.error("Môn học không tồn tại")
+        component --> admin: Thông báo lỗi
+    end
+
+    deactivate component
+
+else Admin hủy xóa
+    admin -> confirm: Click "Cancel"
+    confirm --> admin: Đóng Popconfirm
+end
+
+note over admin, db
+  Lưu ý bảo mật:
+  - Yêu cầu xác nhận trước khi xóa
+  - Kiểm tra ràng buộc dữ liệu
+  - Xử lý lỗi phù hợp
+end note
+
+@enduml

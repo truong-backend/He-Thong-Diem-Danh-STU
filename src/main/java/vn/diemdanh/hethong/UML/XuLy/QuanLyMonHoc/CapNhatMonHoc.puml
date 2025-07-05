@@ -1,0 +1,108 @@
+@startuml
+!theme cerulean
+title Sơ đồ cập nhật môn học
+
+actor "Admin User" as admin
+participant "Table Actions" as table
+participant "MonHocModal" as modal
+participant "MonHocForm" as form
+participant "DanhSachMonHocComponents.jsx" as component
+participant "monHocService.js" as service
+participant "MonHocController.java" as controller
+participant "MonHocService.java" as backendService
+participant "MonHocRepository" as repository
+database "Database" as db
+
+admin -> table: Click "Sửa" button
+table -> component: handleEdit(record)
+activate component
+
+component -> component: setEditingMaMh(record.maMh)
+component -> form: form.setFieldsValue(record)
+component -> modal: Show modal với title "Cập nhật Môn học"
+
+note right of form
+  Form fields pre-filled:
+  - maMh: Hidden (không cho sửa)
+  - tenMh: Tên môn học hiện tại
+  - soTiet: Số tiết hiện tại
+end note
+
+modal --> admin: Hiển thị form với dữ liệu hiện có
+admin -> form: Chỉnh sửa thông tin
+admin -> form: Click Submit
+form -> form: validateFields()
+
+alt Validation thành công
+    form -> component: handleModalOk(values)
+
+    component -> service: updateMonHoc(editingMaMh, values)
+    activate service
+
+    service -> controller: PUT /api/monhoc/{maMh}
+    note right: Body: {tenMh, soTiet}
+    activate controller
+
+    controller -> backendService: updateMonHoc(maMh, monHocData)
+    activate backendService
+
+    backendService -> repository: findById(maMh)
+    activate repository
+
+    repository -> db: SELECT * FROM monhoc WHERE ma_mh = ?
+
+    alt Môn học tồn tại
+        db --> repository: MonHoc entity
+        repository --> backendService: MonHoc entity
+
+        backendService -> backendService: Update entity fields
+        note right of backendService
+          Cập nhật:
+          - tenMh
+          - soTiet
+          (maMh không thay đổi)
+        end note
+
+        backendService -> repository: save(updatedEntity)
+        repository -> db: UPDATE monhoc SET ...
+        db --> repository: Updated entity
+        repository --> backendService: Updated MonHoc
+        deactivate repository
+
+        backendService -> backendService: Convert to DTO
+        backendService --> controller: MonHocDTO
+        deactivate backendService
+
+        controller --> service: 200 OK + DTO
+        deactivate controller
+
+        service --> component: Success response
+        deactivate service
+
+        component -> component: message.success()
+        component -> component: fetchMonHocs() - Refresh list
+        component -> modal: Close modal
+        component -> component: setEditingMaMh(null)
+        component --> admin: Thông báo cập nhật thành công
+
+    else Môn học không tồn tại
+        db --> repository: null
+        repository --> backendService: null
+        deactivate repository
+        backendService --> controller: 404 Not Found
+        deactivate backendService
+        controller --> service: Error response
+        deactivate controller
+        service --> component: Error
+        deactivate service
+        component -> component: message.error()
+        component --> admin: Thông báo lỗi
+    end
+
+else Validation thất bại
+    form --> admin: Hiển thị lỗi validation
+end
+
+deactivate component
+
+@enduml

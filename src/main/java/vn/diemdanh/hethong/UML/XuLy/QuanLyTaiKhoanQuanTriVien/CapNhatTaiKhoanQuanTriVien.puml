@@ -19,15 +19,7 @@ component -> modal: Mở modal
 activate modal
 component -> form: Điền thông tin hiện có
 activate form
-note right of form
-Pre-fill form với dữ liệu:
-- username
-- fullName
-- email
-- role
-- avatar (nếu có)
-Note: password để trống
-end note
+
 
 admin -> form: Chỉnh sửa thông tin
 admin -> form: Submit form
@@ -56,14 +48,7 @@ else Admin tồn tại
     repository --> adminService: Admin entity
 
     adminService -> adminService: Cập nhật các trường
-    note right
-    Cập nhật:
-    - username
-    - email
-    - fullName
-    - role
-    - password (nếu có, sẽ mã hóa)
-    end note
+
 
     adminService -> repository: save(updatedAdmin)
     activate repository

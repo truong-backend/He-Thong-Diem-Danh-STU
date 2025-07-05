@@ -1,6 +1,8 @@
 @startuml
 !theme plain
-title Luồng hiển thị danh sách tài khoản quản trị viên
+title 1. Luồng hiển thị danh sách tài khoản quản trị viên
+
+actor "Quản trị viên" as adminUser
 
 participant "DanhSachTaiKhoanAdminComponents.jsx" as component
 participant "adminService.js" as service
@@ -9,6 +11,9 @@ participant "AdminController.java" as controller
 participant "AdminService.java" as adminService
 participant "AdminRepository.java" as repository
 database "Database" as db
+
+== Bắt đầu từ người dùng ==
+adminUser -> component: Mở trang danh sách tài khoản
 
 activate component
 component -> component: useEffect() - componentDidMount
@@ -56,5 +61,7 @@ Hiển thị các cột:
 - Ngày cập nhật
 - Thao tác
 end note
+
+component -> adminUser: Hiển thị bảng danh sách tài khoản quản trị viên
 deactivate component
 @enduml

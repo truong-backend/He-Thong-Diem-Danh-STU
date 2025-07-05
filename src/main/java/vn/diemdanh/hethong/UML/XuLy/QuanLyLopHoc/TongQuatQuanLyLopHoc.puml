@@ -1,0 +1,34 @@
+@startuml
+!theme plain
+title Sơ đồ tổng quát - Hệ thống quản lý lớp học
+
+actor "Admin" as admin
+participant "Sidebar.jsx" as sidebar
+participant "DanhSachLopComponents.jsx" as component
+participant "LopController" as controller
+participant "LopService" as service
+participant "LopRepository" as repository
+database "Database" as db
+
+== Truy cập hệ thống ==
+admin -> sidebar: Chọn menu "Quản Lý Lớp"
+sidebar -> component: Điều hướng đến /admin/lop
+component -> component: Mount component
+
+== Các chức năng chính ==
+note over component
+- Hiển thị danh sách lớp học
+- Tìm kiếm và lọc
+- Thêm lớp học mới
+- Cập nhật lớp học
+- Xóa lớp học
+- Xuất Excel
+end note
+
+== Kiến trúc tổng quát ==
+component -> controller: API Requests
+controller -> service: Business Logic
+service -> repository: Data Access
+repository -> db: Database Operations
+
+@enduml

@@ -1,6 +1,6 @@
 @startuml
 !theme plain
-title 5. Lưu thông tin và Chuyển hướng
+title 3. Lưu thông tin và Chuyển hướng
 
 actor User as U
 participant "LoginForm.jsx" as LF

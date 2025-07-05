@@ -1,0 +1,117 @@
+@startuml
+title Xóa Tài khoản Giảng viên
+!theme cerulean
+
+actor "Admin" as admin
+participant "DanhSachTaiKhoanGV\nComponent" as frontend
+participant "Ant Design\nPopconfirm" as popconfirm
+participant "userService.js" as service
+participant "UserController" as controller
+participant "UserService" as userService
+participant "UserRepository" as repository
+database "Database" as db
+
+== Khởi tạo Xóa ==
+admin -> frontend: Click button "Xóa" trên dòng giảng viên
+activate frontend
+frontend -> popconfirm: Hiển thị Popconfirm
+activate popconfirm
+popconfirm -> admin: "Bạn có chắc chắn muốn xóa giảng viên này không?"
+
+
+== Xác nhận Xóa ==
+admin -> popconfirm: Click "Có" để xác nhận
+popconfirm -> frontend: onConfirm() callback
+deactivate popconfirm
+
+frontend -> frontend: handleDelete(teacherId)
+
+
+frontend -> service: deleteUser(teacherId)
+activate service
+service -> controller: DELETE /api/users/{id}
+
+activate controller
+
+controller -> controller: kiểm tra hợp lệ
+controller -> userService: deleteUser(id)
+activate userService
+
+== Kiểm tra tồn tại ==
+userService -> repository: findById(id)
+activate repository
+repository -> db: Truy vấn
+db --> repository: User entity (or null)
+repository --> userService: Optional<User>
+deactivate repository
+
+alt User không tồn tại
+    userService --> controller: Không tồn tại
+    controller --> service: 404 Not Found
+    service --> frontend: Error response
+    frontend -> frontend: message.error("Giảng viên không tồn tại")
+    frontend -> admin: Hiển thị thông báo lỗi
+else User tồn tại
+    == Kiểm tra ràng buộc dữ liệu ==
+    note over userService: Kiểm tra các ràng buộc
+
+    alt Có ràng buộc dữ liệu
+        userService --> controller: Không thể xóa
+        controller --> service: 400 Bad Request
+        service --> frontend: Error response
+        frontend -> frontend: message.error("Không thể xóa giảng viên này vì còn dữ liệu liên quan")
+        frontend -> admin: Hiển thị thông báo lỗi
+    else Không có ràng buộc
+        == Thực hiện Xóa ==
+        userService -> repository: delete(user)
+        activate repository
+        repository -> db: Truy vấn
+        db --> repository: Số dòng bị ảnh hưởng
+        repository --> userService: void
+        deactivate repository
+
+        userService --> controller: Success (void)
+
+        deactivate userService
+
+        controller --> service: 200 OK\n{"message": "Xóa giảng viên thành công"}
+        deactivate controller
+        service --> frontend: Success response
+        deactivate service
+
+        frontend -> frontend: message.success("Xóa giảng viên thành công")
+        frontend -> frontend: fetchTeachers() - Refresh danh sách
+
+        frontend -> admin: Hiển thị thông báo thành công và cập nhật danh sách
+    end
+end
+
+== Hủy Xóa ==
+admin -> popconfirm: Click "Không" để hủy
+activate popconfirm
+popconfirm -> frontend: onCancel() callback (if defined)
+deactivate popconfirm
+frontend -> admin: Đóng Popconfirm, không thực hiện gì
+deactivate frontend
+'
+'== Thay đổi Trạng thái (Alternative) ==
+'note over frontend: Thay vì xóa hẳn, có thể chỉ\nthay đổi trạng thái active = false
+'admin -> frontend: Toggle Switch "Trạng thái"
+'activate frontend
+'frontend -> frontend: handleStatusChange(id, newStatus)
+'frontend -> service: updateUser(id, {isActive: false})
+'service -> controller: PUT /api/users/{id}
+'controller -> userService: updateUser(id, userDto)
+'userService -> userService: user.setActive(false)
+'userService -> repository: save(user)
+'repository -> db: UPDATE users SET active = false WHERE id = ?
+'db --> repository: Updated user
+'repository --> userService: User
+'userService --> controller: UserDto
+'controller --> service: Success response
+'service --> frontend: Success
+'frontend -> frontend: message.success("Khóa tài khoản thành công")
+'frontend -> admin: Cập nhật trạng thái trong bảng
+'deactivate frontend
+
+@enduml

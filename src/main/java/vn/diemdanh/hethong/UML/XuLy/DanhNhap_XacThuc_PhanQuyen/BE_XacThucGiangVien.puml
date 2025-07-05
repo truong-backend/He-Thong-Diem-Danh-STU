@@ -1,6 +1,6 @@
 @startuml
 !theme plain
-title 3. Đăng nhập Giảng viên (Teacher Login)
+title 2. Đăng nhập Giảng viên (Teacher Login)
 
 participant "api.js" as API
 participant "AuthController" as AUTH

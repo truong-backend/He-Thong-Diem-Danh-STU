@@ -1,0 +1,43 @@
+@startuml
+!theme plain
+title Luồng xác thực và phân quyền - Quản lý lớp học
+
+participant "Client" as client
+participant "JwtAuthenticationFilter" as filter
+participant "JwtTokenProvider" as provider
+participant "WebSecurityConfig" as security
+participant "LopController" as controller
+
+== Mỗi request đến API ==
+client -> filter: Request với JWT token trong header Authorization
+filter -> provider: Validate token
+provider -> provider: Kiểm tra tính hợp lệ token
+provider -> provider: Trích xuất thông tin: adminId, email, role, username, fullName
+
+alt Token hợp lệ
+    provider --> filter: Token valid, trả về thông tin user
+    filter -> security: Kiểm tra quyền truy cập
+    security -> security: Xác minh ROLE_ADMIN cho /apiAdmin/**
+
+    alt Có quyền ROLE_ADMIN
+        security --> filter: Authorized
+        filter -> controller: Chuyển tiếp request
+        controller --> client: Xử lý và trả về response
+    else Không có quyền
+        security --> client: 403 Forbidden
+    end
+
+else Token không hợp lệ hoặc hết hạn
+    provider --> filter: Token invalid/expired
+    filter --> client: 401 Unauthorized
+end
+
+note over filter, security
+Các endpoint /api/lop/* yêu cầu ROLE_ADMIN
+- GET /api/lop/all
+- POST /api/lop
+- PUT /api/lop/{maLop}
+- DELETE /api/lop/{maLop}
+end note
+
+@enduml

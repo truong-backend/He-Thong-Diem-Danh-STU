@@ -1,0 +1,49 @@
+@startuml
+!theme cerulean
+title Sơ đồ tổng quát - Chức năng quản lý môn học
+
+actor "Admin User" as admin
+participant "Sidebar.jsx" as sidebar
+participant "DanhSachMonHocComponents.jsx" as component
+participant "MonHocService.js" as service
+participant "MonHocController.java" as controller
+participant "MonHocService.java" as backendService
+participant "MonHocRepository" as repository
+database "Database" as db
+
+note over admin, db
+  Các chức năng chính:
+  1. Hiển thị danh sách
+  2. Tìm kiếm
+  3. Thêm mới
+  4. Cập nhật
+  5. Xóa
+  6. Xuất Excel
+end note
+
+admin -> sidebar: Truy cập menu "Quản Lý Môn Học"
+sidebar -> component: Navigate to /admin/monhoc
+component -> service: Các API calls
+service -> controller: HTTP Requests
+controller -> backendService: Business Logic
+backendService -> repository: Data Access
+repository -> db: CRUD Operations
+
+note right of component
+  Components chính:
+  - MonHocModal
+  - MonHocForm
+  - SearchBar
+  - Header
+  - Table
+end note
+
+note right of service
+  API Endpoints:
+  - GET /api/monhoc/all
+  - POST /api/monhoc
+  - PUT /api/monhoc/{maMh}
+  - DELETE /api/monhoc/{maMh}
+end note
+
+@enduml

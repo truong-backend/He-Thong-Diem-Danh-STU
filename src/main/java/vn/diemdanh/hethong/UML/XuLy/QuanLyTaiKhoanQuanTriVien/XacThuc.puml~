@@ -6,8 +6,13 @@ participant "Client Request" as client
 participant "JwtAuthenticationFilter.java" as jwtFilter
 participant "JwtTokenProvider.java" as jwtProvider
 participant "WebSecurityConfig.java" as securityConfig
-participant "CustomAdminDetails.java" as adminDetails
-participant "AdminController.java" as controller
+participant "CustomDetails.java" as Details
+participant "Controller.java" as controller
+
+  note right of Details
+                CustomDetails có thể là:
+                - ROLE_TEACHER: 
+  end note
 
 client -> jwtFilter: Request với JWT token
 activate jwtFilter
@@ -23,15 +28,22 @@ else Token hợp lệ
     jwtFilter -> jwtProvider: getAdminIdFromToken(token)
     jwtProvider --> jwtFilter: adminId
 
-    jwtFilter -> adminDetails: loadUserByUsername(adminId)
-    activate adminDetails
-    adminDetails -> adminDetails: Tạo UserDetails với ROLE_ADMIN
-    adminDetails --> jwtFilter: UserDetails
-    deactivate adminDetails
+    jwtFilter -> Details: loadUserByUsername(adminId)
+    activate Details
+    Details -> Details: Tạo UserDetails với ROLE
+                note right
+                ROLE co thể là:
+                - ROLE_ADMIN: Lấy role theo Admin
+                - ROLE_TEACHER: Lấy role theo Giảng Viên
+                - ROLE_STUDENT: Lấy role theo Sinh Viên
+                end note
+    Details --> jwtFilter: UserDetails
+    deactivate Details
 
     jwtFilter -> securityConfig: Kiểm tra quyền truy cập
     activate securityConfig
-    securityConfig -> securityConfig: Yêu cầu ROLE_ADMIN cho /api/admin/**
+    securityConfig -> securityConfig: Yêu cầu ROLE cho để truy cập endpoint
+
 
     alt Không có quyền ROLE_ADMIN
         securityConfig --> client: HTTP 403 Forbidden

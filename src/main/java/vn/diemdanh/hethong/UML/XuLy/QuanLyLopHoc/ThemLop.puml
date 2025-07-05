@@ -1,0 +1,85 @@
+@startuml
+!theme plain
+title Luồng thêm lớp học mới
+
+participant "Header Component" as header
+participant "LopModal" as modal
+participant "LopForm" as form
+participant "DanhSachLopComponents.jsx" as component
+participant "lopService.js" as lopService
+participant "LopController" as controller
+participant "LopService" as service
+participant "KhoaService" as khoaService
+participant "LopRepository" as repository
+database "Database" as db
+
+== Mở modal thêm mới ==
+header -> component: Người dùng nhấn "Thêm Lớp Mới" (PlusOutlined)
+component -> component: setModalVisible(true)
+component -> modal: Hiển thị modal với title "Thêm Lớp Mới"
+modal -> form: Render form với các trường:
+
+note over form
+- maLop: Mã lớp (required)
+- tenLop: Tên lớp (required)
+- maKhoa: Mã khoa (required, Select)
+- gvcn: GVCN (required)
+- sdtGvcn: SĐT GVCN (required, 10 chữ số)
+end note
+
+== Submit form ==
+form -> component: Người dùng nhấn "Lưu"
+component -> form: form.validateFields()
+form -> component: Trả về values nếu valid
+
+alt Form validation thành công
+    component -> lopService: createLop(values)
+    lopService -> controller: POST /api/lop với LopDto data
+
+    == Xử lý Backend ==
+    controller -> service: createLop(request)
+    service -> service: Kiểm tra maLop trùng lặp
+
+    alt maLop đã tồn tại
+        service -> service: Ném RuntimeException("Mã lớp đã tồn tại")
+        service --> controller: Exception
+        controller --> lopService: 400 Bad Request
+        lopService --> component: Error response
+        component -> component: message.error("Mã lớp đã tồn tại")
+    else maLop chưa tồn tại
+        service -> khoaService: getKhoaById(maKhoa)
+        khoaService -> khoaService: Tìm khoa theo maKhoa
+
+        alt Khoa không tồn tại
+            khoaService -> khoaService: Ném RuntimeException("Khoa không tồn tại")
+            khoaService --> service: Exception
+            service --> controller: Exception
+            controller --> lopService: 400 Bad Request
+            lopService --> component: Error response
+            component -> component: message.error("Khoa không tồn tại")
+        else Khoa tồn tại
+            khoaService --> service: Entity Khoa
+            service -> service: Tạo entity Lop mới
+            service -> repository: save(lopEntity)
+            repository -> db: INSERT lớp học mới
+            db --> repository: Saved entity
+            repository --> service: Lop entity
+            service -> service: Chuyển đổi sang LopDto
+            service --> controller: LopDto
+            controller --> lopService: 200 OK với LopDto
+            lopService --> component: Success response
+
+            == Xử lý thành công ==
+            component -> component: message.success("Thêm lớp thành công")
+            component -> component: setModalVisible(false)
+            component -> form: form.resetFields()
+            component -> component: fetchData() - Làm mới danh sách
+        end
+    end
+
+else Form validation thất bại
+    form -> component: Validation errors
+    component -> component: Hiển thị lỗi trên form
+end
+
+@enduml
