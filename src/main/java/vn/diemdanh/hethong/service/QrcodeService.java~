@@ -1,53 +1,80 @@
-package vn.diemdanh.hethong.service;
+package vn.diemdanh.hethong.repository;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
-import vn.diemdanh.hethong.dto.qrcode.DiemDanhQRRequest;
-import vn.diemdanh.hethong.dto.qrcode.QRCodeDTO;
-import vn.diemdanh.hethong.dto.qrcode.TaoQRCodeRequest;
-import vn.diemdanh.hethong.repository.QrcodeRepository;
+import vn.diemdanh.hethong.entity.Qrcode;
 
-import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
-@Service
-public class QrcodeService {
-    @Autowired
-    private QrcodeRepository qrcodeRepository;
-    // 8. TẠO QR CODE MỚI
+public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
+    // 8. TẠO QRCODE MỚI CHO ĐIỂM DANH
+    @Modifying
     @Transactional
-    public QRCodeDTO createQRCode(TaoQRCodeRequest request) {
-        try {
-            qrcodeRepository.createQRCode(request.getMaTkb(), request.getSoPhut()); // Giả sử thời gian hiệu lực là 15 phút
+    @Query(
+            value = "INSERT INTO qrcode (ma_tkb, thoi_gian_kt) VALUES (:maTkb, DATE_ADD(NOW(), INTERVAL :soPhut MINUTE))",
+            nativeQuery = true
+    )
+    void createQRCode(@Param("maTkb") Integer maTkb, @Param("soPhut") Integer soPhut);
 
-            return qrcodeRepository.getLatestQRCode(request.getMaTkb())
-                    .map(row -> QRCodeDTO.builder()
-                            .id((Long) row[0][0])
-                            .maTkb((Integer) row[0][1])
-                            .thoiGianKt(((Timestamp) row[0][2]).toLocalDateTime())
-                            .ngayHoc(((java.sql.Date) row[0][3]).toLocalDate())
-                            .phongHoc((String) row[0][4])
-                            .trangThai((String) row[0][5])
-                            .build())
-                    .orElseThrow(() -> new RuntimeException("Không thể tạo QR Code"));
-        } catch (Exception e) {
-            throw new RuntimeException("Không thể tạo QR Code", e);
-        }
-    }
-    // 9. ĐIỂM DANH BẰNG QR CODE
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            'Còn hiệu lực' as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.ma_tkb = :maTkb
+        ORDER BY qr.id DESC
+        LIMIT 1
+        """, nativeQuery = true)
+    Optional<Object[][]> getLatestQRCode(@Param("maTkb") Integer maTkb);
+
+    // KIỂM TRA QR CODE TỒN TẠI VÀ TRẠNG THÁI
+    @Query(value = """
+        SELECT 
+            CASE WHEN COUNT(*) = 0 THEN 'NOT_EXIST'
+                 WHEN NOW() > MAX(qr.thoi_gian_kt) THEN 'EXPIRED'
+                 ELSE 'VALID'
+            END as status
+        FROM qrcode qr
+        WHERE qr.id = :qrId
+        """, nativeQuery = true)
+    String checkQRCodeStatus(@Param("qrId") Long qrId);
+
+    // KIỂM TRA SINH VIÊN ĐÃ ĐIỂM DANH CHƯA
+    @Query(value = """
+        SELECT COUNT(*)
+        FROM diem_danh dd
+        JOIN qrcode qr ON dd.ma_tkb = qr.ma_tkb
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND dd.ma_sv = :maSv
+            AND dd.ngay_hoc = t.ngay_hoc
+        """, nativeQuery = true)
+    Integer checkStudentAttended(@Param("qrId") Long qrId, @Param("maSv") String maSv);
+
+    // 9. ĐIỂM DANH BẰNG QRCODE (CHỈ 1 LẦN)
+    @Modifying
     @Transactional
-    public void markAttendanceByQR(DiemDanhQRRequest request) {
-        // Kiểm tra QR code còn hiệu lực không
-        Optional<Object[]> qrCode = qrcodeRepository.checkQRCodeValidity(request.getQrId());
-        if (qrCode.isEmpty()) {
-            throw new RuntimeException("QR Code đã hết hiệu lực hoặc không tồn tại");
-        }
-
-        try {
-            qrcodeRepository.markAttendanceByQR(request.getQrId(), request.getMaSv());
-        } catch (Exception e) {
-            throw new RuntimeException("Không thể điểm danh bằng QR Code", e);
-        }
-    }
+    @Query(value = """
+        INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
+        SELECT 
+            qr.ma_tkb,
+            :maSv,
+            t.ngay_hoc,
+            NOW(),
+            'Điểm danh bằng QR Code'
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND NOW() <= qr.thoi_gian_kt
+        """, nativeQuery = true)
+    void markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
 }

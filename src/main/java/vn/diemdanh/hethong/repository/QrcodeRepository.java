@@ -36,47 +36,45 @@ public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
         """, nativeQuery = true)
     Optional<Object[][]> getLatestQRCode(@Param("maTkb") Integer maTkb);
 
-    // 7. KIỂM TRA QRCODE CÒN HỢP LỆ KHÔNG
+    // KIỂM TRA QR CODE TỒN TẠI VÀ TRẠNG THÁI
     @Query(value = """
         SELECT 
-            qr.id,
+            CASE WHEN COUNT(*) = 0 THEN 'NOT_EXIST'
+                 WHEN NOW() > MAX(qr.thoi_gian_kt) THEN 'EXPIRED'
+                 ELSE 'VALID'
+            END as status
+        FROM qrcode qr
+        WHERE qr.id = :qrId
+        """, nativeQuery = true)
+    String checkQRCodeStatus(@Param("qrId") Long qrId);
+
+    // KIỂM TRA SINH VIÊN ĐÃ ĐIỂM DANH CHƯA
+    @Query(value = """
+        SELECT COUNT(*)
+        FROM diem_danh dd
+        JOIN qrcode qr ON dd.ma_tkb = qr.ma_tkb
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND dd.ma_sv = :maSv
+            AND dd.ngay_hoc = t.ngay_hoc
+        """, nativeQuery = true)
+    Integer checkStudentAttended(@Param("qrId") Long qrId, @Param("maSv") String maSv);
+
+    // 9. ĐIỂM DANH BẰNG QRCODE (CHỈ 1 LẦN)
+    @Modifying
+    @Transactional
+    @Query(value = """
+        INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
+        SELECT 
             qr.ma_tkb,
-            qr.thoi_gian_kt,
+            :maSv,
             t.ngay_hoc,
-            t.phong_hoc,
-            CASE 
-                WHEN NOW() <= qr.thoi_gian_kt THEN 'Còn hiệu lực'
-                ELSE 'Hết hiệu lực'
-            END as trang_thai
+            NOW(),
+            'Điểm danh bằng QR Code'
         FROM qrcode qr
         JOIN tkb t ON qr.ma_tkb = t.ma_tkb
         WHERE qr.id = :qrId
             AND NOW() <= qr.thoi_gian_kt
         """, nativeQuery = true)
-    Optional<Object[]> checkQRCodeValidity(@Param("qrId") Long qrId);
-
-    // 9. ĐIỂM DANH BẰNG QRCODE
-    @Modifying
-    @Transactional
-    @Query(value = """
-    INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
-    SELECT 
-        qr.ma_tkb,
-        :maSv,
-        t.ngay_hoc,
-        NOW(),
-        'Điểm danh bằng QR Code'
-    FROM qrcode qr
-    JOIN tkb t ON qr.ma_tkb = t.ma_tkb
-    WHERE qr.id = :qrId
-        AND NOW() <= qr.thoi_gian_kt
-        AND NOT EXISTS (
-            SELECT 1 
-            FROM diem_danh dd 
-            WHERE dd.ma_tkb = qr.ma_tkb 
-                AND dd.ma_sv = :maSv
-                AND dd.ngay_hoc = t.ngay_hoc
-        )
-    """, nativeQuery = true)
-    int markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
+    void markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
 }

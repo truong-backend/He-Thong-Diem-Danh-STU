@@ -33,7 +33,7 @@ public class QrcodeController {
     public ResponseEntity<String> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
         try {
             qrcodeService.markAttendanceByQR(request);
-            return ResponseEntity.ok("Điểm danh thanh cong");
+            return ResponseEntity.ok("Điểm danh bằng QR Code thành công");
         } catch (RuntimeException e) {
             String message = e.getMessage();
             HttpStatus status = HttpStatus.BAD_REQUEST;

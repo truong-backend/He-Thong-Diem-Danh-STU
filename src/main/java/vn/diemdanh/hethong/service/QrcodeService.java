@@ -15,11 +15,12 @@ import java.util.Optional;
 public class QrcodeService {
     @Autowired
     private QrcodeRepository qrcodeRepository;
+
     // 8. TẠO QR CODE MỚI
     @Transactional
     public QRCodeDTO createQRCode(TaoQRCodeRequest request) {
         try {
-            qrcodeRepository.createQRCode(request.getMaTkb(), request.getSoPhut()); // Giả sử thời gian hiệu lực là 15 phút
+            qrcodeRepository.createQRCode(request.getMaTkb(), request.getSoPhut());
 
             return qrcodeRepository.getLatestQRCode(request.getMaTkb())
                     .map(row -> QRCodeDTO.builder()
@@ -35,21 +36,34 @@ public class QrcodeService {
             throw new RuntimeException("Không thể tạo QR Code", e);
         }
     }
+
+    // 9. ĐIỂM DANH BẰNG QR CODE
     @Transactional
     public void markAttendanceByQR(DiemDanhQRRequest request) {
-        // Kiểm tra QR code còn hiệu lực không
-        Optional<Object[]> qrCode = qrcodeRepository.checkQRCodeValidity(request.getQrId());
-        if (qrCode.isEmpty()) {
-            throw new RuntimeException("QR Code đã hết hiệu lực hoặc không tồn tại");
+        // Kiểm tra trạng thái QR code
+        String qrStatus = qrcodeRepository.checkQRCodeStatus(request.getQrId());
+
+        switch (qrStatus) {
+            case "NOT_EXIST":
+                throw new RuntimeException("QR Code không tồn tại");
+            case "EXPIRED":
+                throw new RuntimeException("QR Code đã hết hiệu lực");
+            case "VALID":
+                break;
+            default:
+                throw new RuntimeException("QR Code không hợp lệ");
+        }
+
+        // Kiểm tra sinh viên đã điểm danh chưa
+        Integer hasAttended = qrcodeRepository.checkStudentAttended(request.getQrId(), request.getMaSv());
+        if (hasAttended > 0) {
+            throw new RuntimeException("Sinh viên đã điểm danh rồi");
         }
 
         try {
-            int rowsAffected = qrcodeRepository.markAttendanceByQR(request.getQrId(), request.getMaSv());
-            if (rowsAffected == 0) {
-                throw new RuntimeException("Sinh viên đã điểm danh rồi hoặc QR Code không hợp lệ");
-            }
+            qrcodeRepository.markAttendanceByQR(request.getQrId(), request.getMaSv());
         } catch (Exception e) {
-            throw new RuntimeException("Không thể điểm danh bằng QR Code: " + e.getMessage(), e);
+            throw new RuntimeException("Không thể điểm danh bằng QR Code", e);
         }
     }
 }
