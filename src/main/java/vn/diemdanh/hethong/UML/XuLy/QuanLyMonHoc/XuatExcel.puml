@@ -1,8 +1,8 @@
 @startuml
-!theme cerulean
+'!theme cerulean
 title Sơ đồ xuất Excel danh sách môn học
 
-actor "Admin User" as admin
+actor "Admin" as admin
 participant "Header Component" as header
 participant "DanhSachMonHocComponents.jsx" as component
 participant "XLSX Library" as xlsx
@@ -15,25 +15,25 @@ activate component
 
 component -> component: exportToExcel(filteredData)
 
-note right of component
-  Dữ liệu sử dụng:
-  - filteredData (đã lọc theo tìm kiếm)
-  - Không cần gọi API mới
-  - Sử dụng dữ liệu đã có trong state
-end note
+'note right of component
+'  Dữ liệu sử dụng:
+'  - filteredData (đã lọc theo tìm kiếm)
+'  - Không cần gọi API mới
+'  - Sử dụng dữ liệu đã có trong state
+'end note
 
 component -> component: Tạo dữ liệu Excel
 
-note right of component
-  Cấu trúc Excel:
-  1. Tiêu đề: "DANH SÁCH MÔN HỌC"
-  2. Thông tin xuất:
-     - Ngày xuất: current date
-     - Tổng số môn học: filteredData.length
-     - Tổng số tiết: sum of soTiet
-  3. Headers: STT, Mã môn học, Tên môn học, Số tiết
-  4. Dữ liệu các môn học
-end note
+'note right of component
+'  Cấu trúc Excel:
+'  1. Tiêu đề: "DANH SÁCH MÔN HỌC"
+'  2. Thông tin xuất:
+'     - Ngày xuất: current date
+'     - Tổng số môn học: filteredData.length
+'     - Tổng số tiết: sum of soTiet
+'  3. Headers: STT, Mã môn học, Tên môn học, Số tiết
+'  4. Dữ liệu các môn học
+'end note
 
 component -> component: Tạo worksheet data array
 
@@ -49,13 +49,13 @@ xlsx --> component: worksheet object
 deactivate xlsx
 
 component -> component: Thiết lập độ rộng cột
-note right of component
-  Column widths:
-  - STT: 10
-  - Mã môn học: 15
-  - Tên môn học: 30
-  - Số tiết: 12
-end note
+'note right of component
+'  Column widths:
+'  - STT: 10
+'  - Mã môn học: 15
+'  - Tên môn học: 30
+'  - Số tiết: 12
+'end note
 
 component -> xlsx: XLSX.utils.book_new()
 activate xlsx
@@ -66,13 +66,13 @@ xlsx --> component: Updated workbook
 deactivate xlsx
 
 component -> component: Tạo tên file với timestamp
-note right of component
-  Tên file format:
-  "DanhSach_MonHoc_YYYYMMDD_HHMMSS.xlsx"
-
-  Ví dụ:
-  "DanhSach_MonHoc_20250703_143022.xlsx"
-end note
+'note right of component
+'  Tên file format:
+'  "DanhSach_MonHoc_YYYYMMDD_HHMMSS.xlsx"
+'
+'  Ví dụ:
+'  "DanhSach_MonHoc_20250703_143022.xlsx"
+'end note
 
 component -> xlsx: XLSX.writeFile(workbook, filename)
 activate xlsx
@@ -102,21 +102,13 @@ end
 
 deactivate component
 
-note over admin, browser
-  Đặc điểm xuất Excel:
-  - Không cần gọi API backend
-  - Sử dụng dữ liệu đã có trong frontend
-  - Tạo file với định dạng chuẩn
-  - Bao gồm thống kê tổng hợp
-  - Tên file có timestamp
-  - Tự động tải xuống
-end note
 
-note over component
-  Thư viện sử dụng:
-  - XLSX: Tạo và xử lý file Excel
-  - file-saver: Tải file xuống browser
-  - Xử lý hoàn toàn phía client
-end note
+
+'note over component
+'  Thư viện sử dụng:
+'  - XLSX: Tạo và xử lý file Excel
+'  - file-saver: Tải file xuống browser
+'  - Xử lý hoàn toàn phía client
+'end note
 
 @enduml

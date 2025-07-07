@@ -49,7 +49,7 @@ alt Validation thành công
     backendService -> repository: findById(maMh)
     activate repository
 
-    repository -> db: Truy vấn
+    repository -> db: Truy 
 
     alt Môn học tồn tại
         db --> repository: MonHoc entity
@@ -64,7 +64,7 @@ alt Validation thành công
 '        end note
 
         backendService -> repository: save(updatedEntity)
-        repository -> db: Truy vấn
+        repository -> db: UPDATE monhoc SET ...
         db --> repository: Updated entity
         repository --> backendService: Updated MonHoc
         deactivate repository

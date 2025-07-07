@@ -26,10 +26,12 @@ public class QrcodeController {
     public ResponseEntity<String> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
         try {
             qrcodeService.markAttendanceByQR(request);
-            return ResponseEntity.ok(("Điểm danh bằng QR Code thành công"));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(("Không thể điểm danh: " + e.getMessage()));
+            return ResponseEntity.ok("Điểm danh bằng QR Code thành công");
+        } catch (RuntimeException e) {
+            String message = e.getMessage().contains("đã điểm danh")
+                    ? "Sinh viên đã điểm danh rồi"
+                    : "Không thể điểm danh: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
         }
     }
 

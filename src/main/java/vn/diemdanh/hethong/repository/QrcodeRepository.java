@@ -59,23 +59,24 @@ public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
     @Modifying
     @Transactional
     @Query(value = """
-        INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
-        SELECT 
-            qr.ma_tkb,
-            :maSv,
-            t.ngay_hoc,
-            NOW(),
-            'Điểm danh bằng QR Code'
-        FROM qrcode qr
-        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
-        WHERE qr.id = :qrId
-            AND NOW() <= qr.thoi_gian_kt
-        ON DUPLICATE KEY UPDATE 
-            diem_danh2 = CASE 
-                WHEN diem_danh1 IS NOT NULL AND diem_danh2 IS NULL THEN NOW()
-                ELSE diem_danh2
-            END,
-            ghi_chu = CONCAT(diem_danh.ghi_chu, ' - QR Code lần 2')
-        """, nativeQuery = true)
-    void markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
+    INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
+    SELECT 
+        qr.ma_tkb,
+        :maSv,
+        t.ngay_hoc,
+        NOW(),
+        'Điểm danh bằng QR Code'
+    FROM qrcode qr
+    JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+    WHERE qr.id = :qrId
+        AND NOW() <= qr.thoi_gian_kt
+        AND NOT EXISTS (
+            SELECT 1 
+            FROM diem_danh dd 
+            WHERE dd.ma_tkb = qr.ma_tkb 
+                AND dd.ma_sv = :maSv
+                AND dd.ngay_hoc = t.ngay_hoc
+        )
+    """, nativeQuery = true)
+    int markAttendanceByQR(@Param("qrId") Long qrId, @Param("maSv") String maSv);
 }

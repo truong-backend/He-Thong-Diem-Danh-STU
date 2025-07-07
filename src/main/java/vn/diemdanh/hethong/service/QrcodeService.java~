@@ -38,10 +38,8 @@ public class QrcodeService {
     // 9. ĐIỂM DANH BẰNG QR CODE
     @Transactional
     public void markAttendanceByQR(DiemDanhQRRequest request) {
-
-
         // Kiểm tra QR code còn hiệu lực không
-        Optional<QRCodeDTO> qrCode = qrcodeRepository.checkQRCodeValidity(request.getQrId());
+        Optional<Object[]> qrCode = qrcodeRepository.checkQRCodeValidity(request.getQrId());
         if (qrCode.isEmpty()) {
             throw new RuntimeException("QR Code đã hết hiệu lực hoặc không tồn tại");
         }

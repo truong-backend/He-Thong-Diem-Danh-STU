@@ -35,7 +35,6 @@ public class QrcodeService {
             throw new RuntimeException("Không thể tạo QR Code", e);
         }
     }
-    // 9. ĐIỂM DANH BẰNG QR CODE
     @Transactional
     public void markAttendanceByQR(DiemDanhQRRequest request) {
         // Kiểm tra QR code còn hiệu lực không
@@ -45,9 +44,12 @@ public class QrcodeService {
         }
 
         try {
-            qrcodeRepository.markAttendanceByQR(request.getQrId(), request.getMaSv());
+            int rowsAffected = qrcodeRepository.markAttendanceByQR(request.getQrId(), request.getMaSv());
+            if (rowsAffected == 0) {
+                throw new RuntimeException("Sinh viên đã điểm danh rồi hoặc QR Code không hợp lệ");
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Không thể điểm danh bằng QR Code", e);
+            throw new RuntimeException("Không thể điểm danh bằng QR Code: " + e.getMessage(), e);
         }
     }
 }

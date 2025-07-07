@@ -1,8 +1,8 @@
 @startuml
-!theme cerulean
+'!theme cerulean
 title Sơ đồ xóa môn học
 
-actor "Admin User" as admin
+actor "Admin" as admin
 participant "Table Actions" as table
 participant "Popconfirm" as confirm
 participant "DanhSachMonHocComponents.jsx" as component
@@ -33,14 +33,14 @@ alt Admin xác nhận xóa
     backendService -> repository: findById(maMh)
     activate repository
 
-    repository -> db: SELECT * FROM monhoc WHERE ma_mh = ?
+    repository -> db: Truy vấn
 
     alt Môn học tồn tại
         db --> repository: MonHoc entity
         repository --> backendService: MonHoc entity
 
         backendService -> repository: delete(monHocEntity)
-        repository -> db: DELETE FROM monhoc WHERE ma_mh = ?
+        repository -> db: Truy vấn
 
         alt Xóa thành công
             db --> repository: Success

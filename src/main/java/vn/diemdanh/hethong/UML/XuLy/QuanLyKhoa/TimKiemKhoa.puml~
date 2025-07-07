@@ -1,10 +1,10 @@
 @startuml
 '!theme cerulean
-title Sơ đồ tìm kiếm môn học
+title Sơ đồ tìm kiếm khoa
 
 actor "Admin" as admin
 participant "SearchBar Component" as searchBar
-participant "DanhSachMonHocComponents.jsx" as component
+participant "DanhSachKhoaComponents.jsx" as component
 
 admin -> searchBar: Nhập từ khóa tìm kiếm
 activate searchBar
@@ -17,7 +17,7 @@ component -> component: filterData()
 
 
 
-component -> component: Filter monHocs array
+component -> component: Filter khoas array
 alt Có kết quả tìm kiếm
     component -> component: setState(filteredData) với kết quả lọc
     component -> component: Re-render Table

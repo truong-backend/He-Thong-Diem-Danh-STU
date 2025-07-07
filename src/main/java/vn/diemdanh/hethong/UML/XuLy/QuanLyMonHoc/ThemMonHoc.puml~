@@ -1,9 +1,9 @@
 @startuml
-'!theme cerulean
+!theme cerulean
 title Sơ đồ thêm môn học mới
 
-actor "Admin" as admin
-'participant "Header Component" as header
+actor "Admin User" as admin
+participant "Header Component" as header
 participant "MonHocModal" as modal
 participant "MonHocForm" as form
 participant "DanhSachMonHocComponents.jsx" as component
@@ -13,17 +13,17 @@ participant "MonHocService.java" as backendService
 participant "MonHocRepository" as repository
 database "Database" as db
 
-admin -> component: Click "Thêm Môn học Mới"
+admin -> header: Click "Thêm Môn học Mới"
 header -> component: Trigger open modal
 component -> modal: Show modal
 modal -> form: Display empty form
 
-'note right of form
-'  Form fields:
-'  - maMh: Mã môn học (required, max 20 chars)
-'  - tenMh: Tên môn học (required, max 50 chars)
-'  - soTiet: Số tiết (required, > 0)
-'end note
+note right of form
+  Form fields:
+  - maMh: Mã môn học (required, max 20 chars)
+  - tenMh: Tên môn học (required, max 50 chars)
+  - soTiet: Số tiết (required, > 0)
+end note
 
 admin -> form: Nhập thông tin môn học
 admin -> form: Click Submit
@@ -37,7 +37,7 @@ alt Validation thành công
     activate service
 
     service -> controller: POST /api/monhoc
-'    note right: Body: {maMh, tenMh, soTiet}
+    note right: Body: {maMh, tenMh, soTiet}
     activate controller
 
     controller -> backendService: createMonHoc(monHocData)

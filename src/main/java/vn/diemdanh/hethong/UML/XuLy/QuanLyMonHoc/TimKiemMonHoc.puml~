@@ -1,8 +1,8 @@
 @startuml
-'!theme cerulean
+!theme cerulean
 title Sơ đồ tìm kiếm môn học
 
-actor "Admin" as admin
+actor "Admin User" as admin
 participant "SearchBar Component" as searchBar
 participant "DanhSachMonHocComponents.jsx" as component
 
@@ -15,7 +15,16 @@ activate component
 component -> component: setState(searchText)
 component -> component: filterData()
 
+note right of component
+  Tìm kiếm theo:
+  - Mã môn học (maMh)
+  - Tên môn học (tenMh)
 
+  Logic:
+  - Chuyển về chữ thường
+  - So sánh includes()
+  - Tìm kiếm phía client
+end note
 
 component -> component: Filter monHocs array
 alt Có kết quả tìm kiếm
