@@ -1,0 +1,35 @@
+@startuml
+!theme plain
+title Luồng thêm tài khoản quản trị viên
+
+actor "Quản trị viên" as User
+
+participant "Danh sách tài khoản\n(Component)" as Component
+participant "adminService.js\n(Frontend Service)" as FrontendService
+participant "AdminController.java\n(Controller)" as Controller
+participant "AdminService.java\n(Service)" as Service
+participant "AdminRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+User -> Component: Click "Thêm quản trị viên"
+Component -> FrontendService: Gửi dữ liệu tạo mới
+FrontendService -> Controller: POST /api/admin
+Controller -> Service: createAdmin(request)
+
+Service -> Service: Kiểm tra email/username trùng
+alt Trùng lặp
+    Service --> Controller: Trả lỗi
+    Controller --> FrontendService: Error response
+    FrontendService --> Component: Hiển thị lỗi
+else Hợp lệ
+    Service -> Repository: Lưu admin mới
+    Repository -> DB: INSERT
+    DB --> Repository: Admin entity
+    Repository --> Service: Admin entity
+    Service --> Controller: AdminDto
+    Controller --> FrontendService: Success response
+    FrontendService --> Component: Hiển thị thành công
+    Component -> Component: Cập nhật danh sách
+end
+
+@enduml

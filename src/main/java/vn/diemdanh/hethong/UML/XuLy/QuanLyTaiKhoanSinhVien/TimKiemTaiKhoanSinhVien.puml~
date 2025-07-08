@@ -1,8 +1,8 @@
 @startuml
-title Tìm kiếm Giảng viên
+title Tìm kiếm Tài Khoản Giảng viên
 
 actor "Admin" as admin
-participant "DanhSachTaiKhoanGV\nComponent" as frontend
+participant "DanhSachTaiKhoanSV\nComponent" as frontend
 participant "Ant Design\nInput.Search" as searchInput
 participant "userService.js" as service
 participant "UserController" as controller
@@ -10,7 +10,7 @@ participant "UserService" as userService
 participant "UserRepository" as repository
 database "Database" as db
 
-== Tìm kiếm Giảng viên ==
+== Tìm kiếm Tài Khoản Giảng viên ==
 admin -> searchInput: Nhập từ khóa tìm kiếm
 activate searchInput
 searchInput -> frontend: onSearch(keyword)
@@ -51,10 +51,10 @@ deactivate userService
 controller --> service: JSON Response (filtered)
 deactivate controller
 
-service --> frontend: filtered teachers data
+service --> frontend: filtered students data
 deactivate service
 
-frontend -> frontend: setState(teachers) với kết quả lọc
+frontend -> frontend: setState(student) với kết quả lọc
 frontend -> frontend: Update pagination info cho kết quả tìm kiếm
 
 frontend -> frontend: Render bảng với kết quả tìm kiếm

@@ -1,0 +1,50 @@
+@startuml
+!theme plain
+title Tìm kiếm tài khoản giảng viên
+
+actor "Admin" as User
+
+participant "Danh sách tài khoản GV\n(Component)" as Component
+participant "Input.Search\n(Ant Design)" as SearchBox
+participant "userService.js\n(Frontend Service)" as FrontendService
+participant "UserController.java\n(Controller)" as Controller
+participant "UserService.java\n(Service)" as Service
+participant "UserRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+== Nhập từ khóa tìm kiếm ==
+User -> SearchBox: Nhập từ khóa
+SearchBox -> Component: onSearch(keyword)
+Component -> FrontendService: getUsersByRole(TEACHER, search=keyword)
+
+== Gọi backend tìm kiếm ==
+FrontendService -> Controller: Gọi API với search param
+alt Có từ khóa
+    Controller -> Service: searchUsersByRole()
+    Service -> Repository: findByRoleAndSearch()
+else Không có từ khóa
+    Controller -> Service: getUsersByRole()
+    Service -> Repository: findByRole()
+end
+
+Repository -> DB: Truy vấn User
+DB --> Repository: Danh sách User
+Repository --> Service: Page<User>
+Service -> Service: Chuyển sang UserDto
+Service --> Controller: Page<UserDto>
+Controller --> FrontendService: JSON Response
+FrontendService --> Component: Danh sách kết quả tìm kiếm
+
+== Hiển thị kết quả ==
+alt Có kết quả
+    Component -> User: Hiển thị danh sách giảng viên
+else Không có kết quả
+    Component -> User: Hiển thị "Không tìm thấy kết quả"
+end
+
+== Xóa từ khóa ==
+User -> SearchBox: Xóa từ khóa tìm kiếm
+SearchBox -> Component: onSearch("")
+Component -> FrontendService: getUsersByRole(TEACHER)
+Component -> User: Hiển thị lại toàn bộ danh sách
+@enduml

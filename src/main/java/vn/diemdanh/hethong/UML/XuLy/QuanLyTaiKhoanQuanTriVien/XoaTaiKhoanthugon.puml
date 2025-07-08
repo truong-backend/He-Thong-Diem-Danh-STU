@@ -1,0 +1,44 @@
+@startuml
+!theme plain
+title Luồng xóa tài khoản quản trị viên
+
+actor "Quản trị viên" as User
+
+participant "Danh sách tài khoản\n(Component)" as Component
+participant "adminService.js\n(Frontend Service)" as FrontendService
+participant "AdminController.java\n(Controller)" as Controller
+participant "AdminService.java\n(Service)" as Service
+participant "AdminRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+User -> Component: Click "Xóa" tài khoản
+Component -> User: Xác nhận xóa (Popconfirm)
+
+alt Hủy thao tác
+    User -> Component: Cancel
+    Component -> Component: Không làm gì
+else Xác nhận xóa
+    User -> Component: OK
+    Component -> FrontendService: deleteAdmin(id)
+    FrontendService -> Controller: DELETE /api/admin/{id}
+    Controller -> Service: deleteAdmin(id)
+
+    Service -> Repository: findById(id)
+    alt Không tồn tại
+        Repository --> Service: null
+        Service --> Controller: Ném lỗi
+        Controller --> FrontendService: Error
+        FrontendService --> Component: Hiển thị lỗi
+    else Tồn tại
+        Repository --> Service: Admin entity
+        Service -> Repository: delete(admin)
+        Repository -> DB: DELETE FROM admin WHERE id = ?
+        DB --> Repository: Success
+        Repository --> Service: Success
+        Service --> Controller: Success
+        Controller --> FrontendService: Success
+        FrontendService --> Component: Hiển thị thành công
+        Component -> Component: Cập nhật danh sách
+    end
+end
+@enduml

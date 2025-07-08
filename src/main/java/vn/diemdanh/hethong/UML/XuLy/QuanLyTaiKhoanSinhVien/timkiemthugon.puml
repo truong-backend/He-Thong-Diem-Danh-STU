@@ -1,0 +1,44 @@
+@startuml
+!theme plain
+title Tìm kiếm tài khoản sinh viên
+
+actor "Admin" as User
+
+participant "Danh sách SV\n(Component)" as Component
+participant "Input.Search\n(Ant Design)" as SearchInput
+participant "userService.js\n(Frontend Service)" as FrontendService
+participant "UserController.java\n(Controller)" as Controller
+participant "UserService.java\n(Service)" as Service
+participant "UserRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+== Tìm kiếm ==
+User -> SearchInput: Nhập từ khóa
+SearchInput -> Component: onSearch(keyword)
+Component -> FrontendService: getUsersByRole()
+
+FrontendService -> Controller: GET /api/users/role/STUDENT?search=...
+Controller -> Service: searchUsersByRole()
+
+Service -> Repository: findByRoleAndSearch()
+Repository -> DB: Truy vấn
+DB --> Repository: List<User>
+Repository --> Service: Page<User>
+Service --> Controller: Page<UserDto>
+Controller --> FrontendService: JSON Response
+FrontendService --> Component: Dữ liệu lọc
+
+== Hiển thị ==
+Component -> User: Hiển thị danh sách kết quả tìm được
+
+alt Không có kết quả
+    Component -> User: Hiển thị "Không tìm thấy kết quả"
+end
+
+== Xóa tìm kiếm ==
+User -> SearchInput: Xóa từ khóa
+SearchInput -> Component: onSearch("")
+Component -> FrontendService: getUsersByRole()
+Component -> User: Hiển thị lại toàn bộ danh sách
+
+@enduml

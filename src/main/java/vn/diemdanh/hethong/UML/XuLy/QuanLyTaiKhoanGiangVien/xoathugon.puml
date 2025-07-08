@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+title Xóa tài khoản giảng viên
+
+actor "Admin" as User
+
+participant "Danh sách GV\n(Component)" as Component
+participant "userService.js\n(Frontend Service)" as FrontendService
+participant "UserController.java\n(Controller)" as Controller
+participant "UserService.java\n(Service)" as Service
+participant "UserRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+== Khởi tạo ==
+User -> Component: Click "Xóa"
+Component -> User: Xác nhận (Popconfirm)
+
+== Nếu xác nhận ==
+User -> Component: Đồng ý xóa
+Component -> FrontendService: deleteUser(id)
+FrontendService -> Controller: DELETE /api/users/{id}
+Controller -> Service: deleteUser(id)
+
+== Kiểm tra và xử lý ==
+Service -> Repository: findById(id)
+Repository -> DB: Truy vấn
+DB --> Repository: User entity (hoặc null)
+Repository --> Service: Optional<User>
+
+alt Không tồn tại
+    Service --> Controller: Lỗi
+    Controller --> FrontendService: 404 Not Found
+    FrontendService --> Component: message.error("Không tồn tại")
+else Tồn tại
+    alt Có ràng buộc dữ liệu
+        Service --> Controller: Lỗi
+        Controller --> FrontendService: 400 Bad Request
+        FrontendService --> Component: message.error("Có dữ liệu liên quan")
+    else Không có ràng buộc
+        Service -> Repository: delete(user)
+        Repository -> DB: DELETE
+        DB --> Repository: OK
+        Repository --> Service: Done
+        Service --> Controller: OK
+        Controller --> FrontendService: 200 OK
+        FrontendService --> Component: message.success("Xóa thành công")
+        Component -> Component: fetchTeachers() - Cập nhật danh sách
+    end
+end
+
+== Nếu hủy ==
+User -> Component: Hủy xóa
+Component -> User: Đóng Popconfirm, không thực hiện gì
+@enduml

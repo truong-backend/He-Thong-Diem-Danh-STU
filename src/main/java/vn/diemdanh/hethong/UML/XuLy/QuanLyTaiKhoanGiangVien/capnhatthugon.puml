@@ -1,0 +1,57 @@
+@startuml
+!theme plain
+title Cập nhật tài khoản giảng viên
+
+actor "Admin" as User
+
+participant "Danh sách GV\n(Component)" as Component
+participant "Modal & Form\n(Ant Design)" as Modal
+participant "userService.js\n(Frontend Service)" as FrontendService
+participant "UserController.java\n(Controller)" as Controller
+participant "UserService.java\n(Service)" as Service
+participant "UserRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+== Mở form sửa ==
+User -> Component: Click "Sửa"
+Component -> Modal: Hiển thị form cập nhật
+
+== Gửi cập nhật ==
+User -> Modal: Nhập và gửi form
+Modal -> FrontendService: updateUser(id, payload)
+FrontendService -> Controller: PUT /api/users/{id}
+Controller -> Service: updateUser(id, userDto)
+
+== Kiểm tra và xử lý ==
+Service -> Repository: findById(id)
+Repository -> DB: Truy vấn User
+DB --> Repository: User (hoặc null)
+Repository --> Service: Optional<User>
+
+alt Không tồn tại
+    Service --> Controller: throw "Không tồn tại"
+    Controller --> FrontendService: 404 Not Found
+    FrontendService --> Component: Hiển thị lỗi
+else Tồn tại
+    alt Email/Username đã thay đổi
+        Service -> Repository: Kiểm tra trùng
+        Repository -> DB: Truy vấn
+        DB --> Repository: Kết quả
+        Repository --> Service: boolean
+        alt Trùng lặp
+            Service --> Controller: throw lỗi
+            Controller --> FrontendService: 400 Bad Request
+            FrontendService --> Component: Hiển thị lỗi
+        end
+    end
+
+    == Cập nhật ==
+    Service -> Repository: save(user)
+    Repository -> DB: UPDATE
+    DB --> Repository: Updated
+    Repository --> Service: Updated user
+    Service --> Controller: UserDto
+    Controller --> FrontendService: Success
+    FrontendService --> Component: Hiển thị thành công, cập nhật danh sách
+end
+@enduml

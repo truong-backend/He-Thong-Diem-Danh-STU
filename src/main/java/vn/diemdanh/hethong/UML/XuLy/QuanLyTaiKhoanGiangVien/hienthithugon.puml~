@@ -1,0 +1,31 @@
+@startuml
+!theme plain
+title Hiển thị danh sách tài khoản giảng viên
+
+actor "Admin" as User
+
+participant "Danh sách tài khoản GV\n(Component)" as Component
+participant "userService.js\n(Frontend Service)" as FrontendService
+participant "UserController.java\n(Controller)" as Controller
+participant "UserService.java\n(Service)" as Service
+participant "UserRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+User -> Component: Truy cập trang tài khoản giảng viên
+Component -> FrontendService: getUsersByRole('TEACHER', page, size, sort)
+
+FrontendService -> Controller: GET /api/users/role/TEACHER
+Controller -> Service: getUsersByRole(role, pageable)
+Service -> Repository: findByRole('TEACHER', pageable)
+Repository -> DB: SELECT * FROM users WHERE role='TEACHER' LIMIT ...
+DB --> Repository: Danh sách User
+Repository --> Service: Page<User>
+Service -> Service: Chuyển sang UserDto
+Service --> Controller: Page<UserDto>
+Controller --> FrontendService: JSON Response
+FrontendService --> Component: Danh sách giảng viên + phân trang
+
+Component -> Component: setState() & render bảng dữ liệu
+Component -> User: Hiển thị danh sách tài khoản giảng viên
+
+@enduml

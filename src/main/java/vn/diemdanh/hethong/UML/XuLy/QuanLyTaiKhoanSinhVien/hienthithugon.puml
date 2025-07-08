@@ -1,0 +1,33 @@
+@startuml
+!theme plain
+title Hiển thị danh sách tài khoản sinh viên
+
+actor "Admin" as User
+
+participant "Danh sách SV\n(Component)" as Component
+participant "userService.js\n(Frontend Service)" as FrontendService
+participant "UserController.java\n(Controller)" as Controller
+participant "UserService.java\n(Service)" as Service
+participant "UserRepository.java\n(Repository)" as Repository
+database "CSDL" as DB
+
+== Bắt đầu ==
+User -> Component: Truy cập trang quản lý tài khoản SV
+Component -> FrontendService: getUsersByRole()
+
+== Gọi backend ==
+FrontendService -> Controller: GET /api/users/role/STUDENT
+Controller -> Service: getUsersByRole()
+Service -> Repository: findByRole()
+Repository -> DB: Truy vấn danh sách sinh viên
+DB --> Repository: List<User>
+Repository --> Service: Page<User>
+Service -> Service: Convert to Page<UserDto>
+Service --> Controller: Page<UserDto>
+Controller --> FrontendService: JSON Response
+FrontendService --> Component: Dữ liệu sinh viên + phân trang
+
+== Hiển thị ==
+Component -> User: Hiển thị bảng danh sách sinh viên
+
+@enduml
