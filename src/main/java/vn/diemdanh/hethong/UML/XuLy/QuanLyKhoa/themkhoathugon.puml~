@@ -1,0 +1,54 @@
+@startuml
+!theme plain
+title Thêm khoa mới
+
+actor "Admin" as admin
+
+participant "DanhSachKhoaComponents" as component
+participant "KhoaModal & Form" as modal
+participant "khoaService.js" as frontendService
+participant "khoaController.java" as controller
+participant "khoaService.java" as backendService
+participant "khoaRepository" as repository
+database "Database" as db
+
+admin -> component: Click "Thêm khoa"
+component -> modal: Hiển thị modal
+modal -> admin: Hiển thị form
+
+admin -> modal: Nhập thông tin và submit
+modal -> modal: validateFields()
+
+alt Validation thành công
+    modal -> component: handleModalOk(values)
+    component -> frontendService: createKhoa(values)
+    frontendService -> controller: POST /api/khoa
+    controller -> backendService: createKhoa(data)
+    backendService -> backendService: Kiểm tra mã khoa trùng
+
+    alt Mã môn học chưa tồn tại
+        backendService -> repository: save(khoaEntity)
+        repository -> db: Truy vấn
+        db --> repository: Thực thi thành công
+        repository --> backendService: Khoa entity
+        backendService -> backendService: Chuyển đổi thành DTO
+        backendService --> controller: MonHocDTO
+        controller --> frontendService: 201 Created + DTO
+        frontendService --> component: Thành công
+        component -> component: message.success()
+        component -> component: fetchKhoas()
+        component -> modal: Đóng modal
+        component -> admin: Thông báo thành công
+
+    else Mã môn học đã tồn tại
+        backendService --> controller: 400 Bad Request
+        controller --> frontendService: Lỗi
+        frontendService --> component: message.error()
+        component -> admin: Thông báo lỗi
+    end
+
+else Validation thất bại
+    modal -> admin: Hiển thị lỗi validation
+end
+
+@enduml

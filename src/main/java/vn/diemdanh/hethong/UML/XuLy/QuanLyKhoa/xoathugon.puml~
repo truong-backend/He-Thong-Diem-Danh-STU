@@ -1,0 +1,68 @@
+@startuml
+!theme plain
+title Xóa môn học
+
+actor "Admin" as admin
+participant "Table Actions" as table
+participant "Popconfirm" as confirm
+participant "DanhSachMonHocComponents" as component
+participant "monHocService.js" as service
+participant "MonHocController.java" as controller
+participant "MonHocService.java" as backendService
+participant "MonHocRepository" as repository
+database "Database" as db
+
+admin -> table: Click "Xóa" button
+table -> confirm: Hiển thị Popconfirm
+confirm --> admin: "Xác nhận xóa không?"
+
+alt Admin xác nhận xóa
+    admin -> confirm: Click "OK"
+    confirm -> component: handleDelete(maMh)
+    component -> service: deleteMonHoc(maMh)
+    service -> controller: DELETE /api/monhoc/{maMh}
+    controller -> backendService: deleteMonHoc(maMh)
+    backendService -> repository: findById(maMh)
+    repository -> db: Truy vấn
+
+    alt Môn học tồn tại
+        db --> repository: MonHoc entity
+        repository --> backendService: MonHoc entity
+        backendService -> repository: delete(monHocEntity)
+        repository -> db: DELETE
+        alt Xóa thành công
+            db --> repository: Success
+            repository --> backendService: Xóa thành công
+            backendService --> controller: 204 No Content
+            controller --> service: Success
+            service --> component: Success
+
+            component -> component: message.success
+            component -> component: fetchMonHocs()
+            component --> admin: Thông báo thành công
+        else Xóa thất bại (ràng buộc)
+            db --> repository: Lỗi ràng buộc
+            repository --> backendService: Constraint violation
+            backendService --> controller: 409 Conflict
+            controller --> service: Lỗi
+            service --> component: Lỗi
+
+            component -> component: message.error
+            component --> admin: Thông báo lỗi ràng buộc
+        end
+    else Môn học không tồn tại
+        db --> repository: null
+        repository --> backendService: null
+        backendService --> controller: 404 Not Found
+        controller --> service: Lỗi
+        service --> component: Lỗi
+
+        component -> component: message.error
+        component --> admin: Thông báo lỗi
+    end
+
+else Admin hủy xóa
+    admin -> confirm: Click "Cancel"
+    confirm --> admin: Đóng Popconfirm, không thực hiện gì
+end
+@enduml

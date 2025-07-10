@@ -36,8 +36,8 @@ public class DiemDanh {
     @Column(name = "diem_danh1")
     private Instant diemDanh1;
 
-    @Column(name = "diem_danh2")
-    private Instant diemDanh2;
+//    @Column(name = "diem_danh2")
+//    private Instant diemDanh2;
 
     @NotNull
     @Lob
