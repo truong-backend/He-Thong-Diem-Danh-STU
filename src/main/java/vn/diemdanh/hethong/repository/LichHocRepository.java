@@ -3,21 +3,24 @@ package vn.diemdanh.hethong.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import vn.diemdanh.hethong.entity.LichHoc;
 import vn.diemdanh.hethong.entity.LichHocId;
 import vn.diemdanh.hethong.entity.SinhVien;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface LichHocRepository extends JpaRepository<LichHoc, LichHocId> {
     Page<LichHoc> findByMaSv(SinhVien sinhVien, Pageable pageable);
     Page<LichHoc> findByMaSvAndMaGd_HocKy(SinhVien sinhVien, Integer hocKy, Pageable pageable);
     Page<LichHoc> findByMaSvAndMaGd_NgayBdBetweenOrMaGd_NgayKtBetween(
-            SinhVien sinhVien, 
-            LocalDate startDate1, 
+            SinhVien sinhVien,
+            LocalDate startDate1,
             LocalDate endDate1,
             LocalDate startDate2,
             LocalDate endDate2,
@@ -32,4 +35,72 @@ public interface LichHocRepository extends JpaRepository<LichHoc, LichHocId> {
         where sv.ma_sv = :maSv and t.ma_tkb = :maTkb
     """,nativeQuery = true)
     Integer findSinhVienByMaTkb(@Param("maSv")String maSv,@Param("maTkb")int maTkb);
-} 
+
+    @Query(value = """
+    SELECT gd.ma_gd AS id,
+           gv.ma_gv,
+           gv.ten_gv,
+           mh.ma_mh,
+           mh.ten_mh,
+           gd.nmh,
+           gd.phong_hoc,
+           gd.ngay_bd,
+           gd.ngay_kt,
+           gd.st_bd,
+           gd.st_kt,
+           gd.hoc_ky,
+           tkb.ngay_hoc,
+           DAYOFWEEK(tkb.ngay_hoc) AS thu_trong_tuan
+    FROM lich_gd gd
+    JOIN giao_vien gv ON gv.ma_gv = gd.ma_gv
+    JOIN mon_hoc mh ON mh.ma_mh = gd.ma_mh
+    LEFT JOIN tkb ON tkb.ma_gd = gd.ma_gd
+    """, nativeQuery = true)
+    List<Object[]> findAllLichHocRaw();
+
+
+    @Query(value = "SELECT ma_sv FROM lich_hoc WHERE ma_gd = :maGd", nativeQuery = true)
+    List<String> findSinhVienIdsByMaGd(@Param("maGd") int maGd);
+
+    @Modifying
+    @Transactional
+    @Query(value = "INSERT IGNORE INTO lich_hoc (ma_sv, ma_gd) VALUES (:maSv, :maGd)", nativeQuery = true)
+    void insertLichHoc(@Param("maSv") String maSv, @Param("maGd") int maGd);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM lich_hoc WHERE ma_sv = :maSv AND ma_gd = :maGd", nativeQuery = true)
+    void deleteSinhVienFromLichHoc(@Param("maSv") String maSv, @Param("maGd") int maGd);
+    @Query(value = """
+        SELECT sv.ma_sv, sv.ten_sv , sv.email
+        FROM sinh_vien sv
+        WHERE sv.ma_sv NOT IN (
+            SELECT lh.ma_sv 
+            FROM lich_hoc lh
+            JOIN lich_gd lg ON lh.ma_gd = lg.ma_gd
+            WHERE lg.ma_gd = :maGd
+        )
+        """, nativeQuery = true)
+    List<Object[]> findSinhVienChuaHocByMaGd(@Param("maGd") Long maGd);
+    @Query(value = """
+        SELECT sv.ma_sv, sv.ten_sv , sv.email
+        FROM sinh_vien sv
+        WHERE sv.ma_sv IN (
+            SELECT lh.ma_sv 
+            FROM lich_hoc lh
+            JOIN lich_gd lg ON lh.ma_gd = lg.ma_gd
+            WHERE lg.ma_gd = :maGd
+        )
+        """, nativeQuery = true)
+    List<Object[]> findSinhVienDaHocByMaGd(@Param("maGd") Long maGd);
+
+    @Modifying
+    @Transactional
+    @Query(value = "INSERT INTO lich_hoc (ma_sv, ma_gd) VALUES (:maSv, :maGd)", nativeQuery = true)
+    void insertSinhVienToLichHoc(@Param("maSv") Long maSv, @Param("maGd") Long maGd);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM lich_hoc WHERE ma_sv = :maSv AND ma_gd = :maGd", nativeQuery = true)
+    void deleteSinhVienFromLichHoc(@Param("maSv") String maSv, @Param("maGd") Long maGd);
+}

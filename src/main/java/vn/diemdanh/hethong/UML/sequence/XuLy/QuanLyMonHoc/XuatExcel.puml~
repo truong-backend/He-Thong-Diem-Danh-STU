@@ -1,0 +1,114 @@
+@startuml
+'!theme cerulean
+title Sơ đồ xuất Excel danh sách khoa
+
+actor "Admin" as admin
+participant "Header Component" as header
+participant "DanhSachKhoaComponents.jsx" as component
+participant "XLSX Library" as xlsx
+participant "file-saver Library" as fileSaver
+participant "Browser" as browser
+
+admin -> header: Click "Xuất Excel" button
+header -> component: Trigger exportToExcel()
+activate component
+
+component -> component: exportToExcel(filteredData)
+
+'note right of component
+'  Dữ liệu sử dụng:
+'  - filteredData (đã lọc theo tìm kiếm)
+'  - Không cần gọi API mới
+'  - Sử dụng dữ liệu đã có trong state
+'end note
+
+component -> component: Tạo dữ liệu Excel
+
+'note right of component
+'  Cấu trúc Excel:
+'  1. Tiêu đề: "DANH SÁCH MÔN HỌC"
+'  2. Thông tin xuất:
+'     - Ngày xuất: current date
+'     - Tổng số môn học: filteredData.length
+'     - Tổng số tiết: sum of soTiet
+'  3. Headers: STT, Mã môn học, Tên môn học, Số tiết
+'  4. Dữ liệu các môn học
+'end note
+
+component -> component: Tạo worksheet data array
+
+loop Cho mỗi môn học trong filteredData
+    component -> component: Thêm dòng 
+end
+
+component -> xlsx: XLSX.utils.aoa_to_sheet(data)
+activate xlsx
+
+xlsx -> xlsx: Tạo worksheet từ array
+xlsx --> component: worksheet object
+deactivate xlsx
+
+component -> component: Thiết lập độ rộng cột
+'note right of component
+'  Column widths:
+'  - STT: 10
+'  - Mã môn học: 15
+'  - Tên môn học: 30
+'  - Số tiết: 12
+'end note
+
+component -> xlsx: XLSX.utils.book_new()
+activate xlsx
+xlsx --> component: workbook object
+
+component -> xlsx: XLSX.utils.book_append_sheet(workbook, worksheet, "MonHoc")
+xlsx --> component: Updated workbook
+deactivate xlsx
+
+component -> component: Tạo tên file với timestamp
+'note right of component
+'  Tên file format:
+'  "DanhSach_MonHoc_YYYYMMDD_HHMMSS.xlsx"
+'
+'  Ví dụ:
+'  "DanhSach_MonHoc_20250703_143022.xlsx"
+'end note
+
+component -> xlsx: XLSX.writeFile(workbook, filename)
+activate xlsx
+
+alt Tạo file thành công
+    xlsx -> browser: Tạo file blob
+    xlsx -> fileSaver: saveAs(blob, filename)
+    activate fileSaver
+
+    fileSaver -> browser: Trigger download
+    browser --> admin: Download file Excel
+    deactivate fileSaver
+
+    xlsx --> component: Success
+    deactivate xlsx
+
+    component -> component: message.success("Xuất Excel thành công")
+    component --> admin: Thông báo thành công
+
+else Lỗi tạo file
+    xlsx --> component: Error
+    deactivate xlsx
+
+    component -> component: message.error("Lỗi khi xuất Excel")
+    component --> admin: Thông báo lỗi
+end
+
+deactivate component
+
+
+
+'note over component
+'  Thư viện sử dụng:
+'  - XLSX: Tạo và xử lý file Excel
+'  - file-saver: Tải file xuống browser
+'  - Xử lý hoàn toàn phía client
+'end note
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Admin đăng nhập hệ thống;
+:Chọn menu "Quản Lý Khoa";
+:Sidebar điều hướng đến trang danh sách khoa;
+:Component mount;
+
+partition "Các chức năng chính" {
+  :Chọn chức năng (hiển thị, tìm kiếm, thêm, cập nhật, xóa, xuất Excel);
+  if (Chức năng là "Thêm") then (yes)
+    :Nhập thông tin khoa mới;
+    :FE gửi API thêm đến BE;
+  else (no)
+    if (Chức năng là "Xóa") then (yes)
+      :Chọn bản ghi cần xóa;
+      :FE gửi API xóa đến BE;
+    else (no)
+      if (Chức năng là "Cập nhật") then (yes)
+        :Chọn bản ghi cần cập nhật;
+        :Nhập thông tin mới;
+        :FE gửi API cập nhật đến BE;
+      else (no)
+        if (Chức năng là "Xuất Excel") then (yes)
+          :FE gửi API xuất Excel đến BE;
+        else (no)
+          :FE gửi API hiển thị/tìm kiếm đến BE;
+        endif
+      endif
+    endif
+  endif
+}
+
+partition "Back End" {
+  :Nhận API request;
+  if (Yêu cầu hợp lệ?) then (yes)
+    :Xử lý nghiệp vụ;
+    :Trả kết quả thành công về FE;
+  else (no)
+    :Trả lỗi về FE;
+  endif
+}
+
+stop
+
+@enduml

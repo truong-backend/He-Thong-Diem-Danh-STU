@@ -1,0 +1,37 @@
+@startuml
+!theme plain
+title Sơ đồ tuần tự quy trình xem thời khóa biểu
+
+actor "Sinh viên" as sv
+participant "TkbSvPage.jsx" as page
+participant "tkbService.js" as tkbService
+participant "TkbController" as controller
+participant "TkbService (BE)" as service
+participant "TkbRepository" as repository
+database "Database" as db
+
+sv -> page: Truy cập trang Thời khóa biểu
+activate page
+page -> page: useEffect() khi mount
+page -> tkbService: getTkbByMaSv(maSv)
+activate tkbService
+tkbService -> controller: GET /api/tkb/sinhvien/{maSv}
+activate controller
+controller -> service: getTkbByMaSv(maSv)
+activate service
+service -> repository: findByMaSv(maSv)
+activate repository
+repository -> db: SELECT * FROM tkb WHERE maSv = ?
+db --> repository: List<Tkb>
+repository --> service: List<Tkb>
+service -> service: Chuyển sang List<TkbDto>
+service --> controller: List<TkbDto>
+deactivate repository
+deactivate service
+controller --> tkbService: JSON Response (List<TkbDto>)
+deactivate controller
+tkbService --> page: Danh sách TKB
+deactivate tkbService
+page -> page: setTkb(data)
+page -> sv: Hiển thị bảng thời khóa biểu
+@enduml 

@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+title Cập nhật sinh viên
+
+actor "Admin" as admin
+participant "DanhSachSinhVienComponents.jsx" as component
+participant "Ant Design Modal & Form" as modal
+participant "studentService.js" as studentService
+participant "SinhVienController" as controller
+participant "SinhVienService" as service
+participant "SinhVienRepository" as repository
+participant "UserRepository" as userRepository
+database "Database" as db
+
+admin -> component: Click "Sửa" trên dòng sinh viên
+component -> modal: Hiển thị form cập nhật
+modal -> admin: Chỉnh sửa thông tin và nhấn "Lưu"
+modal -> component: onFinish(values)
+component -> component: form.validateFields()
+component -> studentService: updateStudent(maSv, values)
+studentService -> controller: PUT /api/sinh-vien/{maSv}
+controller -> service: updateSinhVien(maSv, request)
+service -> repository: findById(maSv)
+repository -> db: SELECT * FROM sinh_vien WHERE maSv = ?
+repository --> service: Optional<SinhVien>
+alt Sinh viên không tồn tại
+    service --> controller: 404 Not Found
+    controller --> studentService: Error response
+    studentService --> component: message.error("Sinh viên không tồn tại")
+else Sinh viên tồn tại
+    service -> userRepository: findByEmail(email)
+    userRepository -> db: SELECT * FROM users WHERE email = ?
+    userRepository --> service: Optional<User>
+    alt Email đã tồn tại (khác sinh viên hiện tại)
+        service --> controller: 400 Bad Request
+        controller --> studentService: Error response
+        studentService --> component: message.error("Email đã tồn tại")
+    else Email hợp lệ
+        service -> repository: save(updatedSinhVien)
+        repository -> db: UPDATE sinh_vien ...
+        repository --> service: SinhVien entity
+        service --> controller: 200 OK
+        controller --> studentService: Success response
+        studentService --> component: message.success("Cập nhật thành công")
+        component -> component: fetchStudents() - Làm mới danh sách
+    end
+end
+@enduml

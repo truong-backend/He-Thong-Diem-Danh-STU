@@ -1,0 +1,98 @@
+package vn.diemdanh.hethong.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import vn.diemdanh.hethong.dto.tkb.NgayGiangDayDTO;
+import vn.diemdanh.hethong.dto.tkb.TkbDto;
+import vn.diemdanh.hethong.dto.tkb.TkbGiaoVienDto;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
+import vn.diemdanh.hethong.repository.TkbRepository;
+import vn.diemdanh.hethong.entity.LichGd;
+import vn.diemdanh.hethong.entity.Tkb;
+import vn.diemdanh.hethong.entity.NgayLe;
+import vn.diemdanh.hethong.entity.NgayLeId;
+import vn.diemdanh.hethong.repository.NgayLeRepository;
+import java.time.temporal.ChronoUnit;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+public class TkbService {
+    @Autowired
+    private TkbRepository tkbRepository;
+    @Autowired
+    private NgayLeRepository ngayLeRepository;
+    // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
+    public List<NgayGiangDayDTO> getClassDates(Integer maGd) {
+        List<Object[]> results = tkbRepository.findClassDates(maGd);
+
+        return results.stream()
+                .map(row -> NgayGiangDayDTO.builder()
+                        .maTkb((Integer) row[0])
+                        .ngayHoc(((java.sql.Date) row[1]).toLocalDate())
+                        .phongHoc((String) row[2])
+                        .caHoc((String) row[3])
+                        .maGv((String) row[4])
+                        .tenGv((String) row[5])
+                        .tenMh((String) row[6])
+                        .nhomMonHoc((Integer) row[7])
+                        .trangThai((String) row[8])
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // Tạo thời khóa biểu tự động khi tạo lịch giảng dạy, loại trừ ngày lễ và chỉ tạo cho các ngày trong tuần được chọn
+    public void taoTkbTuDong(LichGd lichGd, List<Integer> ngayTrongTuan) {
+        List<NgayLe> ngayLeList = ngayLeRepository.findAll();
+        LocalDate current = lichGd.getNgayBd();
+        while (!current.isAfter(lichGd.getNgayKt())) {
+            boolean isHoliday = false;
+            for (NgayLe ngayLe : ngayLeList) {
+                NgayLeId id = ngayLe.getId();
+                if (current.getDayOfMonth() == id.getNgay() && current.getMonthValue() == id.getThang()) {
+                    isHoliday = true;
+                    break;
+                }
+            }
+            // Kiểm tra ngày trong tuần (1=Monday, ..., 7=Sunday)
+            int dayOfWeek = current.getDayOfWeek().getValue();
+            if (!isHoliday && ngayTrongTuan.contains(dayOfWeek)) {
+                Tkb tkb = new Tkb();
+                tkb.setMaGd(lichGd);
+                tkb.setNgayHoc(current);
+                tkb.setPhongHoc(lichGd.getPhongHoc());
+                tkb.setStBd(lichGd.getStBd());
+                tkb.setStKt(lichGd.getStKt());
+                tkbRepository.save(tkb);
+            }
+            current = current.plusDays(1);
+        }
+    }
+
+    public List<TkbGiaoVienDto> getTkb(String maSv, Integer hocKy, LocalDate startOfWeek, LocalDate endOfWeek) {
+        List<Object[]> results = tkbRepository.findTkbByMaSvAndHocKyAndNgayHocBetween(maSv, hocKy, startOfWeek, endOfWeek);
+
+        List<TkbGiaoVienDto> dtos = new ArrayList<>();
+        for (Object[] row : results) {
+            TkbGiaoVienDto dto = new TkbGiaoVienDto();
+            dto.setMaMH((String) row[0]);
+            dto.setTenMon((String) row[1]);
+            dto.setNmh(row[2] == null ? null : ((Number) row[2]).intValue());
+            dto.setNgayHoc((LocalDate) row[3]);
+            dto.setTietBd(row[4] == null ? null : ((Number) row[4]).intValue());
+            dto.setTietKt(row[5] == null ? null : ((Number) row[5]).intValue());
+            dto.setPhong((String) row[6]);
+            dto.setCbgd((String) row[7]);
+            dto.setHocKy(row[8] == null ? null : ((Number) row[8]).intValue());
+            dto.setGhiChu((String) row[9]);
+
+            dtos.add(dto);
+        }
+
+        return dtos;
+    }
+}

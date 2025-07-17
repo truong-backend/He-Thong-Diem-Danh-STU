@@ -1,0 +1,57 @@
+@startuml
+!theme plain
+title Tìm kiếm và lọc lịch giảng dạy
+
+actor "Admin" as admin
+participant "DanhSachLichComponents.jsx" as component
+participant "Ant Design Input.Search" as searchInput
+participant "Ant Design Select" as selectMonHoc
+participant "Ant Design Select" as selectGiaoVien
+participant "LichGdService.js" as lichGdService
+participant "LichGdController" as controller
+participant "LichGdService (BE)" as service
+participant "LichGdRepository" as repository
+database "Database" as db
+
+== Tìm kiếm theo từ khóa ==
+admin -> searchInput: Nhập từ khóa (Mã lịch, Tên môn, Tên GV)
+searchInput -> component: onSearch(keyword)
+component -> component: setSearchText(keyword)
+component -> component: Gọi lại getFilteredData()
+
+== Lọc theo môn học ==
+admin -> selectMonHoc: Chọn môn học
+selectMonHoc -> component: onChange(filterMonHoc)
+component -> component: setFilterMonHoc(filterMonHoc)
+component -> component: Gọi lại getFilteredData()
+
+== Lọc theo giáo viên ==
+admin -> selectGiaoVien: Chọn giáo viên
+selectGiaoVien -> component: onChange(filterGiaoVien)
+component -> component: setFilterGiaoVien(filterGiaoVien)
+component -> component: Gọi lại getFilteredData()
+
+== Lấy dữ liệu lịch giảng dạy (nếu cần) ==
+alt Dữ liệu chưa có hoặc cần làm mới
+    component -> lichGdService: getAllLichGdNoPaging()
+    lichGdService -> controller: GET /api/lich-giang-day/all
+    controller -> service: findAll()
+    service -> repository: findAll()
+    repository -> db: SELECT * FROM lich_giang_day
+    db --> repository: List<LichGd>
+    repository --> service: List<LichGd>
+    service -> service: Chuyển sang List<LichGdDto>
+    service --> controller: List<LichGdDto>
+    controller --> lichGdService: JSON Response
+    lichGdService --> component: Danh sách lịch giảng dạy
+end
+
+== Áp dụng tìm kiếm và lọc (client-side) ==
+component -> component: Lọc danh sách theo:
+note right
+- Từ khóa (Mã lịch, Tên môn, Tên GV)
+- Môn học (tenMonHoc)
+- Giáo viên (tenGiaoVien)
+end note
+component -> admin: Hiển thị kết quả tìm kiếm/lọc trong bảng
+@enduml 

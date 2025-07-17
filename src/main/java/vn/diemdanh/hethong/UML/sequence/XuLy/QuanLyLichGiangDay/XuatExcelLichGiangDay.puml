@@ -1,0 +1,29 @@
+@startuml
+!theme plain
+title Xuất Excel danh sách lịch giảng dạy
+
+actor "Admin" as admin
+participant "DanhSachLichComponents.jsx" as component
+participant "LichGdService.js" as lichGdService
+participant "XLSX Library" as xlsx
+participant "file-saver" as fileSaver
+participant "Browser" as browser
+
+admin -> component: Click "Xuất Excel"
+component -> component: getFilteredData()
+component -> component: Chuẩn bị dữ liệu exportData
+component -> xlsx: XLSX.utils.book_new()
+xlsx --> component: workbook
+component -> xlsx: XLSX.utils.json_to_sheet(exportData)
+xlsx --> component: worksheet
+component -> xlsx: Thiết lập độ rộng cột
+component -> xlsx: XLSX.utils.book_append_sheet(wb, ws, "Danh sách lịch giảng dạy")
+component -> xlsx: XLSX.write(wb, type='array')
+xlsx --> component: ExcelBuffer
+component -> component: new Blob([ExcelBuffer])
+component -> fileSaver: saveAs(blob, filename)
+fileSaver -> browser: Trigger download
+browser --> admin: File được tải về
+component -> component: message.success("Xuất Excel thành công")
+component --> admin: Thông báo thành công
+@enduml 

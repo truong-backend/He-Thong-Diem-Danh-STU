@@ -1,0 +1,38 @@
+@startuml
+!theme plain
+title Xóa giảng viên
+
+actor "Admin" as admin
+participant "DanhSachGiangVienComponents.jsx" as component
+participant "Ant Design Popconfirm" as popconfirm
+participant "teacherService.js" as teacherService
+participant "GiaoVienController" as controller
+participant "GiaoVienService" as service
+participant "GiaoVienRepository" as repository
+database "Database" as db
+
+admin -> component: Click "Xóa" trên dòng giảng viên
+component -> popconfirm: Hiển thị xác nhận xóa
+popconfirm -> admin: "Bạn có chắc chắn muốn xóa giảng viên này?"
+admin -> popconfirm: Click "Có"
+popconfirm -> component: onConfirm(maGv)
+component -> teacherService: deleteGiaoVien(maGv)
+teacherService -> controller: DELETE /api/giao-vien/{maGv}
+controller -> service: deleteGiaoVien(maGv)
+service -> repository: findById(maGv)
+repository -> db: SELECT * FROM giao_vien WHERE maGv = ?
+repository --> service: Optional<GiaoVien>
+alt Giảng viên không tồn tại
+    service --> controller: 404 Not Found
+    controller --> teacherService: Error response
+    teacherService --> component: message.error("Giảng viên không tồn tại")
+else Giảng viên tồn tại
+    service -> repository: delete(giaoVien)
+    repository -> db: DELETE FROM giao_vien WHERE maGv = ?
+    repository --> service: void
+    service --> controller: 200 OK
+    controller --> teacherService: Success response
+    teacherService --> component: message.success("Xóa giảng viên thành công")
+    component -> component: fetchTeachers() - Làm mới danh sách
+end
+@enduml 

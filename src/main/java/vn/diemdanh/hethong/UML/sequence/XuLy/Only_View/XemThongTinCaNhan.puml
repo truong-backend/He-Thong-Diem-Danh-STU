@@ -1,0 +1,37 @@
+@startuml
+!theme plain
+title Sơ đồ tuần tự quy trình xem thông tin cá nhân
+
+actor "Sinh viên" as sv
+participant "ProfileSinhVienComponents.jsx" as component
+participant "SinhVienService.js" as sinhVienService
+participant "SinhVienController" as controller
+participant "SinhVienService (BE)" as service
+participant "SinhVienRepository" as repository
+database "Database" as db
+
+sv -> component: Truy cập trang Thông tin cá nhân
+activate component
+component -> component: useEffect() khi mount
+component -> sinhVienService: getSinhVienByMaSv(maSv)
+activate sinhVienService
+sinhVienService -> controller: GET /api/sinh-vien/{maSv}
+activate controller
+controller -> service: getSinhVienByMaSv(maSv)
+activate service
+service -> repository: findById(maSv)
+activate repository
+repository -> db: SELECT * FROM sinh_vien WHERE maSv = ?
+db --> repository: SinhVien
+repository --> service: SinhVien
+service -> service: Chuyển sang SinhVienDto
+service --> controller: SinhVienDto
+deactivate repository
+deactivate service
+controller --> sinhVienService: JSON Response (SinhVienDto)
+deactivate controller
+sinhVienService --> component: Thông tin cá nhân
+deactivate sinhVienService
+component -> component: setProfile(data)
+component -> sv: Hiển thị thông tin cá nhân
+@enduml 

@@ -1,0 +1,5 @@
+package vn.diemdanh.hethong.dto.sinhvien;
+
+public class AddSinhVienRequest {
+    
+}

@@ -1,0 +1,37 @@
+@startuml
+!theme plain
+title Hiển thị danh sách giảng viên
+
+actor "Admin" as admin
+participant "DanhSachGiangVienComponents.jsx" as component
+participant "teacherService.js" as teacherService
+participant "GiaoVienController" as controller
+participant "GiaoVienService" as service
+participant "GiaoVienRepository" as repository
+database "Database" as db
+
+admin -> component: Truy cập trang quản lý giảng viên
+activate component
+component -> component: useEffect() khi mount
+component -> teacherService: getListGiaoVien()
+activate teacherService
+teacherService -> controller: GET /api/giao-vien/all
+activate controller
+controller -> service: findAll()
+activate service
+service -> repository: findAll()
+activate repository
+repository -> db: SELECT * FROM giao_vien
+repository <-- db: List<GiaoVien>
+repository --> service: List<GiaoVien>
+service -> service: Chuyển đổi sang List<GiaoVienDto>
+service --> controller: List<GiaoVienDto>
+deactivate repository
+deactivate service
+controller --> teacherService: JSON Response (List<GiaoVienDto>)
+deactivate controller
+teacherService --> component: Danh sách giảng viên
+deactivate teacherService
+component -> component: setTeachers(data)
+component -> admin: Hiển thị bảng danh sách giảng viên
+@enduml 

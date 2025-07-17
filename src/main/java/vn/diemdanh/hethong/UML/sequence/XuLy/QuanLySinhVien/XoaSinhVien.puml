@@ -1,0 +1,38 @@
+@startuml
+!theme plain
+title Xóa sinh viên
+
+actor "Admin" as admin
+participant "DanhSachSinhVienComponents.jsx" as component
+participant "Ant Design Popconfirm" as popconfirm
+participant "studentService.js" as studentService
+participant "SinhVienController" as controller
+participant "SinhVienService" as service
+participant "SinhVienRepository" as repository
+database "Database" as db
+
+admin -> component: Click "Xóa" trên dòng sinh viên
+component -> popconfirm: Hiển thị xác nhận xóa
+popconfirm -> admin: "Bạn có chắc chắn muốn xóa sinh viên này?"
+admin -> popconfirm: Click "Có"
+popconfirm -> component: onConfirm(maSv)
+component -> studentService: deleteStudent(maSv)
+studentService -> controller: DELETE /api/sinh-vien/{maSv}
+controller -> service: deleteSinhVien(maSv)
+service -> repository: findById(maSv)
+repository -> db: SELECT * FROM sinh_vien WHERE maSv = ?
+repository --> service: Optional<SinhVien>
+alt Sinh viên không tồn tại
+    service --> controller: 404 Not Found
+    controller --> studentService: Error response
+    studentService --> component: message.error("Sinh viên không tồn tại")
+else Sinh viên tồn tại
+    service -> repository: delete(sinhVien)
+    repository -> db: DELETE FROM sinh_vien WHERE maSv = ?
+    repository --> service: void
+    service --> controller: 200 OK
+    controller --> studentService: Success response
+    studentService --> component: message.success("Xóa sinh viên thành công")
+    component -> component: fetchStudents() - Làm mới danh sách
+end
+@enduml

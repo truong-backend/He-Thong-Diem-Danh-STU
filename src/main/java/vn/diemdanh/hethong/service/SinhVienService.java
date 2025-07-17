@@ -152,12 +152,11 @@ public class SinhVienService {
                         .tenLop((String) row[3])
                         .tenKhoa((String) row[4])
                         .diemDanh1(row[5] != null ? ((Timestamp) row[5]).toLocalDateTime() : null)
-                        .diemDanh2(row[6] != null ? ((Timestamp) row[6]).toLocalDateTime() : null)
-                        .ghiChu((String) row[7])
-                        .trangThaiDiemDanh((String) row[8])
-                        .ngayHoc(((java.sql.Date) row[9]).toLocalDate())
-                        .phongHoc((String) row[10])
-                        .caHoc((String) row[11])
+                        .ghiChu((String) row[6])
+                        .trangThaiDiemDanh((String) row[7])
+                        .ngayHoc(((java.sql.Date) row[8]).toLocalDate())
+                        .phongHoc((String) row[9])
+                        .caHoc((String) row[10])
                         .build())
                 .collect(Collectors.toList());
     }

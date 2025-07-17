@@ -1,0 +1,22 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Người dùng đăng nhập hệ thống;
+:Chọn chức năng "Xem thông tin cá nhân";
+:FE gửi API lấy thông tin cá nhân đến BE;
+
+partition "Back End" {
+  :Nhận API request;
+  if (Yêu cầu hợp lệ?) then (yes)
+    :Truy xuất dữ liệu thông tin cá nhân;
+    :Trả dữ liệu về FE;
+  else (no)
+    :Trả lỗi về FE;
+  endif
+}
+
+:FE hiển thị thông tin cá nhân cho người dùng;
+stop
+
+@enduml

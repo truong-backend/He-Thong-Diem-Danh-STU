@@ -1,0 +1,60 @@
+@startuml
+!theme plain
+title Thêm sinh viên mới
+
+actor "Admin" as admin
+participant "DanhSachSinhVienComponents.jsx" as component
+participant "Ant Design Modal & Form" as modal
+participant "studentService.js" as studentService
+participant "SinhVienController" as controller
+participant "SinhVienService" as service
+participant "SinhVienRepository" as repository
+participant "UserRepository" as userRepository
+database "Database" as db
+
+admin -> component: Click "Thêm sinh viên"
+component -> modal: Hiển thị form nhập thông tin
+modal -> admin: Điền thông tin và nhấn "Lưu"
+modal -> component: onFinish(values)
+component -> component: form.validateFields()
+component -> studentService: createStudent(values)
+studentService -> controller: POST /api/sinh-vien
+controller -> service: createSinhVien(request)
+service -> repository: findById(maSv)
+repository -> db: SELECT * FROM sinh_vien WHERE maSv = ?
+repository --> service: Optional<SinhVien>
+alt Mã sinh viên đã tồn tại
+    service --> controller: 400 Bad Request
+    controller --> studentService: Error response
+    studentService --> component: message.error("Mã sinh viên đã tồn tại")
+else Mã sinh viên chưa tồn tại
+    service -> userRepository: findByEmail(email)
+    userRepository -> db: SELECT * FROM users WHERE email = ?
+    userRepository --> service: Optional<User>
+    alt Email đã tồn tại
+        service --> controller: 400 Bad Request
+        controller --> studentService: Error response
+        studentService --> component: message.error("Email đã tồn tại")
+    else Email chưa tồn tại
+        service -> repository: findById(maLop)
+        repository -> db: SELECT * FROM lop WHERE maLop = ?
+        repository --> service: Optional<Lop>
+        alt Lớp không tồn tại
+            service --> controller: 400 Bad Request
+            controller --> studentService: Error response
+            studentService --> component: message.error("Lớp không tồn tại")
+        else Lớp tồn tại
+            service -> repository: save(sinhVien)
+            repository -> db: INSERT INTO sinh_vien ...
+            repository --> service: SinhVien entity
+            service -> userRepository: save(user)
+            userRepository -> db: INSERT INTO users ...
+            userRepository --> service: User entity
+            service --> controller: 200 OK
+            controller --> studentService: Success response
+            studentService --> component: message.success("Thêm sinh viên thành công")
+            component -> component: fetchStudents() - Làm mới danh sách
+        end
+    end
+end
+@enduml 

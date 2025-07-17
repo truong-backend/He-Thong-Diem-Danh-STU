@@ -14,7 +14,8 @@ import java.time.LocalDate;
 @Table(name = "tkb")
 public class Tkb {
     @Id
-    @Column(name = "ma_tkb", columnDefinition = "int UNSIGNED not null")
+    @Column(name = "ma_tkb", columnDefinition = "int UNSIGNED not null" )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull

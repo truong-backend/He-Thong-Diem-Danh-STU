@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+title Cập nhật giảng viên
+
+actor "Admin" as admin
+participant "DanhSachGiangVienComponents.jsx" as component
+participant "Ant Design Modal & Form" as modal
+participant "teacherService.js" as teacherService
+participant "GiaoVienController" as controller
+participant "GiaoVienService" as service
+participant "GiaoVienRepository" as repository
+participant "UserRepository" as userRepository
+database "Database" as db
+
+admin -> component: Click "Sửa" trên dòng giảng viên
+component -> modal: Hiển thị form cập nhật
+modal -> admin: Chỉnh sửa thông tin và nhấn "Lưu"
+modal -> component: onFinish(values)
+component -> component: form.validateFields()
+component -> teacherService: updateGiaoVien(maGv, values)
+teacherService -> controller: PUT /api/giao-vien/{maGv}
+controller -> service: updateGiaoVien(maGv, request)
+service -> repository: findById(maGv)
+repository -> db: SELECT * FROM giao_vien WHERE maGv = ?
+repository --> service: Optional<GiaoVien>
+alt Giảng viên không tồn tại
+    service --> controller: 404 Not Found
+    controller --> teacherService: Error response
+    teacherService --> component: message.error("Giảng viên không tồn tại")
+else Giảng viên tồn tại
+    service -> userRepository: findByEmail(email)
+    userRepository -> db: SELECT * FROM users WHERE email = ?
+    userRepository --> service: Optional<User>
+    alt Email đã tồn tại (khác giảng viên hiện tại)
+        service --> controller: 400 Bad Request
+        controller --> teacherService: Error response
+        teacherService --> component: message.error("Email đã tồn tại")
+    else Email hợp lệ
+        service -> repository: save(updatedGiaoVien)
+        repository -> db: UPDATE giao_vien ...
+        repository --> service: GiaoVien entity
+        service --> controller: 200 OK
+        controller --> teacherService: Success response
+        teacherService --> component: message.success("Cập nhật thành công")
+        component -> component: fetchTeachers() - Làm mới danh sách
+    end
+end
+@enduml 

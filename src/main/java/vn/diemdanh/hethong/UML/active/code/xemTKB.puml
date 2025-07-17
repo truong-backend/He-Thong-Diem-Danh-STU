@@ -1,0 +1,22 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Người dùng đăng nhập hệ thống;
+:Chọn chức năng "Xem thời khóa biểu";
+:FE gửi API lấy thời khóa biểu đến BE;
+
+partition "Back End" {
+  :Nhận API request;
+  if (Yêu cầu hợp lệ?) then (yes)
+    :Truy xuất dữ liệu thời khóa biểu;
+    :Trả dữ liệu về FE;
+  else (no)
+    :Trả lỗi về FE;
+  endif
+}
+
+:FE hiển thị thời khóa biểu cho người dùng;
+stop
+
+@enduml

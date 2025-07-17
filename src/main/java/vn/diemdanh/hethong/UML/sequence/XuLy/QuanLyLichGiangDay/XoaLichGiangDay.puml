@@ -1,0 +1,38 @@
+@startuml
+!theme plain
+title Xóa lịch giảng dạy
+
+actor "Admin" as admin
+participant "DanhSachLichComponents.jsx" as component
+participant "Ant Design Popconfirm" as popconfirm
+participant "LichGdService.js" as lichGdService
+participant "LichGdController" as controller
+participant "LichGdService (BE)" as service
+participant "LichGdRepository" as repository
+database "Database" as db
+
+admin -> component: Click "Xóa" trên dòng lịch giảng dạy
+component -> popconfirm: Hiển thị xác nhận xóa
+popconfirm -> admin: "Bạn có chắc chắn muốn xóa lịch này?"
+admin -> popconfirm: Click "Có"
+popconfirm -> component: onConfirm(maLich)
+component -> lichGdService: deleteLichGd(maLich)
+lichGdService -> controller: DELETE /api/lich-giang-day/{maLich}
+controller -> service: deleteLichGd(maLich)
+service -> repository: findById(maLich)
+repository -> db: SELECT * FROM lich_giang_day WHERE maLich = ?
+repository --> service: Optional<LichGd>
+alt Lịch giảng dạy không tồn tại
+    service --> controller: 404 Not Found
+    controller --> lichGdService: Error response
+    lichGdService --> component: message.error("Lịch giảng dạy không tồn tại")
+else Lịch giảng dạy tồn tại
+    service -> repository: delete(lichGd)
+    repository -> db: DELETE FROM lich_giang_day WHERE maLich = ?
+    repository --> service: void
+    service --> controller: 200 OK
+    controller --> lichGdService: Success response
+    lichGdService --> component: message.success("Xóa lịch giảng dạy thành công")
+    component -> component: fetchData() - Làm mới danh sách
+end
+@enduml 

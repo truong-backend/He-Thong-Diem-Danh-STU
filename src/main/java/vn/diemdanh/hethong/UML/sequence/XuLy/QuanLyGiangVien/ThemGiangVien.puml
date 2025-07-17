@@ -1,0 +1,51 @@
+@startuml
+!theme plain
+title Thêm giảng viên mới
+
+actor "Admin" as admin
+participant "DanhSachGiangVienComponents.jsx" as component
+participant "Ant Design Modal & Form" as modal
+participant "teacherService.js" as teacherService
+participant "GiaoVienController" as controller
+participant "GiaoVienService" as service
+participant "GiaoVienRepository" as repository
+participant "UserRepository" as userRepository
+database "Database" as db
+
+admin -> component: Click "Thêm giảng viên"
+component -> modal: Hiển thị form nhập thông tin
+modal -> admin: Điền thông tin và nhấn "Lưu"
+modal -> component: onFinish(values)
+component -> component: form.validateFields()
+component -> teacherService: createGiaoVien(values)
+teacherService -> controller: POST /api/giao-vien
+controller -> service: createGiaoVien(request)
+service -> repository: findById(maGv)
+repository -> db: SELECT * FROM giao_vien WHERE maGv = ?
+repository --> service: Optional<GiaoVien>
+alt Mã giảng viên đã tồn tại
+    service --> controller: 400 Bad Request
+    controller --> teacherService: Error response
+    teacherService --> component: message.error("Mã giảng viên đã tồn tại")
+else Mã giảng viên chưa tồn tại
+    service -> userRepository: findByEmail(email)
+    userRepository -> db: SELECT * FROM users WHERE email = ?
+    userRepository --> service: Optional<User>
+    alt Email đã tồn tại
+        service --> controller: 400 Bad Request
+        controller --> teacherService: Error response
+        teacherService --> component: message.error("Email đã tồn tại")
+    else Email chưa tồn tại
+        service -> repository: save(giaoVien)
+        repository -> db: INSERT INTO giao_vien ...
+        repository --> service: GiaoVien entity
+        service -> userRepository: save(user)
+        userRepository -> db: INSERT INTO users ...
+        userRepository --> service: User entity
+        service --> controller: 200 OK
+        controller --> teacherService: Success response
+        teacherService --> component: message.success("Thêm giảng viên thành công")
+        component -> component: fetchTeachers() - Làm mới danh sách
+    end
+end
+@enduml 

@@ -1,0 +1,31 @@
+@startuml
+!theme plain
+title Tìm kiếm sinh viên
+
+actor "Admin" as admin
+participant "DanhSachSinhVienComponents.jsx" as component
+participant "Ant Design Input.Search" as searchInput
+participant "studentService.js" as studentService
+participant "SinhVienController" as controller
+participant "SinhVienService" as service
+participant "SinhVienRepository" as repository
+database "Database" as db
+
+admin -> searchInput: Nhập từ khóa tìm kiếm
+searchInput -> component: onSearch(keyword)
+component -> component: setFilters({search: keyword})
+component -> component: Gọi lại getFilteredData()
+component -> studentService: getAllStudentsNoPagination()
+studentService -> controller: GET /api/sinh-vien/all
+controller -> service: findAll()
+service -> repository: findAll()
+repository -> db: SELECT * FROM sinh_vien
+repository <-- db: List<SinhVien>
+repository --> service: List<SinhVien>
+service -> service: Chuyển sang List<SinhVienDto>
+service --> controller: List<SinhVienDto>
+controller --> studentService: JSON Response
+studentService --> component: Danh sách sinh viên
+component -> component: Lọc dữ liệu theo keyword (client-side)
+component -> admin: Hiển thị kết quả tìm kiếm
+@enduml 

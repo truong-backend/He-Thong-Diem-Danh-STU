@@ -2,6 +2,7 @@ package vn.diemdanh.hethong.dto.lichgd;
 
 import lombok.Data;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class LichGdDto {
@@ -17,4 +18,5 @@ public class LichGdDto {
     private Integer stBd;
     private Integer stKt;
     private String hocKy;
+    private List<Integer> ngayTrongTuan;
 } 

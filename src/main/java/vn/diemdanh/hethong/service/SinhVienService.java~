@@ -1,0 +1,164 @@
+package vn.diemdanh.hethong.service;
+
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
+import vn.diemdanh.hethong.dto.sinhvien.QRSinhVienInfoDTO;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
+import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
+import vn.diemdanh.hethong.entity.Lop;
+import vn.diemdanh.hethong.entity.SinhVien;
+import vn.diemdanh.hethong.entity.User;
+import vn.diemdanh.hethong.repository.LopRepository;
+import vn.diemdanh.hethong.repository.SinhVienRepository;
+import vn.diemdanh.hethong.repository.UserRepository;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class SinhVienService {
+
+    @Autowired
+    private SinhVienRepository sinhVienRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private LopRepository lopRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    public QRSinhVienInfoDTO getQRSinhVien(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException("Không tìm thấy user hoặc email"));
+        SinhVien sinhVien = user.getMaSv();
+
+        QRSinhVienInfoDTO qRSinhVienInfoDTO = new QRSinhVienInfoDTO();
+        qRSinhVienInfoDTO.setMaSv(sinhVien.getMaSv());
+        qRSinhVienInfoDTO.setTenSv(sinhVien.getTenSv());
+        qRSinhVienInfoDTO.setTenLop(sinhVien.getMaLop().getTenLop());
+        return qRSinhVienInfoDTO;
+    }
+
+    public SinhVienDTOProfile getSinhVienProfile(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException("Không tìm thấy user hoặc email"));
+        SinhVien sinhVien = user.getMaSv();
+
+        SinhVienDTOProfile svDTO = new SinhVienDTOProfile();
+        svDTO.setMaSv(sinhVien.getMaSv());
+        svDTO.setTenSv(sinhVien.getTenSv());
+        svDTO.setTenLop(sinhVien.getMaLop().getTenLop());
+        svDTO.setNgaySinh(sinhVien.getNgaySinh());
+        svDTO.setPhai(sinhVien.getPhai());
+        svDTO.setDiaChi(sinhVien.getDiaChi());
+        svDTO.setEmail(sinhVien.getEmail());
+        svDTO.setSdt(sinhVien.getSdt());
+        svDTO.setAvatar(sinhVien.getAvatar());
+        return svDTO;
+    }
+
+    public SinhVienDTOProfile maptoDTO(SinhVien sv){
+        return new SinhVienDTOProfile(
+          sv.getMaSv(),
+          sv.getTenSv(),
+          sv.getMaLop().getTenLop(),
+          sv.getNgaySinh(),
+          sv.getPhai(),
+          sv.getDiaChi(),
+          sv.getEmail(),
+          sv.getSdt(), sv.getAvatar()
+        );
+    }
+    public SinhVienDTOProfile updateProfileSinhVien(String email,SinhVienDTOProfile svDTO){
+        User user = userRepository.findByEmail(email).orElseThrow(()
+                -> new EntityNotFoundException("Không tìm thấy user hoặc email"));
+
+        SinhVien updateSV = user.getMaSv();
+        updateSV.setSdt(svDTO.getSdt());
+        updateSV.setDiaChi(svDTO.getDiaChi());
+        SinhVien saved = sinhVienRepository.save(updateSV);
+        return maptoDTO(saved);
+
+    }
+
+    public void createSinhVien(CreateSinhVienRequest request) {
+        // Kiểm tra mã sinh viên
+        if (sinhVienRepository.findById(request.getMaSv()).isPresent()) {
+            throw new RuntimeException("Mã sinh viên đã tồn tại");
+        }
+
+        // Kiểm tra email
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Email đã tồn tại");
+        }
+
+        // Kiểm tra lớp
+        Lop lop = lopRepository.findById(request.getMaLop())
+                .orElseThrow(() -> new RuntimeException("Lớp không tồn tại"));
+
+        // Tạo sinh viên
+        SinhVien sinhVien = new SinhVien();
+        sinhVien.setMaSv(request.getMaSv());
+        sinhVien.setTenSv(request.getTenSv());
+        sinhVien.setNgaySinh(request.getNgaySinh());
+        sinhVien.setPhai(request.getPhai());
+        sinhVien.setDiaChi(request.getDiaChi());
+        sinhVien.setSdt(request.getSdt());
+        sinhVien.setEmail(request.getEmail());
+        sinhVien.setMaLop(lop);
+
+        // Lưu sinh viên
+        sinhVienRepository.save(sinhVien);
+
+        User user = new User();
+        user.setUsername(request.getMaSv());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getMaSv()));
+        user.setRole("student");
+        user.setMaSv(sinhVien);
+        user.setCreatedAt(Instant.now());
+        user.setUpdatedAt(Instant.now());
+
+        userRepository.save(user);
+    }
+
+    public List<SinhVien> findAll() {
+        return sinhVienRepository.findAll();
+    }
+
+
+    // 5. LẤY DANH SÁCH SINH VIÊN CHO ĐIỂM DANH
+    public List<SinhVienDiemDanhDTO> getStudentsForAttendance(Integer maTkb) {
+//        log.info("Fetching students for attendance, class: {}", maTkb);
+        List<Object[]> results = sinhVienRepository.findStudentsForAttendance(maTkb);
+
+        return results.stream()
+                .map(row -> SinhVienDiemDanhDTO.builder()
+                        .maSv((String) row[0])
+                        .tenSv((String) row[1])
+                        .email((String) row[2])
+                        .tenLop((String) row[3])
+                        .tenKhoa((String) row[4])
+                        .diemDanh1(row[5] != null ? ((Timestamp) row[5]).toLocalDateTime() : null)
+                        .diemDanh2(row[6] != null ? ((Timestamp) row[6]).toLocalDateTime() : null)
+                        .ghiChu((String) row[7])
+                        .trangThaiDiemDanh((String) row[8])
+                        .ngayHoc(((java.sql.Date) row[9]).toLocalDate())
+                        .phongHoc((String) row[10])
+                        .caHoc((String) row[11])
+                        .build())
+                .collect(Collectors.toList());
+    }
+}

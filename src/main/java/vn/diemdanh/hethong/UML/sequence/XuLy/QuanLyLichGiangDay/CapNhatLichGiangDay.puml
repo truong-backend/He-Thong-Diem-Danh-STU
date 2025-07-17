@@ -1,0 +1,38 @@
+@startuml
+!theme plain
+title Cập nhật lịch giảng dạy
+
+actor "Admin" as admin
+participant "DanhSachLichComponents.jsx" as component
+participant "Ant Design Modal & Form" as modal
+participant "LichGdService.js" as lichGdService
+participant "LichGdController" as controller
+participant "LichGdService (BE)" as service
+participant "LichGdRepository" as repository
+database "Database" as db
+
+admin -> component: Click "Sửa" trên dòng lịch giảng dạy
+component -> modal: Hiển thị form cập nhật
+modal -> admin: Chỉnh sửa thông tin và nhấn "Lưu"
+modal -> component: onFinish(values)
+component -> component: form.validateFields()
+component -> lichGdService: updateLichGd(maLich, values)
+lichGdService -> controller: PUT /api/lich-giang-day/{maLich}
+controller -> service: updateLichGd(maLich, request)
+service -> repository: findById(maLich)
+repository -> db: SELECT * FROM lich_giang_day WHERE maLich = ?
+repository --> service: Optional<LichGd>
+alt Lịch giảng dạy không tồn tại
+    service --> controller: 404 Not Found
+    controller --> lichGdService: Error response
+    lichGdService --> component: message.error("Lịch giảng dạy không tồn tại")
+else Lịch giảng dạy tồn tại
+    service -> repository: save(updatedLichGd)
+    repository -> db: UPDATE lich_giang_day ...
+    repository --> service: LichGd entity
+    service --> controller: 200 OK
+    controller --> lichGdService: Success response
+    lichGdService --> component: message.success("Cập nhật thành công")
+    component -> component: fetchData() - Làm mới danh sách
+end
+@enduml 

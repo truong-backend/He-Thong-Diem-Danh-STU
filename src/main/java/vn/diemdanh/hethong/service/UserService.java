@@ -12,7 +12,7 @@ import vn.diemdanh.hethong.entity.User;
 import vn.diemdanh.hethong.repository.UserRepository;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.dto.user.UserDto;
-import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;
+import vn.diemdanh.hethong.security.forgot_password.ResourceNotFoundException;
 
 import java.time.Instant;
 import java.util.List;

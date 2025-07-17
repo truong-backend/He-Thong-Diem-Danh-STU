@@ -1,0 +1,49 @@
+@startuml
+!theme plain
+title Tìm kiếm và lọc giảng viên
+
+actor "Admin" as admin
+participant "DanhSachGiangVienComponents.jsx" as component
+participant "Ant Design Input.Search" as searchInput
+participant "Ant Design Select" as selectKhoa
+participant "teacherService.js" as teacherService
+participant "GiaoVienController" as controller
+participant "GiaoVienService" as service
+participant "GiaoVienRepository" as repository
+database "Database" as db
+
+== Tìm kiếm theo từ khóa ==
+admin -> searchInput: Nhập từ khóa (Mã GV, Họ tên, Email)
+searchInput -> component: onSearch(keyword)
+component -> component: setSearchText(keyword)
+component -> component: Gọi lại getFilteredData()
+
+== Lọc theo khoa ==
+admin -> selectKhoa: Chọn khoa
+selectKhoa -> component: onChange(filterKhoa)
+component -> component: setFilterKhoa(filterKhoa)
+component -> component: Gọi lại getFilteredData()
+
+== Lấy dữ liệu giảng viên (nếu cần) ==
+alt Dữ liệu chưa có hoặc cần làm mới
+    component -> teacherService: getListGiaoVien()
+    teacherService -> controller: GET /api/giao-vien/all
+    controller -> service: findAll()
+    service -> repository: findAll()
+    repository -> db: SELECT * FROM giao_vien
+    db --> repository: List<GiaoVien>
+    repository --> service: List<GiaoVien>
+    service -> service: Chuyển sang List<GiaoVienDto>
+    service --> controller: List<GiaoVienDto>
+    controller --> teacherService: JSON Response
+    teacherService --> component: Danh sách giảng viên
+end
+
+== Áp dụng tìm kiếm và lọc (client-side) ==
+component -> component: Lọc danh sách theo:
+note right
+- Từ khóa (Mã GV, Họ tên, Email)
+- Khoa (tenKhoa)
+end note
+component -> admin: Hiển thị kết quả tìm kiếm/lọc trong bảng
+@enduml 

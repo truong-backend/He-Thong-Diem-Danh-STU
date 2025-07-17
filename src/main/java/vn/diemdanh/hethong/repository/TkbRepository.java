@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import vn.diemdanh.hethong.dto.tkb.TkbDto;
 import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.entity.Tkb;
@@ -44,5 +45,34 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
         ORDER BY t.ngay_hoc ASC
         """, nativeQuery = true)
     List<Object[]> findClassDates(@Param("maGd") Integer maGd);
+
+    @Query(value = """
+        SELECT
+            mh.ma_mh AS maMH,
+            mh.ten_mh AS tenMon,
+            lgd.nmh,
+            tkb.ngay_hoc,
+            tkb.st_bd AS tietBd,
+            tkb.st_kt AS tietKt,
+            tkb.phong_hoc AS phong,
+            gv.ten_gv AS cbgd,
+            lgd.hoc_ky,
+            tkb.ghi_chu
+        FROM lich_hoc lh
+        JOIN lich_gd lgd ON lh.ma_gd = lgd.ma_gd
+        JOIN tkb ON tkb.ma_gd = lgd.ma_gd
+        JOIN mon_hoc mh ON mh.ma_mh = lgd.ma_mh
+        JOIN giao_vien gv ON gv.ma_gv = lgd.ma_gv
+        WHERE lh.ma_sv = :maSv
+          AND lgd.hoc_ky = :hocKy
+          AND tkb.ngay_hoc BETWEEN :startOfWeek AND :endOfWeek
+        ORDER BY tkb.ngay_hoc, tkb.st_bd
+        """,
+            nativeQuery = true)
+    List<Object[]> findTkbByMaSvAndHocKyAndNgayHocBetween(
+            @Param("maSv") String maSv,
+            @Param("hocKy") Integer hocKy,
+            @Param("startOfWeek") LocalDate startOfWeek,
+            @Param("endOfWeek") LocalDate endOfWeek);
 
 }

@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.exception.forgot_password;
+package vn.diemdanh.hethong.security.forgot_password;
 
 public class OtpExpiredException extends RuntimeException {
     public OtpExpiredException(String message) {
