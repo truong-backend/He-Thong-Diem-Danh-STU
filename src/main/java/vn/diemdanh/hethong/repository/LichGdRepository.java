@@ -47,4 +47,13 @@ public interface LichGdRepository extends JpaRepository<LichGd, Long> {
         ORDER BY nam_hoc DESC, hoc_ky
         """, nativeQuery = true)
     List<Object[]> findAllHocKy();
+
+
+    @Query(value = "SELECT ma_gd FROM lich_gd WHERE hoc_ky = :hocKy AND ma_mh = :maMh AND ma_gv = :maGv AND nmh = :nhom", nativeQuery = true)
+    Integer findMaGd(
+            @Param("hocKy") int hocKy,
+            @Param("maMh") String maMh,
+            @Param("maGv") String maGv,
+            @Param("nhom") int nhom
+    );
 } 

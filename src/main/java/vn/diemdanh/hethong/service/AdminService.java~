@@ -80,7 +80,7 @@ public class AdminService implements UserDetailsService {
 
         return new CustomAdminDetails(admin);
     }
-
+    
 
     // Phương thức mới để lấy admin theo ID (cần cho JwtAuthenticationFilter)
     public Admin getAdminById(Integer adminId) {

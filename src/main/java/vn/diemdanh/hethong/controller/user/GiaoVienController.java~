@@ -1,24 +1,31 @@
 package vn.diemdanh.hethong.controller.user;
 
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.*;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
+
+import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.DiemDanhService;
 import vn.diemdanh.hethong.service.GiaoVienService;
 
 import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,59 +38,56 @@ public class GiaoVienController {
     @Autowired
     private GiaoVienRepository giaoVienRepository;
 
-    @Autowired
-    private GiaoVienService giaoVienService;
-
+    @Autowired GiaoVienService GiaoVienService;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private DiemDanhService diemDanhService;
+    DiemDanhService diemDanhService;
+    @Autowired
+    private GiaoVienService giaoVienService;
 
-    // Điểm danh quét mã QR sinh viên
     @PostMapping("/diemdanhnguoc")
     public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhQRSinhVienRequest request) {
         try {
             int result = diemDanhService.diemDanhMaQRSinhVien(request);
             if (result > 0) {
                 return ResponseEntity.ok("Điểm danh thành công");
+            } else {
+                return ResponseEntity.ok("Lỗi điểm danh");
             }
-            return ResponseEntity.ok("Lỗi điểm danh");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Điểm danh thất bại: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Điểm danh thất bại: " + e.getMessage());
         }
     }
 
-    // Lấy profile giáo viên hiện tại
     @GetMapping("/profile")
     public ResponseEntity<?> getProfileTeacher(@AuthenticationPrincipal UserDetails userDetails) {
         String email = userDetails.getUsername();
-        GiaoVienDTO_Profile profile = giaoVienService.getGiaoVienByEmail(email);
-        return ResponseEntity.ok(profile);
+        GiaoVienDTO_Profile giaoVien = GiaoVienService.getGiaoVienByEmail(email);
+        return ResponseEntity.ok(giaoVien);
     }
-
-    // Cập nhật profile giáo viên hiện tại
     @PutMapping("/update-profile")
-    public ResponseEntity<?> updateProfileTeacher(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody GiaoVienDTO_Profile profileRequest) {
+    public ResponseEntity<?> updateProfileTeacher(@AuthenticationPrincipal UserDetails userDetails,@RequestBody @Valid GiaoVienDTO_Profile giaoVienDTO_Profile) {
         String email = userDetails.getUsername();
-        GiaoVienDTO_Profile updatedProfile = giaoVienService.updateProfileGiaoVien(email, profileRequest);
-        return ResponseEntity.ok(updatedProfile);
+        return ResponseEntity.ok(GiaoVienService.updateProfileGiaoVien(email,giaoVienDTO_Profile));
     }
 
-    // Thêm giáo viên mới
+    // CREATE - Thêm giáo viên mới
     @PostMapping
     public ResponseEntity<?> createGiaoVien(@Valid @RequestBody CreateGiaoVienRequest request) {
         try {
-            if (giaoVienRepository.existsById(request.getMaGv())) {
+            // Kiểm tra mã giáo viên đã tồn tại chưa
+            if (giaoVienRepository.findById(request.getMaGv()).isPresent()) {
                 return ResponseEntity.badRequest().body("Mã giáo viên đã tồn tại");
             }
+
+            // Kiểm tra email đã tồn tại chưa
             if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                 return ResponseEntity.badRequest().body("Email đã tồn tại");
             }
 
+            // Tạo giáo viên mới
             GiaoVien giaoVien = new GiaoVien();
             giaoVien.setMaGv(request.getMaGv());
             giaoVien.setTenGv(request.getTenGv());
@@ -92,8 +96,11 @@ public class GiaoVienController {
             giaoVien.setDiaChi(request.getDiaChi());
             giaoVien.setSdt(request.getSdt());
             giaoVien.setEmail(request.getEmail());
+
+            // Lưu giáo viên
             giaoVien = giaoVienRepository.save(giaoVien);
 
+            // Nếu yêu cầu tạo tài khoản
             if (request.isCreateAccount()) {
                 User user = new User();
                 user.setUsername(request.getMaGv());
@@ -101,37 +108,52 @@ public class GiaoVienController {
                 user.setPassword(passwordEncoder.encode(request.getMaGv()));
                 user.setRole("GIAO_VIEN");
                 user.setMaGv(giaoVien);
-                Instant now = Instant.now();
-                user.setCreatedAt(now);
-                user.setUpdatedAt(now);
+                user.setCreatedAt(Instant.now());
+                user.setUpdatedAt(Instant.now());
+
                 userRepository.save(user);
             }
+
             return ResponseEntity.ok("Thêm giáo viên thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm giáo viên: " + e.getMessage());
         }
     }
 
-    // Lấy danh sách giáo viên có phân trang, sắp xếp và tìm kiếm
-    @GetMapping
+    /**
+     * Lấy danh sách giáo viên với phân trang và sắp xếp
+     * Các thuộc tính sắp xếp hợp lệ:
+     * - maGv: Mã giáo viên
+     * - tenGv: Tên giáo viên
+     * - ngaySinh: Ngày sinh
+     * - email: Email
+     */
+   @GetMapping
     public ResponseEntity<?> getAllGiaoVien(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "maGv,asc") String[] sort,
             @RequestParam(required = false) String search) {
-
         try {
+            // Validate sort field
             String sortField = sort[0];
             String sortDirection = sort.length > 1 ? sort[1] : "asc";
 
             if (!isValidSortField(sortField)) {
-                return ResponseEntity.badRequest().body(
-                        "Trường sắp xếp không hợp lệ. Các trường hợp lệ: maGv, tenGv, ngaySinh, email");
+                return ResponseEntity.badRequest()
+                    .body("Trường sắp xếp không hợp lệ. Các trường hợp lệ: maGv, tenGv, ngaySinh, email");
             }
 
-            Sort.Direction direction = sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+            // Create pageable with sort
+            Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sortDirection.equalsIgnoreCase("desc") ?
+                    Sort.by(sortField).descending() :
+                    Sort.by(sortField).ascending()
+            );
 
+            // Get teachers with search
             Page<GiaoVien> giaoViens;
             if (search != null && !search.trim().isEmpty()) {
                 giaoViens = giaoVienRepository.findByMaGvContainingIgnoreCase(search.trim(), pageable);
@@ -139,7 +161,20 @@ public class GiaoVienController {
                 giaoViens = giaoVienRepository.findAll(pageable);
             }
 
-            Page<GiaoVienDto> dtos = giaoViens.map(this::convertToDto);
+            // Map to DTOs
+            Page<GiaoVienDto> dtos = giaoViens.map(giaoVien -> {
+                GiaoVienDto dto = new GiaoVienDto();
+                dto.setMaGv(giaoVien.getMaGv());
+                dto.setTenGv(giaoVien.getTenGv());
+                dto.setNgaySinh(giaoVien.getNgaySinh());
+                dto.setPhai(giaoVien.getPhai());
+                dto.setDiaChi(giaoVien.getDiaChi());
+                dto.setSdt(giaoVien.getSdt());
+                dto.setEmail(giaoVien.getEmail());
+                dto.setAvatar(giaoVien.getAvatar());
+                dto.setHasAccount(userRepository.findByEmail(giaoVien.getEmail()).isPresent());
+                return dto;
+            });
 
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
@@ -147,14 +182,31 @@ public class GiaoVienController {
         }
     }
 
-    // Lấy thông tin giáo viên theo mã
+    /**
+     * Kiểm tra tính hợp lệ của trường sắp xếp cho giáo viên
+     */
+    private boolean isValidSortField(String field) {
+        return Arrays.asList("maGv", "tenGv", "ngaySinh", "email")
+                .contains(field);
+    }
+
+    // READ - Lấy thông tin một giáo viên
     @GetMapping("/{maGv}")
     public ResponseEntity<?> getGiaoVien(@PathVariable String maGv) {
         try {
             GiaoVien giaoVien = giaoVienRepository.findById(maGv)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
 
-            GiaoVienDto dto = convertToDto(giaoVien);
+            GiaoVienDto dto = new GiaoVienDto();
+            dto.setMaGv(giaoVien.getMaGv());
+            dto.setTenGv(giaoVien.getTenGv());
+            dto.setNgaySinh(giaoVien.getNgaySinh());
+            dto.setPhai(giaoVien.getPhai());
+            dto.setDiaChi(giaoVien.getDiaChi());
+            dto.setSdt(giaoVien.getSdt());
+            dto.setEmail(giaoVien.getEmail());
+            dto.setAvatar(giaoVien.getAvatar());
+
             Optional<User> userOpt = userRepository.findByEmail(giaoVien.getEmail());
             dto.setHasAccount(userOpt.isPresent());
 
@@ -164,16 +216,14 @@ public class GiaoVienController {
         }
     }
 
-    // Cập nhật giáo viên theo mã
+    // UPDATE - Cập nhật thông tin giáo viên
     @PutMapping("/{maGv}")
-    public ResponseEntity<?> updateGiaoVien(
-            @PathVariable String maGv,
-            @Valid @RequestBody UpdateGiaoVienRequest request) {
-
+    public ResponseEntity<?> updateGiaoVien(@PathVariable String maGv, @Valid @RequestBody UpdateGiaoVienRequest request) {
         try {
             GiaoVien giaoVien = giaoVienRepository.findById(maGv)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
 
+            // Cập nhật thông tin giáo viên
             giaoVien.setTenGv(request.getTenGv());
             giaoVien.setNgaySinh(request.getNgaySinh());
             giaoVien.setPhai(request.getPhai());
@@ -183,6 +233,7 @@ public class GiaoVienController {
 
             giaoVienRepository.save(giaoVien);
 
+            // Cập nhật email trong user nếu có tài khoản
             Optional<User> userOpt = userRepository.findByEmail(giaoVien.getEmail());
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
@@ -197,7 +248,7 @@ public class GiaoVienController {
         }
     }
 
-    // Xóa giáo viên theo mã
+    // DELETE - Xóa giáo viên
     @DeleteMapping("/{maGv}")
     public ResponseEntity<?> deleteGiaoVien(@PathVariable String maGv) {
         try {
@@ -205,8 +256,10 @@ public class GiaoVienController {
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
 
             // Xóa tài khoản user nếu có
-            userRepository.findByEmail(giaoVien.getEmail()).ifPresent(userRepository::delete);
+            Optional<User> userOpt = userRepository.findByEmail(giaoVien.getEmail());
+            userOpt.ifPresent(user -> userRepository.delete(user));
 
+            // Xóa giáo viên
             giaoVienRepository.delete(giaoVien);
 
             return ResponseEntity.ok("Xóa giáo viên thành công");
@@ -214,23 +267,33 @@ public class GiaoVienController {
             return ResponseEntity.badRequest().body("Lỗi khi xóa giáo viên: " + e.getMessage());
         }
     }
-
-    // Lấy danh sách giáo viên không phân trang
     @GetMapping("/all")
     public ResponseEntity<?> getAllGiaoVienWithoutPaging() {
         try {
             List<GiaoVien> giaoViens = giaoVienRepository.findAll(Sort.by("maGv").ascending());
+
             List<GiaoVienDto> dtos = giaoViens.stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
+                .map(giaoVien -> {
+                    GiaoVienDto dto = new GiaoVienDto();
+                    dto.setMaGv(giaoVien.getMaGv());
+                    dto.setTenGv(giaoVien.getTenGv());
+                    dto.setNgaySinh(giaoVien.getNgaySinh());
+                    dto.setPhai(giaoVien.getPhai());
+                    dto.setDiaChi(giaoVien.getDiaChi());
+                    dto.setSdt(giaoVien.getSdt());
+                    dto.setEmail(giaoVien.getEmail());
+                    dto.setAvatar(giaoVien.getAvatar());
+                    dto.setHasAccount(userRepository.findByEmail(giaoVien.getEmail()).isPresent());
+                    return dto;
+                })
+                .collect(Collectors.toList());
 
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách giáo viên: " + e.getMessage());
         }
     }
-
-    // Lấy danh sách giáo viên theo học kỳ, năm học và mã môn
+    //Lầy danh sách giáo viên để hiển thị danh sach diem danh cua sinh vien cho quan tri vien
     @GetMapping("/danh-sach-giao-vien")
     public ResponseEntity<List<GiaoVienInfo>> getGiaoVienByMonHoc(
             @RequestParam Integer hocKy,
@@ -243,24 +306,4 @@ public class GiaoVienController {
             return ResponseEntity.badRequest().build();
         }
     }
-
-    // Kiểm tra tính hợp lệ của trường sắp xếp
-    private boolean isValidSortField(String field) {
-        return Arrays.asList("maGv", "tenGv", "ngaySinh", "email").contains(field);
-    }
-
-    // Chuyển đổi entity GiaoVien sang DTO
-    private GiaoVienDto convertToDto(GiaoVien giaoVien) {
-        GiaoVienDto dto = new GiaoVienDto();
-        dto.setMaGv(giaoVien.getMaGv());
-        dto.setTenGv(giaoVien.getTenGv());
-        dto.setNgaySinh(giaoVien.getNgaySinh());
-        dto.setPhai(giaoVien.getPhai());
-        dto.setDiaChi(giaoVien.getDiaChi());
-        dto.setSdt(giaoVien.getSdt());
-        dto.setEmail(giaoVien.getEmail());
-        dto.setAvatar(giaoVien.getAvatar());
-        dto.setHasAccount(userRepository.findByEmail(giaoVien.getEmail()).isPresent());
-        return dto;
-    }
-}
+} 

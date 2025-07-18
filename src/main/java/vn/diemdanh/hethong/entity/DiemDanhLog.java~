@@ -1,0 +1,7 @@
+package vn.diemdanh.hethong.entity;
+
+import jakarta.persistence.Entity;
+
+@Entity
+public class DiemDanhLog {
+  }

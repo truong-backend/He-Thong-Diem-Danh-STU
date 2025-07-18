@@ -17,12 +17,16 @@ import java.util.stream.Collectors;
 public class UserController {
 
     @Autowired private UserService userService;
+
+
+
     // Lấy user theo id
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(convertToDto(user));
     }
+
     // Lấy user theo email
     @GetMapping("/email/{email}")
     public ResponseEntity<UserDto> getUserByEmail(@PathVariable String email) {
@@ -50,6 +54,41 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    // Lấy danh sách user theo role với phân trang, tìm kiếm, sắp xếp
+    @GetMapping("/role/{role}")
+    public ResponseEntity<Page<UserDto>> getUsersByRole(
+            @PathVariable String role,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "asc") String sortDir,
+            @RequestParam(required = false) String search) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending()
+        );
+
+        Page<User> userPage = (search != null && !search.isEmpty())
+                ? userService.searchUsersByRole(role, search, pageable)
+                : userService.getUsersByRole(role, pageable);
+
+        Page<UserDto> dtoPage = userPage.map(this::convertToDto);
+        return ResponseEntity.ok(dtoPage);
+    }
+
+    // Lấy tất cả user theo role (không phân trang)
+    @GetMapping("/role/all/{role}")
+    public ResponseEntity<List<UserDto>> getAllUsersByRole(@PathVariable String role) {
+        List<User> users = userService.getAllUsersByRole(role);
+        List<UserDto> dtoList = users.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtoList);
+    }
+
     // Chuyển đổi entity User sang UserDto
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();

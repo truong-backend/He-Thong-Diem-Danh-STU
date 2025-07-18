@@ -12,7 +12,7 @@ import vn.diemdanh.hethong.entity.User;
 import vn.diemdanh.hethong.repository.UserRepository;
 import vn.diemdanh.hethong.security.CustomUserDetails;
 import vn.diemdanh.hethong.dto.user.UserDto;
-import vn.diemdanh.hethong.security.forgot_password.ResourceNotFoundException;
+import vn.diemdanh.hethong.exception.forgot_password.ResourceNotFoundException;
 
 import java.time.Instant;
 import java.util.List;
@@ -62,19 +62,6 @@ public class UserService implements UserDetailsService {
     @Deprecated
     public List<User> getAllUsers() {
         return userRepository.findAll();
-    }
-
-    // New paginated method
-    public Page<User> getAllUsers(Pageable pageable) {
-        return userRepository.findAll(pageable);
-    }
-
-    // New method to search users with pagination
-    public Page<User> searchUsers(String keyword, Pageable pageable) {
-        if (keyword != null && !keyword.isEmpty()) {
-            return userRepository.searchByKeyword(keyword, pageable);
-        }
-        return userRepository.findAll(pageable);
     }
 
     public User createUser(UserDto userDto) {
@@ -132,19 +119,4 @@ public class UserService implements UserDetailsService {
         userRepository.delete(user);
     }
 
-    // Sửa phương thức getUsersByRole để hỗ trợ phân trang
-    public Page<User> getUsersByRole(String role, Pageable pageable) {
-        return userRepository.findByRole(role, pageable);
-    }
-
-    // Thêm phương thức searchUsersByRole tương tự như searchUsers
-    public Page<User> searchUsersByRole(String role, String keyword, Pageable pageable) {
-        if (keyword == null || keyword.isEmpty()) {
-            return getUsersByRole(role, pageable);
-        }
-        return userRepository.searchByRoleAndKeyword(role, keyword, pageable);
-    }
-    public List<User> getAllUsersByRole(String role) {
-        return userRepository.findByRole(role);
-    }
 }

@@ -37,8 +37,4 @@ public class LichGdService {
                 ))
                 .collect(Collectors.toList());
     }
-
-    public Integer getMaGd(int hocKy, String maMh, String maGv, int nhom) {
-        return lichGdRepository.findMaGd(hocKy, maMh, maGv, nhom);
-    }
 }

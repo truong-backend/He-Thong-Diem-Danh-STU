@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import vn.diemdanh.hethong.dto.lop.LopDto;
 import vn.diemdanh.hethong.service.LopService;
 
@@ -17,7 +18,9 @@ public class LopController {
     @Autowired
     private LopService lopService;
 
-    // CREATE - Thêm lớp mới
+    /**
+     * Tạo lớp mới.
+     */
     @PostMapping
     public ResponseEntity<?> createLop(@Valid @RequestBody LopDto request) {
         try {
@@ -28,7 +31,9 @@ public class LopController {
         }
     }
 
-    // READ - Lấy danh sách lớp có phân trang và sắp xếp
+    /**
+     * Lấy danh sách lớp có phân trang và sắp xếp.
+     */
     @GetMapping
     public ResponseEntity<?> getLopList(
             @RequestParam(defaultValue = "0") int page,
@@ -45,7 +50,9 @@ public class LopController {
         }
     }
 
-    // READ - Lấy toàn bộ lớp (không phân trang)
+    /**
+     * Lấy danh sách tất cả lớp (không phân trang).
+     */
     @GetMapping("/all")
     public ResponseEntity<?> getAllLops() {
         try {
@@ -56,7 +63,9 @@ public class LopController {
         }
     }
 
-    // READ - Lấy thông tin một lớp
+    /**
+     * Lấy thông tin chi tiết một lớp theo mã lớp.
+     */
     @GetMapping("/{maLop}")
     public ResponseEntity<?> getLop(@PathVariable String maLop) {
         try {
@@ -67,9 +76,14 @@ public class LopController {
         }
     }
 
-    // UPDATE - Cập nhật thông tin lớp
+    /**
+     * Cập nhật thông tin lớp.
+     */
     @PutMapping("/{maLop}")
-    public ResponseEntity<?> updateLop(@PathVariable String maLop, @Valid @RequestBody LopDto request) {
+    public ResponseEntity<?> updateLop(
+            @PathVariable String maLop,
+            @Valid @RequestBody LopDto request
+    ) {
         try {
             LopDto dto = lopService.updateLop(maLop, request);
             return ResponseEntity.ok(dto);
@@ -78,7 +92,9 @@ public class LopController {
         }
     }
 
-    // DELETE - Xóa lớp
+    /**
+     * Xóa lớp theo mã lớp.
+     */
     @DeleteMapping("/{maLop}")
     public ResponseEntity<?> deleteLop(@PathVariable String maLop) {
         try {

@@ -1,5 +1,6 @@
 package vn.diemdanh.hethong.controller.attendance;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -10,12 +11,8 @@ import vn.diemdanh.hethong.dto.monhoc.listMonHocSV.DiemDanhDto;
 import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.service.DiemDanhService;
 
-import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/diemdanh")
@@ -23,21 +20,15 @@ public class DiemDanhController {
 
     @Autowired
     private DiemDanhService diemDanhService;
-    // 6. ĐIỂM DANH THỦ CÔNG
+
+    // ========================== ĐIỂM DANH THỦ CÔNG ==========================
+
     @PostMapping("/diem-danh-thu-cong")
     public ResponseEntity<String> markAttendanceManual(@Valid @RequestBody DiemDanhRequest request) {
         diemDanhService.markAttendanceManual(request);
         return ResponseEntity.ok("Điểm danh thành công");
     }
-    @GetMapping("/diemdanh_sinhvien")
-    public ResponseEntity<List<DiemDanhDto>> getDiemDanhTheoSvVaMon(
-            @RequestParam String maSv,
-            @RequestParam String maMh) {
-        List<DiemDanhDto> result = diemDanhService.getDiemDanhBySinhVienVaMonHoc(maSv, maMh);
-        return ResponseEntity.ok(result);
-    }
 
-    // Xóa điểm danh thủ công
     @PutMapping("/huy")
     public ResponseEntity<?> huyDiemDanh(@RequestBody DiemDanhRequest request) {
         boolean result = diemDanhService.huyDiemDanh(
@@ -46,13 +37,31 @@ public class DiemDanhController {
                 request.getNgayHoc(),
                 request.getGhiChu()
         );
+
         if (result) {
             return ResponseEntity.ok("Hủy điểm danh thành công");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy bản ghi để xóa");
         }
     }
-    //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
+
+    // ========================== SINH VIÊN XEM ĐIỂM DANH ==========================
+
+    @GetMapping("/diemdanh_sinhvien")
+    public ResponseEntity<List<DiemDanhDto>> getDiemDanhTheoSvVaMon(
+            @RequestParam String maSv,
+            @RequestParam String maMh) {
+        List<DiemDanhDto> result = diemDanhService.getDiemDanhBySinhVienVaMonHoc(maSv, maMh);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/ketqua_diemdanh_sinhvien")
+    public ResponseEntity<?> getKetquaDiemdanhTheoSvVaMonHoc(@RequestParam String maMh) {
+        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhSinhVien(maMh));
+    }
+
+    // ========================== QUẢN TRỊ VIÊN - BÁO CÁO ==========================
+
     @GetMapping("/report-hoc-ky")
     public ResponseEntity<List<DiemDanhAdmin>> getAttendanceReport(
             @RequestParam Integer hocKy,
@@ -64,7 +73,7 @@ public class DiemDanhController {
             return ResponseEntity.badRequest().build();
         }
     }
-    //lay danh sách diem danh theo mon hoc va hoc ky cho quan tri vien
+
     @GetMapping("/report-mon-hoc")
     public ResponseEntity<List<DiemDanhAdmin>> getAttendanceReportByMonHoc(
             @RequestParam Integer hocKy,
@@ -77,7 +86,7 @@ public class DiemDanhController {
             return ResponseEntity.badRequest().build();
         }
     }
-    //    //lay danh sach diem danh theo giao vien cua mon hoc do trong hoc ky do cua nam do
+
     @GetMapping("/report/full")
     public ResponseEntity<List<DiemDanhAdmin>> getFullAttendanceReport(
             @RequestParam Integer hocKy,
@@ -90,10 +99,5 @@ public class DiemDanhController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-    //KẾT QUẢ ĐIỂM DANH THEO MÔN HỌC
-    @GetMapping("/ketqua_diemdanh_sinhvien")
-    public ResponseEntity<?> getKetquaDiemdanhTheoSvVaMonHoc(@RequestParam String maMh){
-        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhSinhVien(maMh));
     }
 }

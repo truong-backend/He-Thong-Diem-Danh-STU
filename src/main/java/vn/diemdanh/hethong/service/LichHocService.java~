@@ -3,21 +3,17 @@ package vn.diemdanh.hethong.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienChuaHocDTO;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDto;
-import vn.diemdanh.hethong.entity.LichGd;
-import vn.diemdanh.hethong.entity.SinhVien;
-import vn.diemdanh.hethong.exception.AppException;
-import vn.diemdanh.hethong.exception.ErrorCode;
 import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.LichHocRepository;
 import vn.diemdanh.hethong.repository.SinhVienRepository;
 
 import java.sql.Date;
 import java.time.LocalDate;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,12 +24,6 @@ public class LichHocService {
     @Autowired
     private LichHocRepository lichHocRepository;
 
-    @Autowired
-    private SinhVienRepository sinhVienRepository;
-
-    @Autowired
-    private LichGdRepository lichGdRepository;
-
     public List<SinhVienChuaHocDTO> getSinhVienChuaHoc(Long maGd) {
         List<Object[]> rawList = lichHocRepository.findSinhVienChuaHocByMaGd(maGd);
         return rawList.stream()
@@ -41,10 +31,10 @@ public class LichHocService {
                         (String) obj[0],
                         (String) obj[1],
                         (String) obj[2]
+
                 ))
                 .collect(Collectors.toList());
     }
-
     public List<SinhVienChuaHocDTO> getSinhVienDaHoc(Long maGd) {
         List<Object[]> rawList = lichHocRepository.findSinhVienDaHocByMaGd(maGd);
         return rawList.stream()
@@ -52,30 +42,13 @@ public class LichHocService {
                         (String) obj[0],
                         (String) obj[1],
                         (String) obj[2]
+
                 ))
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public void themSinhVienVaoLichHoc(String maSv, Long maGd) {
-        // Kiểm tra sinh viên tồn tại
-        SinhVien sinhVien = sinhVienRepository.findById(maSv)
-                .orElseThrow(() -> new AppException(ErrorCode.SINHVIEN_NOTEXIST));
-
-        // Kiểm tra lịch giảng dạy tồn tại
-        LichGd lichGd = lichGdRepository.findById(maGd)
-                .orElseThrow(() -> new AppException(ErrorCode.LICHGD_NOTEXIST));
-
-        try {
-            // Thêm sinh viên vào lịch học
-            lichHocRepository.insertSinhVienToLichHoc(maSv, maGd);
-        } catch (Exception e) {
-            // Xử lý lỗi vi phạm ràng buộc unique hoặc lỗi khác
-            if (e.getMessage().contains("Duplicate entry")) {
-                throw new AppException(ErrorCode.DUPLICATE_ENTRY);
-            }
-            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+    public void themSinhVienVaoLichHoc(Long maSv, Long maGd) {
+        lichHocRepository.insertSinhVienToLichHoc(maSv, maGd);
     }
 
     public void xoaSinhVienKhoiLichHoc(String maSv, Long maGd) {

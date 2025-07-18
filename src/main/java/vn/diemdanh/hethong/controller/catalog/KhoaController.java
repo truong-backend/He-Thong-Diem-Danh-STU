@@ -1,17 +1,14 @@
 package vn.diemdanh.hethong.controller.catalog;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.khoa.KhoaDto;
 import vn.diemdanh.hethong.entity.Khoa;
 import vn.diemdanh.hethong.repository.KhoaRepository;
 
-import jakarta.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,30 +20,29 @@ public class KhoaController {
     @Autowired
     private KhoaRepository khoaRepository;
 
-    // CREATE - Thêm khoa mới
+    // ============================== CREATE ==============================
+
     @PostMapping
     public ResponseEntity<?> createKhoa(@Valid @RequestBody KhoaDto request) {
         try {
-            // Kiểm tra mã khoa đã tồn tại chưa
-            if (khoaRepository.findById(request.getMaKhoa()).isPresent()) {
+            if (khoaRepository.existsById(request.getMaKhoa())) {
                 return ResponseEntity.badRequest().body("Mã khoa đã tồn tại");
             }
 
-            // Tạo khoa mới
             Khoa khoa = new Khoa();
             khoa.setMaKhoa(request.getMaKhoa());
             khoa.setTenKhoa(request.getTenKhoa());
 
-            // Lưu khoa
-            khoa = khoaRepository.save(khoa);
-
-            return ResponseEntity.ok(convertToDto(khoa));
+            Khoa saved = khoaRepository.save(khoa);
+            return ResponseEntity.ok(toDto(saved));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm khoa: " + e.getMessage());
         }
     }
 
-    // READ - Lấy danh sách khoa có phân trang và sắp xếp
+    // ============================== READ ==============================
+
+    // Lấy danh sách khoa có phân trang + sắp xếp
     @GetMapping
     public ResponseEntity<?> getKhoaList(
             @RequestParam(defaultValue = "0") int page,
@@ -55,53 +51,52 @@ public class KhoaController {
             @RequestParam(defaultValue = "asc") String sortDir
     ) {
         try {
-            // Kiểm tra tính hợp lệ của trường sắp xếp
             if (!isValidSortField(sortBy)) {
                 return ResponseEntity.badRequest().body("Trường sắp xếp không hợp lệ");
             }
 
-            // Tạo đối tượng Pageable
             Sort.Direction direction = Sort.Direction.fromString(sortDir);
             Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-            // Lấy danh sách khoa
-            Page<Khoa> khoas = khoaRepository.findAll(pageable);
-
-            // Chuyển đổi sang DTO
-            Page<KhoaDto> dtos = khoas.map(this::convertToDto);
+            Page<Khoa> result = khoaRepository.findAll(pageable);
+            Page<KhoaDto> dtos = result.map(this::toDto);
 
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách khoa: " + e.getMessage());
         }
     }
-    // ✅ API lấy danh sách không phân trang
+
+    // Lấy danh sách tất cả khoa (không phân trang)
     @GetMapping("/all")
     public ResponseEntity<?> getAllKhoa() {
         try {
             List<Khoa> khoas = khoaRepository.findAll();
             List<KhoaDto> dtos = khoas.stream()
-                    .map(this::convertToDto)
+                    .map(this::toDto)
                     .collect(Collectors.toList());
+
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách khoa: " + e.getMessage());
         }
     }
-    // READ - Lấy thông tin một khoa
+
+    // Lấy thông tin chi tiết một khoa
     @GetMapping("/{maKhoa}")
-    public ResponseEntity<?> getKhoa(@PathVariable String maKhoa) {
+    public ResponseEntity<?> getKhoaById(@PathVariable String maKhoa) {
         try {
             Khoa khoa = khoaRepository.findById(maKhoa)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa"));
 
-            return ResponseEntity.ok(convertToDto(khoa));
+            return ResponseEntity.ok(toDto(khoa));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin khoa: " + e.getMessage());
         }
     }
 
-    // UPDATE - Cập nhật thông tin khoa
+    // ============================== UPDATE ==============================
+
     @PutMapping("/{maKhoa}")
     public ResponseEntity<?> updateKhoa(
             @PathVariable String maKhoa,
@@ -111,19 +106,17 @@ public class KhoaController {
             Khoa khoa = khoaRepository.findById(maKhoa)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa"));
 
-            // Cập nhật thông tin
             khoa.setTenKhoa(request.getTenKhoa());
 
-            // Lưu thay đổi
-            khoa = khoaRepository.save(khoa);
-
-            return ResponseEntity.ok(convertToDto(khoa));
+            Khoa updated = khoaRepository.save(khoa);
+            return ResponseEntity.ok(toDto(updated));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi cập nhật khoa: " + e.getMessage());
         }
     }
 
-    // DELETE - Xóa khoa
+    // ============================== DELETE ==============================
+
     @DeleteMapping("/{maKhoa}")
     public ResponseEntity<?> deleteKhoa(@PathVariable String maKhoa) {
         try {
@@ -137,15 +130,15 @@ public class KhoaController {
         }
     }
 
-    // Helper method to convert Khoa to KhoaDto
-    private KhoaDto convertToDto(Khoa khoa) {
+    // ============================== PRIVATE METHODS ==============================
+
+    private KhoaDto toDto(Khoa khoa) {
         KhoaDto dto = new KhoaDto();
         dto.setMaKhoa(khoa.getMaKhoa());
         dto.setTenKhoa(khoa.getTenKhoa());
         return dto;
     }
 
-    // Helper method to validate sort fields
     private boolean isValidSortField(String field) {
         return Arrays.asList("maKhoa", "tenKhoa").contains(field);
     }

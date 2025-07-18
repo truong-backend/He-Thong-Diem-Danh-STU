@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddSinhVienRequest {
-    private Long maSv;
+    private String maSv;
     private Long maGd;
 }

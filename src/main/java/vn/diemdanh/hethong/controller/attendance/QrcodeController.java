@@ -13,32 +13,33 @@ import vn.diemdanh.hethong.service.QrcodeService;
 @RestController
 @RequestMapping("/api/qrcode")
 public class QrcodeController {
+
     @Autowired
     private QrcodeService qrcodeService;
 
-    // 8. TẠO QR CODE MỚI
+    // ========================== 8. TẠO QR CODE MỚI ==========================
+
     @PostMapping("/qr/TaoQRCode")
     public ResponseEntity<QRCodeDTO> generateQRCode(@Valid @RequestBody TaoQRCodeRequest request) {
         try {
             QRCodeDTO qrCode = qrcodeService.createQRCode(request);
             return ResponseEntity.ok(qrCode);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
-    // 9. ĐIỂM DANH BẰNG QR CODE
+    // ========================== 9. ĐIỂM DANH BẰNG QR CODE ==========================
+
     @PostMapping("/qr")
     public ResponseEntity<String> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
         try {
             qrcodeService.markAttendanceByQR(request);
-            return ResponseEntity.ok("Điểm danh thanh cong");
+            return ResponseEntity.ok("Điểm danh thành công");
         } catch (RuntimeException e) {
             String message = e.getMessage();
             HttpStatus status = HttpStatus.BAD_REQUEST;
 
-            // Xử lý các lỗi cụ thể
             if (message.contains("không tồn tại")) {
                 status = HttpStatus.NOT_FOUND;
             } else if (message.contains("đã hết hiệu lực")) {
@@ -47,8 +48,7 @@ public class QrcodeController {
                 status = HttpStatus.CONFLICT;
             }
 
-            return ResponseEntity.status(status)
-                    .body( message);
+            return ResponseEntity.status(status).body(message);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Không thể điểm danh: Lỗi hệ thống");

@@ -49,24 +49,7 @@ public interface SinhVienRepository extends JpaRepository<SinhVien, String> {
             ORDER BY sv.ten_sv
             """, nativeQuery = true)
     List<Object[]> findStudentsForAttendance(@Param("maTkb") Integer maTkb);
-    @Query(value = "SELECT ma_sv, ten_sv, email FROM sinh_vien", nativeQuery = true)
-    List<Object[]> findAllSinhVienRaw();
-
-    @Query(value = """
-        SELECT * FROM sinh_vien sv
-        WHERE NOT EXISTS (
-            SELECT 1
-            FROM lich_hoc lh
-            JOIN lich_gd lgd ON lh.ma_gd = lgd.ma_gd
-            WHERE lh.ma_sv = sv.ma_sv
-              AND lgd.ma_mh = :maMh
-              AND lgd.nmh = :nmh
-        )
-    """, nativeQuery = true)
-    List<SinhVienDto> findSinhVienChuaHocMonHocNative(
-            @Param("maMh") String maMh,
-            @Param("nmh") int nmh
-    );
+    
     // Lấy mã sinh viên thông qua email đăng nhập (do dùng email đăng nhập)
     @Query("SELECT sv.maSv FROM SinhVien sv WHERE sv.email = :email")
     String findMaSvByEmail(@Param("email") String email);

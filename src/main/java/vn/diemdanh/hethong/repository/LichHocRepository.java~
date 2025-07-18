@@ -35,7 +35,7 @@ public interface LichHocRepository extends JpaRepository<LichHoc, LichHocId> {
         where sv.ma_sv = :maSv and t.ma_tkb = :maTkb
     """,nativeQuery = true)
     Integer findSinhVienByMaTkb(@Param("maSv")String maSv,@Param("maTkb")int maTkb);
-
+    
 
     @Query(value = """
         SELECT sv.ma_sv, sv.ten_sv , sv.email

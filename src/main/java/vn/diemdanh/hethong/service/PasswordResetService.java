@@ -8,9 +8,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.entity.PasswordReset;
 import vn.diemdanh.hethong.entity.User;
-import vn.diemdanh.hethong.security.forgot_password.OtpExpiredException;
-import vn.diemdanh.hethong.security.forgot_password.OtpInvalidException;
-import vn.diemdanh.hethong.security.forgot_password.UserNotFoundException;
+import vn.diemdanh.hethong.exception.forgot_password.OtpExpiredException;
+import vn.diemdanh.hethong.exception.forgot_password.OtpInvalidException;
+import vn.diemdanh.hethong.exception.forgot_password.UserNotFoundException;
 import vn.diemdanh.hethong.repository.PasswordResetRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 

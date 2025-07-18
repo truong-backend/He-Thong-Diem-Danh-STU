@@ -132,7 +132,7 @@ public class DiemDanhService {
 
             DiemDanhLog diemDanhLog = new DiemDanhLog();
             diemDanhLog.setMaDd(diemDanhGet);
-            diemDanhLog.setLanDiemDanh(soLan);
+            diemDanhLog.setLanDiemDanh((long) soLan);
             diemDanhLog.setThoiGianDiemDanh(Instant.now());
             diemDanhLogRepo.save(diemDanhLog);
         }
@@ -146,7 +146,7 @@ public class DiemDanhService {
 
             DiemDanhLog diemDanhLog = new DiemDanhLog();
             diemDanhLog.setMaDd(diemDanhGet);
-            diemDanhLog.setLanDiemDanh(soLan);
+            diemDanhLog.setLanDiemDanh((long) soLan);
             diemDanhLog.setThoiGianDiemDanh(Instant.now());
             diemDanhLogRepo.save(diemDanhLog);
         }

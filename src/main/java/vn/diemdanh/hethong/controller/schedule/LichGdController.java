@@ -1,10 +1,8 @@
 package vn.diemdanh.hethong.controller.schedule;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
@@ -15,9 +13,6 @@ import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.LichGdRepository;
 import vn.diemdanh.hethong.repository.MonHocRepository;
-
-import jakarta.validation.Valid;
-import vn.diemdanh.hethong.service.DiemDanhService;
 import vn.diemdanh.hethong.service.LichGdService;
 import vn.diemdanh.hethong.service.TkbService;
 
@@ -29,63 +24,33 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/lichgd")
 public class LichGdController {
 
-    @Autowired
-    private LichGdRepository lichGdRepository;
+    @Autowired private LichGdRepository lichGdRepository;
+    @Autowired private LichGdService lichGdService;
+    @Autowired private GiaoVienRepository giaoVienRepository;
+    @Autowired private MonHocRepository monHocRepository;
+    @Autowired private TkbService tkbService;
 
-    @Autowired
-    private GiaoVienRepository giaoVienRepository;
-
-    @Autowired
-    private MonHocRepository monHocRepository;
-
-    @Autowired
-    private TkbService tkbService;
-
-
-    // CREATE - Thêm lịch giảng dạy mới
+    // -------------------- CREATE --------------------
     @PostMapping
     public ResponseEntity<?> createLichGd(@Valid @RequestBody LichGdDto request) {
         try {
-            // Kiểm tra giáo viên có tồn tại không
-            GiaoVien giaoVien = giaoVienRepository.findById(request.getMaGv())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
+            GiaoVien giaoVien = getGiaoVien(request.getMaGv());
+            MonHoc monHoc = getMonHoc(request.getMaMh());
 
-            // Kiểm tra môn học có tồn tại không
-            MonHoc monHoc = monHocRepository.findById(request.getMaMh())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
-
-            // Validate thời gian
             if (request.getNgayKt().isBefore(request.getNgayBd())) {
                 return ResponseEntity.badRequest().body("Ngày kết thúc phải sau ngày bắt đầu");
             }
 
-            // Validate tiết học
             if (request.getStKt() <= request.getStBd()) {
                 return ResponseEntity.badRequest().body("Tiết kết thúc phải sau tiết bắt đầu");
             }
 
-            // Tạo lịch giảng dạy mới
-            LichGd lichGd = new LichGd();
-            lichGd.setMaGv(giaoVien);
-            lichGd.setMaMh(monHoc);
-            lichGd.setNmh(request.getNmh());
-            lichGd.setPhongHoc(request.getPhongHoc());
-            lichGd.setNgayBd(request.getNgayBd());
-            lichGd.setNgayKt(request.getNgayKt());
-            lichGd.setStBd(request.getStBd());
-            lichGd.setStKt(request.getStKt());
-            lichGd.setHocKy(request.getHocKy());
-
-            // Lưu lịch giảng dạy
-            lichGd = lichGdRepository.save(lichGd);
-
-            // Danh sách ngày trong tuần được chọn (ví dụ: thứ 2-6)
-            // Nếu muốn lấy từ request, cần bổ sung trường vào LichGdDto
-            // 1=Monday, ..., 5=Friday
-            java.util.List<Integer> ngayTrongTuan = request.getNgayTrongTuan();
+            List<Integer> ngayTrongTuan = request.getNgayTrongTuan();
             if (ngayTrongTuan == null || ngayTrongTuan.isEmpty()) {
-                return ResponseEntity.badRequest().body("Phải chọn ít nhất một ngày trong tuần để tạo thời khóa biểu!");
+                return ResponseEntity.badRequest().body("Phải chọn ít nhất một ngày trong tuần để tạo TKB!");
             }
+
+            LichGd lichGd = saveNewLichGd(request, giaoVien, monHoc);
             tkbService.taoTkbTuDong(lichGd, ngayTrongTuan);
 
             return ResponseEntity.ok(convertToDto(lichGd));
@@ -94,7 +59,7 @@ public class LichGdController {
         }
     }
 
-    // READ - Lấy danh sách lịch giảng dạy có phân trang và sắp xếp
+    // -------------------- READ --------------------
     @GetMapping
     public ResponseEntity<?> getLichGdList(
             @RequestParam(defaultValue = "0") int page,
@@ -103,91 +68,66 @@ public class LichGdController {
             @RequestParam(defaultValue = "asc") String sortDir,
             @RequestParam(required = false) String maGv,
             @RequestParam(required = false) String maMh,
-            @RequestParam(required = false) Integer hocKy
-    ) {
+            @RequestParam(required = false) Integer hocKy) {
         try {
-            // Kiểm tra tính hợp lệ của trường sắp xếp
             if (!isValidSortField(sortBy)) {
                 return ResponseEntity.badRequest().body("Trường sắp xếp không hợp lệ");
             }
 
-            // Tạo đối tượng Pageable
-            Sort.Direction direction = Sort.Direction.fromString(sortDir);
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
-            // Lấy danh sách lịch giảng dạy theo các điều kiện lọc
-            Page<LichGd> lichGds;
-            if (maGv != null && !maGv.isEmpty()) {
-                GiaoVien giaoVien = giaoVienRepository.findById(maGv)
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
-                lichGds = lichGdRepository.findByMaGv(giaoVien, pageable);
-            } else if (maMh != null && !maMh.isEmpty()) {
-                MonHoc monHoc = monHocRepository.findById(maMh)
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
-                lichGds = lichGdRepository.findByMaMh(monHoc, pageable);
-            } else if (hocKy != null) {
-                lichGds = lichGdRepository.findByHocKy(hocKy, pageable);
-            } else {
-                lichGds = lichGdRepository.findAll(pageable);
-            }
-
-            // Chuyển đổi sang DTO
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+            Page<LichGd> lichGds = filterLichGd(maGv, maMh, hocKy, pageable);
             Page<LichGdDto> dtos = lichGds.map(this::convertToDto);
 
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách lịch giảng dạy: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách: " + e.getMessage());
         }
     }
 
-    // READ - Lấy thông tin một lịch giảng dạy
     @GetMapping("/{id}")
     public ResponseEntity<?> getLichGd(@PathVariable Long id) {
         try {
-            LichGd lichGd = lichGdRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
-
+            LichGd lichGd = findLichGdById(id);
             return ResponseEntity.ok(convertToDto(lichGd));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin lịch giảng dạy: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin: " + e.getMessage());
         }
     }
 
-    // UPDATE - Cập nhật thông tin lịch giảng dạy
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateLichGd(
-            @PathVariable Long id,
-            @Valid @RequestBody LichGdDto request
-    ) {
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllLichGd() {
         try {
-            LichGd lichGd = lichGdRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
+            List<LichGdDto> dtos = lichGdRepository.findAll().stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(dtos);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách: " + e.getMessage());
+        }
+    }
 
-            // Kiểm tra và cập nhật giáo viên nếu có thay đổi
+    // -------------------- UPDATE --------------------
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateLichGd(@PathVariable Long id, @Valid @RequestBody LichGdDto request) {
+        try {
+            LichGd lichGd = findLichGdById(id);
+
             if (!lichGd.getMaGv().getMaGv().equals(request.getMaGv())) {
-                GiaoVien giaoVien = giaoVienRepository.findById(request.getMaGv())
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
-                lichGd.setMaGv(giaoVien);
+                lichGd.setMaGv(getGiaoVien(request.getMaGv()));
             }
 
-            // Kiểm tra và cập nhật môn học nếu có thay đổi
             if (!lichGd.getMaMh().getMaMh().equals(request.getMaMh())) {
-                MonHoc monHoc = monHocRepository.findById(request.getMaMh())
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
-                lichGd.setMaMh(monHoc);
+                lichGd.setMaMh(getMonHoc(request.getMaMh()));
             }
 
-            // Validate thời gian
             if (request.getNgayKt().isBefore(request.getNgayBd())) {
                 return ResponseEntity.badRequest().body("Ngày kết thúc phải sau ngày bắt đầu");
             }
 
-            // Validate tiết học
             if (request.getStKt() <= request.getStBd()) {
                 return ResponseEntity.badRequest().body("Tiết kết thúc phải sau tiết bắt đầu");
             }
 
-            // Cập nhật thông tin
             lichGd.setNmh(request.getNmh());
             lichGd.setPhongHoc(request.getPhongHoc());
             lichGd.setNgayBd(request.getNgayBd());
@@ -196,42 +136,92 @@ public class LichGdController {
             lichGd.setStKt(request.getStKt());
             lichGd.setHocKy(request.getHocKy());
 
-            // Lưu thay đổi
             lichGd = lichGdRepository.save(lichGd);
-
             return ResponseEntity.ok(convertToDto(lichGd));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi cập nhật lịch giảng dạy: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi khi cập nhật: " + e.getMessage());
         }
     }
 
-    // DELETE - Xóa lịch giảng dạy
+    // -------------------- DELETE --------------------
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteLichGd(@PathVariable Long id) {
         try {
-            LichGd lichGd = lichGdRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
-
+            LichGd lichGd = findLichGdById(id);
             lichGdRepository.delete(lichGd);
-            return ResponseEntity.ok("Xóa lịch giảng dạy thành công");
+            return ResponseEntity.ok("Xóa thành công");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi xóa lịch giảng dạy: " + e.getMessage());
-        }
-    }
-    @GetMapping("/all")
-    public ResponseEntity<?> getAllLichGd() {
-        try {
-            List<LichGd> lichGds = lichGdRepository.findAll();
-            List<LichGdDto> dtos = lichGds.stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách lịch giảng dạy: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
         }
     }
 
-    // Helper method to convert LichGd to LichGdDto
+    // -------------------- HỌC KỲ --------------------
+    @GetMapping("/hoc-ky/{maGv}")
+    public ResponseEntity<List<HocKyDTO>> getAllHocKy(@PathVariable String maGv) {
+        return ResponseEntity.ok(lichGdService.getAllSemesters(maGv));
+    }
+
+    @GetMapping("/hoc-ky")
+    public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
+        try {
+            return ResponseEntity.ok(lichGdService.getAllHocKy());
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // -------------------- MÃ GIẢNG DẠY --------------------
+    @GetMapping("/ma-gd")
+    public Integer getMaGd(
+            @RequestParam int hocKy,
+            @RequestParam String maMh,
+            @RequestParam String maGv,
+            @RequestParam int nhom) {
+        return lichGdService.getMaGd(hocKy, maMh, maGv, nhom);
+    }
+
+    // -------------------- PRIVATE METHODS --------------------
+    private LichGd findLichGdById(Long id) {
+        return lichGdRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
+    }
+
+    private GiaoVien getGiaoVien(String maGv) {
+        return giaoVienRepository.findById(maGv)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
+    }
+
+    private MonHoc getMonHoc(String maMh) {
+        return monHocRepository.findById(maMh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+    }
+
+    private LichGd saveNewLichGd(LichGdDto request, GiaoVien gv, MonHoc mh) {
+        LichGd lichGd = new LichGd();
+        lichGd.setMaGv(gv);
+        lichGd.setMaMh(mh);
+        lichGd.setNmh(request.getNmh());
+        lichGd.setPhongHoc(request.getPhongHoc());
+        lichGd.setNgayBd(request.getNgayBd());
+        lichGd.setNgayKt(request.getNgayKt());
+        lichGd.setStBd(request.getStBd());
+        lichGd.setStKt(request.getStKt());
+        lichGd.setHocKy(request.getHocKy());
+        return lichGdRepository.save(lichGd);
+    }
+
+    private Page<LichGd> filterLichGd(String maGv, String maMh, Integer hocKy, Pageable pageable) {
+        if (maGv != null && !maGv.isEmpty()) {
+            return lichGdRepository.findByMaGv(getGiaoVien(maGv), pageable);
+        } else if (maMh != null && !maMh.isEmpty()) {
+            return lichGdRepository.findByMaMh(getMonHoc(maMh), pageable);
+        } else if (hocKy != null) {
+            return lichGdRepository.findByHocKy(hocKy, pageable);
+        } else {
+            return lichGdRepository.findAll(pageable);
+        }
+    }
+
     private LichGdDto convertToDto(LichGd lichGd) {
         LichGdDto dto = new LichGdDto();
         dto.setId(lichGd.getId());
@@ -249,28 +239,7 @@ public class LichGdController {
         return dto;
     }
 
-    // Helper method to validate sort fields
     private boolean isValidSortField(String field) {
-        return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy")
-                .contains(field);
+        return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy").contains(field);
     }
-
-    // 1. LẤY DANH SÁCH HỌC KỲ
-    @Autowired
-    private LichGdService lichGdService;
-    @GetMapping("/hoc-ky/{maGv}")
-    public ResponseEntity<List<HocKyDTO>> getAllHocKy(@PathVariable String maGv) {
-        List<HocKyDTO> hocKyList = lichGdService.getAllSemesters(maGv);
-        return ResponseEntity.ok(hocKyList);
-    }
-    ////lấy tất danh sách học kỳ cho admin
-    @GetMapping("/hoc-ky")
-    public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
-        try {
-            List<HocKyDTO> hocKyList = lichGdService.getAllHocKy();
-            return ResponseEntity.ok(hocKyList);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-} 
+}
