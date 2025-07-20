@@ -3,8 +3,11 @@ package vn.diemdanh.hethong.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
+import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
+import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.repository.LichGdRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,4 +44,29 @@ public class LichGdService {
     public Integer getMaGd(int hocKy, String maMh, String maGv, int nhom) {
         return lichGdRepository.findMaGd(hocKy, maMh, maGv, nhom);
     }
+
+    public List<LichGdDto> getLichGdByMaGv(String maGv) {
+        List<Object[]> rows = lichGdRepository.findLichGdByMaGv(maGv);
+        return rows.stream().map(row -> {
+            LichGdDto dto = new LichGdDto();
+            dto.setId(((Number) row[0]).longValue());
+            dto.setMaGv((String) row[1]);
+            dto.setTenGv((String) row[2]);
+            dto.setMaMh((String) row[3]);
+            dto.setTenMh((String) row[4]);
+            dto.setNmh((Integer) row[5]);
+            dto.setPhongHoc((String) row[6]);
+            dto.setNgayBd(row[7] instanceof java.sql.Date
+                    ? ((java.sql.Date) row[7]).toLocalDate()
+                    : (LocalDate) row[7]);
+            dto.setNgayKt(row[8] instanceof java.sql.Date
+                    ? ((java.sql.Date) row[8]).toLocalDate()
+                    : (LocalDate) row[8]);
+            dto.setStBd((Integer) row[9]);
+            dto.setStKt((Integer) row[10]);
+            dto.setHocKy(String.valueOf(row[11])); // Ép kiểu từ Integer sang String
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
 }

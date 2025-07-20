@@ -235,4 +235,9 @@ public class TkbController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endOfWeek) {
         return tkbService.getTkb(maSv, hocKy, startOfWeek, endOfWeek);
     }
+
+    //Tạo thời khóa biểu cho giảng viên
+
+
+
 }

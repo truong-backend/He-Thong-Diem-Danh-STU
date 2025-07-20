@@ -3,6 +3,8 @@ package vn.diemdanh.hethong.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
+import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
+import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.repository.LichGdRepository;
 
 import java.util.List;
@@ -36,5 +38,13 @@ public class LichGdService {
                         (Integer) row[2]
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public Integer getMaGd(int hocKy, String maMh, String maGv, int nhom) {
+        return lichGdRepository.findMaGd(hocKy, maMh, maGv, nhom);
+    }
+
+    public List<LichGdDto> getLichGdByMaGv(String maGv) {
+        return lichGdRepository.findLichGdByMaGv(maGv);
     }
 }

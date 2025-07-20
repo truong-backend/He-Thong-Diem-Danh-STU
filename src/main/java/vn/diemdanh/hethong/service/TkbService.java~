@@ -5,25 +5,28 @@ import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.tkb.NgayGiangDayDTO;
 import vn.diemdanh.hethong.dto.tkb.TkbDto;
 import vn.diemdanh.hethong.dto.tkb.TkbGiaoVienDto;
-import vn.diemdanh.hethong.repository.GiaoVienRepository;
-import vn.diemdanh.hethong.repository.TkbRepository;
-import vn.diemdanh.hethong.entity.LichGd;
-import vn.diemdanh.hethong.entity.Tkb;
-import vn.diemdanh.hethong.entity.NgayLe;
-import vn.diemdanh.hethong.entity.NgayLeId;
-import vn.diemdanh.hethong.repository.NgayLeRepository;
+import vn.diemdanh.hethong.entity.*;
+import vn.diemdanh.hethong.repository.*;
+
 import java.time.temporal.ChronoUnit;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class TkbService {
     @Autowired
     private TkbRepository tkbRepository;
+
+    @Autowired
+    private LichGdRepository lichGdRepository;
+    @Autowired
+    private MonHocRepository monHocRepository;
+
     @Autowired
     private NgayLeRepository ngayLeRepository;
     // 4. LẤY DANH SÁCH NGÀY GIẢNG DẠY
@@ -45,33 +48,7 @@ public class TkbService {
                 .collect(Collectors.toList());
     }
 
-    // Tạo thời khóa biểu tự động khi tạo lịch giảng dạy, loại trừ ngày lễ và chỉ tạo cho các ngày trong tuần được chọn
-    public void taoTkbTuDong(LichGd lichGd, List<Integer> ngayTrongTuan) {
-        List<NgayLe> ngayLeList = ngayLeRepository.findAll();
-        LocalDate current = lichGd.getNgayBd();
-        while (!current.isAfter(lichGd.getNgayKt())) {
-            boolean isHoliday = false;
-            for (NgayLe ngayLe : ngayLeList) {
-                NgayLeId id = ngayLe.getId();
-                if (current.getDayOfMonth() == id.getNgay() && current.getMonthValue() == id.getThang()) {
-                    isHoliday = true;
-                    break;
-                }
-            }
-            // Kiểm tra ngày trong tuần (1=Monday, ..., 7=Sunday)
-            int dayOfWeek = current.getDayOfWeek().getValue();
-            if (!isHoliday && ngayTrongTuan.contains(dayOfWeek)) {
-                Tkb tkb = new Tkb();
-                tkb.setMaGd(lichGd);
-                tkb.setNgayHoc(current);
-                tkb.setPhongHoc(lichGd.getPhongHoc());
-                tkb.setStBd(lichGd.getStBd());
-                tkb.setStKt(lichGd.getStKt());
-                tkbRepository.save(tkb);
-            }
-            current = current.plusDays(1);
-        }
-    }
+    
 
     public List<TkbGiaoVienDto> getTkb(String maSv, Integer hocKy, LocalDate startOfWeek, LocalDate endOfWeek) {
         List<Object[]> results = tkbRepository.findTkbByMaSvAndHocKyAndNgayHocBetween(maSv, hocKy, startOfWeek, endOfWeek);
@@ -82,7 +59,8 @@ public class TkbService {
             dto.setMaMH((String) row[0]);
             dto.setTenMon((String) row[1]);
             dto.setNmh(row[2] == null ? null : ((Number) row[2]).intValue());
-            dto.setNgayHoc((LocalDate) row[3]);
+            dto.setNgayHoc(row[3] == null ? null : ((java.sql.Date) row[3]).toLocalDate());
+
             dto.setTietBd(row[4] == null ? null : ((Number) row[4]).intValue());
             dto.setTietKt(row[5] == null ? null : ((Number) row[5]).intValue());
             dto.setPhong((String) row[6]);
@@ -95,4 +73,23 @@ public class TkbService {
 
         return dtos;
     }
+
+
+    public void taoThoiKhoaBieu(Long maGd, String maMh, List<Integer> thuHoc) {
+        Optional<LichGd> lichGd = lichGdRepository.findById(maGd);
+
+        Optional<MonHoc> monHoc = monHocRepository.findById(maMh);
+
+        int soTiet = monHoc.get().getSoTiet();
+        int tietMotBuoi = lichGd.get().getStKt() - lichGd.get().getStBd() + 1;
+        int soBuoi = (int) Math.ceil((double) soTiet / tietMotBuoi);
+
+        List<NgayLe> ngayLe = ngayLeRepository.findAll();
+
+        LocalDate currentDate = lichGd.getNgayBd();
+        int daThem = 0;
+
+
+    }
+
 }

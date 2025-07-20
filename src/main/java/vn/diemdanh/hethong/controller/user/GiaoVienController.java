@@ -11,11 +11,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.*;
+import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 import vn.diemdanh.hethong.service.DiemDanhService;
 import vn.diemdanh.hethong.service.GiaoVienService;
+import vn.diemdanh.hethong.service.UserService;
 
 import java.time.Instant;
 import java.util.*;
@@ -34,11 +36,12 @@ public class GiaoVienController {
     @Autowired
     private GiaoVienService giaoVienService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private DiemDanhService diemDanhService;
+
+    @Autowired
+    private UserService userService;
 
     // Điểm danh quét mã QR sinh viên
     @PostMapping("/diemdanhnguoc")
@@ -93,19 +96,16 @@ public class GiaoVienController {
             giaoVien.setSdt(request.getSdt());
             giaoVien.setEmail(request.getEmail());
             giaoVien = giaoVienRepository.save(giaoVien);
+            UserDto userDto = new UserDto();
+            userDto.setUsername(request.getMaGv());
+            userDto.setEmail(request.getEmail());
+            userDto.setPassword(request.getMaGv()); // Default password là mã GV
+            userDto.setRole("teacher");
 
-            if (request.isCreateAccount()) {
-                User user = new User();
-                user.setUsername(request.getMaGv());
-                user.setEmail(request.getEmail());
-                user.setPassword(passwordEncoder.encode(request.getMaGv()));
-                user.setRole("GIAO_VIEN");
-                user.setMaGv(giaoVien);
-                Instant now = Instant.now();
-                user.setCreatedAt(now);
-                user.setUpdatedAt(now);
-                userRepository.save(user);
-            }
+            User user = userService.createUser(userDto);
+            user.setMaGv(giaoVien);
+            userRepository.save(user);
+
             return ResponseEntity.ok("Thêm giáo viên thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm giáo viên: " + e.getMessage());

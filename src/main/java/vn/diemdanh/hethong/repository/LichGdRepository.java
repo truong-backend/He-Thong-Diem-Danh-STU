@@ -10,6 +10,7 @@ import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.MonHoc;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface LichGdRepository extends JpaRepository<LichGd, Long> {
     Page<LichGd> findByMaGv(GiaoVien giaoVien, Pageable pageable);
@@ -56,4 +57,27 @@ public interface LichGdRepository extends JpaRepository<LichGd, Long> {
             @Param("maGv") String maGv,
             @Param("nhom") int nhom
     );
+
+    @Query(value = "SELECT \n" +
+            "        lg.ma_gd AS id,\n" +
+            "        lg.ma_gv,\n" +
+            "        gv.ten_gv,\n" +
+            "        lg.ma_mh,\n" +
+            "        mh.ten_mh,\n" +
+            "        lg.nmh,\n" +
+            "        lg.phong_hoc,\n" +
+            "        lg.ngay_bd,\n" +
+            "        lg.ngay_kt,\n" +
+            "        lg.st_bd,\n" +
+            "        lg.st_kt,\n" +
+            "        lg.hoc_ky\n" +
+            "    FROM lich_gd lg\n" +
+            "    JOIN giao_vien gv ON lg.ma_gv = gv.ma_gv\n" +
+            "    JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh\n" +
+            "    WHERE lg.ma_gv = :maGv", nativeQuery = true)
+    // 根据教师编号查询课程表
+    List<Object[]> findLichGdByMaGv(@Param("maGv") String maGv);
+
+    Optional<LichGd> findById(Long maGd);
+
 } 

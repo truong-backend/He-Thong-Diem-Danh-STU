@@ -18,5 +18,4 @@ public class LichGdDto {
     private Integer stBd;
     private Integer stKt;
     private String hocKy;
-    private List<Integer> ngayTrongTuan;
 } 

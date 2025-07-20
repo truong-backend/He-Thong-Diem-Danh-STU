@@ -1,15 +1,16 @@
 version: '3.8'
 
 services:
-  api:
-    build:
-      dockerfile: Dockerfile
-    container_name: api
+  app:
+    build: .
     ports:
-       - "8080:8080"
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/diemdanh_stu?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
     depends_on:
-       - db
-    restart: no
+      - db
 
   db:
     image: mysql:8.0

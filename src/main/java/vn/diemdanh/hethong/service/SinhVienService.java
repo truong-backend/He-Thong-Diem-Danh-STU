@@ -8,6 +8,7 @@ import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
 import vn.diemdanh.hethong.dto.sinhvien.QRSinhVienInfoDTO;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
 import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
+import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.Lop;
 import vn.diemdanh.hethong.entity.SinhVien;
 import vn.diemdanh.hethong.entity.User;
@@ -37,7 +38,7 @@ public class SinhVienService {
     private LopRepository lopRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private UserService userService;
 
     public QRSinhVienInfoDTO getQRSinhVien(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() ->
@@ -122,15 +123,14 @@ public class SinhVienService {
         // Lưu sinh viên
         sinhVienRepository.save(sinhVien);
 
-        User user = new User();
-        user.setUsername(request.getMaSv());
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getMaSv()));
-        user.setRole("student");
-        user.setMaSv(sinhVien);
-        user.setCreatedAt(Instant.now());
-        user.setUpdatedAt(Instant.now());
+        UserDto userDto = new UserDto();
+        userDto.setUsername(request.getMaSv());
+        userDto.setEmail(request.getEmail());
+        userDto.setPassword(request.getMaSv());
+        userDto.setRole("student");
 
+        User user = userService.createUser(userDto);
+        user.setMaSv(sinhVien);
         userRepository.save(user);
     }
 
