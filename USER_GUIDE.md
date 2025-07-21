@@ -104,7 +104,7 @@ Nếu quên mật khẩu:
 
 2. Xuất báo cáo:
    - Sau khi xem báo cáo
-   - Click "Xuất Excel" hoặc "Xuất PDF"
+   - Click "Xuất Excel"
    - Chọn vị trí lưu file
 
 ## Hướng dẫn cho Giảng viên
