@@ -15,8 +15,4 @@
 | Email                               | Mật khẩu  |
 |------------------------------------|-----------|
 | `honguyententhanhtruong@gmail.com` | `123456`  |
-
-### 👨‍🎓 Tài khoản Sinh viên
-| Email                  | Mật khẩu |
-|------------------------|----------|
-| `hiepsktz103@gmail.com`| `hiep`   |
+| `hiepsktz103@gmail.com` | `hiep`  |
