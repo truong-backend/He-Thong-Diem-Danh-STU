@@ -1,0 +1,6 @@
+[submodule "FRONT_END"]
+    path = FRONT_END
+    url = https://github.com/truong-backend/FRONT_END.git
+[submodule "He-Thong-Diem-Danh-STU"]
+    path = He-Thong-Diem-Danh-STU
+    url = https://github.com/truong-backend/He-Thong-Diem-Danh-STU.git
