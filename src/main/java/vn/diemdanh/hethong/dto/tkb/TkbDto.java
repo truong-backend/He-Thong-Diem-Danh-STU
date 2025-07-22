@@ -1,8 +1,13 @@
 package vn.diemdanh.hethong.dto.tkb;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 
+@Getter
+@Setter
 @Data
 public class TkbDto {
     private Long id;
@@ -15,5 +20,5 @@ public class TkbDto {
     private String phongHoc;
     private Integer stBd;
     private Integer stKt;
-    private String ghiChu;
+//    private String ghiChu;
 } 

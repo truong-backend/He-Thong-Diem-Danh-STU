@@ -75,4 +75,7 @@ public interface TkbRepository extends JpaRepository<Tkb, Long> {
             @Param("startOfWeek") LocalDate startOfWeek,
             @Param("endOfWeek") LocalDate endOfWeek);
 
+    @Query(value = "SELECT * FROM tkb WHERE ma_gd = :maGd", nativeQuery = true)
+    List<Object[]> findByMaGdNative(@Param("maGd") Long maGd);
+
 }

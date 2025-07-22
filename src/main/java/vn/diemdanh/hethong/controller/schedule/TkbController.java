@@ -11,12 +11,14 @@ import vn.diemdanh.hethong.dto.tkb.TkbGiaoVienDto;
 import vn.diemdanh.hethong.entity.LichGd;
 import vn.diemdanh.hethong.entity.Tkb;
 import vn.diemdanh.hethong.repository.LichGdRepository;
+import vn.diemdanh.hethong.repository.NgayLeRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 import vn.diemdanh.hethong.service.TkbService;
 
 import jakarta.validation.Valid;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,38 +35,59 @@ public class TkbController {
     @Autowired
     private TkbService tkbService;
 
+    @Autowired
+    private NgayLeRepository ngayLeRepository;
+
     // CREATE - Thêm thời khóa biểu mới
-    @PostMapping
-    public ResponseEntity<?> createTkb(@Valid @RequestBody TkbDto request) {
+    @PostMapping("/create")
+    public ResponseEntity<?> createTkb(
+            @RequestParam Long maGd,
+            @RequestParam int thu
+    ) {
         try {
-            LichGd lichGd = lichGdRepository.findById(request.getMaGd())
+            LichGd lichGd = lichGdRepository.findById(maGd)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
 
-            // Validate ngày học trong khoảng lịch giảng dạy
-            if (request.getNgayHoc().isBefore(lichGd.getNgayBd()) || request.getNgayHoc().isAfter(lichGd.getNgayKt())) {
-                return ResponseEntity.badRequest().body("Ngày học phải nằm trong khoảng thời gian của lịch giảng dạy");
+            LocalDate startDate = lichGd.getNgayBd();
+            LocalDate endDate = lichGd.getNgayKt();
+
+            List<Tkb> tkbList = new ArrayList<>();
+
+            for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+                // Kiểm tra ngày có phải ngày lễ không
+                    Long  isHoliday = ngayLeRepository.existsByDateIsHoliday(date);
+                if (isHoliday != null && isHoliday == 1L) {
+                    // isHoliday == 1 nghĩa là có ngày lễ
+                    continue; // bỏ qua ngày lễ
+                }
+
+                // Kiểm tra thứ trong tuần (1 = Monday, ..., 7 = Sunday)
+                int dayOfWeek = date.getDayOfWeek().getValue();
+                if (dayOfWeek != thu) {
+                    continue; // Bỏ qua ngày không đúng thứ
+                }
+
+                // Tạo đối tượng Tkb
+                Tkb tkb = new Tkb();
+                tkb.setMaGd(lichGd);
+                tkb.setNgayHoc(date);
+                tkb.setPhongHoc(lichGd.getPhongHoc());
+                tkb.setStBd(lichGd.getStBd());
+                tkb.setStKt(lichGd.getStKt());
+                // tkb.setGhiChu(lichGd.getGhiChu()); // Nếu có ghi chú
+
+                tkbList.add(tkb);
             }
 
-            // Validate tiết học trong khoảng tiết của lịch giảng dạy
-            if (request.getStBd() < lichGd.getStBd() || request.getStKt() > lichGd.getStKt()) {
-                return ResponseEntity.badRequest().body("Tiết học phải nằm trong khoảng tiết của lịch giảng dạy");
-            }
+            // Lưu tất cả bản ghi
+            List<Tkb> savedTkbs = tkbRepository.saveAll(tkbList);
 
-            // Validate tiết kết thúc > tiết bắt đầu
-            if (request.getStKt() <= request.getStBd()) {
-                return ResponseEntity.badRequest().body("Tiết kết thúc phải sau tiết bắt đầu");
-            }
+            // Chuyển sang DTO để trả về
+            List<TkbDto> dtos = savedTkbs.stream()
+                    .map(this::convertToDto)
+                    .toList();
 
-            Tkb tkb = new Tkb();
-            tkb.setMaGd(lichGd);
-            tkb.setNgayHoc(request.getNgayHoc());
-            tkb.setPhongHoc(request.getPhongHoc());
-            tkb.setStBd(request.getStBd());
-            tkb.setStKt(request.getStKt());
-            tkb.setGhiChu(request.getGhiChu());
-
-            tkb = tkbRepository.save(tkb);
-            return ResponseEntity.ok(convertToDto(tkb));
+            return ResponseEntity.ok(dtos);
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm thời khóa biểu: " + e.getMessage());
@@ -72,50 +95,54 @@ public class TkbController {
     }
 
     // READ - Lấy danh sách thời khóa biểu có phân trang và sắp xếp
-    @GetMapping
-    public ResponseEntity<?> getTkbList(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "ngayHoc") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir,
-            @RequestParam(required = false) Long maGd,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayHoc,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-    ) {
-        try {
-            if (!isValidSortField(sortBy)) {
-                return ResponseEntity.badRequest().body("Trường sắp xếp không hợp lệ");
-            }
+//    @GetMapping
+//    public ResponseEntity<?> getTkbList(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(defaultValue = "ngayHoc") String sortBy,
+//            @RequestParam(defaultValue = "asc") String sortDir,
+//            @RequestParam(required = false) Long maGd,
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayHoc,
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+//    ) {
+//        try {
+//            if (!isValidSortField(sortBy)) {
+//                return ResponseEntity.badRequest().body("Trường sắp xếp không hợp lệ");
+//            }
+//
+//            Sort.Direction direction = Sort.Direction.fromString(sortDir);
+//            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+//
+//            Page<Tkb> tkbs;
+//
+//            if (maGd != null) {
+//                LichGd lichGd = lichGdRepository.findById(maGd)
+//                        .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
+//                tkbs = tkbRepository.findByMaGd(lichGd, pageable);
+//            } else if (ngayHoc != null) {
+//                tkbs = tkbRepository.findByNgayHoc(ngayHoc, pageable);
+//            } else if (startDate != null && endDate != null) {
+//                if (endDate.isBefore(startDate)) {
+//                    return ResponseEntity.badRequest().body("Ngày kết thúc phải sau ngày bắt đầu");
+//                }
+//                tkbs = tkbRepository.findByNgayHocBetween(startDate, endDate, pageable);
+//            } else {
+//                tkbs = tkbRepository.findAll(pageable);
+//            }
+//
+//            Page<TkbDto> dtos = tkbs.map(this::convertToDto);
+//            return ResponseEntity.ok(dtos);
+//
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách thời khóa biểu: " + e.getMessage());
+//        }
+//    }
 
-            Sort.Direction direction = Sort.Direction.fromString(sortDir);
-            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
-            Page<Tkb> tkbs;
-
-            if (maGd != null) {
-                LichGd lichGd = lichGdRepository.findById(maGd)
-                        .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
-                tkbs = tkbRepository.findByMaGd(lichGd, pageable);
-            } else if (ngayHoc != null) {
-                tkbs = tkbRepository.findByNgayHoc(ngayHoc, pageable);
-            } else if (startDate != null && endDate != null) {
-                if (endDate.isBefore(startDate)) {
-                    return ResponseEntity.badRequest().body("Ngày kết thúc phải sau ngày bắt đầu");
-                }
-                tkbs = tkbRepository.findByNgayHocBetween(startDate, endDate, pageable);
-            } else {
-                tkbs = tkbRepository.findAll(pageable);
-            }
-
-            Page<TkbDto> dtos = tkbs.map(this::convertToDto);
-            return ResponseEntity.ok(dtos);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách thời khóa biểu: " + e.getMessage());
-        }
+    @GetMapping("/ma-gd/{maGd}")
+    public List<TkbDto> getTkbByMaGd(@PathVariable Long maGd) {
+        return tkbService.getTkbByMaGd(maGd);
     }
-
     // READ - Lấy thông tin một thời khóa biểu
     @GetMapping("/{id}")
     public ResponseEntity<?> getTkb(@PathVariable Long id) {
@@ -172,7 +199,7 @@ public class TkbController {
             tkb.setPhongHoc(request.getPhongHoc());
             tkb.setStBd(request.getStBd());
             tkb.setStKt(request.getStKt());
-            tkb.setGhiChu(request.getGhiChu());
+//            tkb.setGhiChu(request.getGhiChu());
 
             tkb = tkbRepository.save(tkb);
             return ResponseEntity.ok(convertToDto(tkb));
@@ -210,7 +237,7 @@ public class TkbController {
         dto.setPhongHoc(tkb.getPhongHoc());
         dto.setStBd(tkb.getStBd());
         dto.setStKt(tkb.getStKt());
-        dto.setGhiChu(tkb.getGhiChu());
+//        dto.setGhiChu(tkb.getGhiChu());
         return dto;
     }
 

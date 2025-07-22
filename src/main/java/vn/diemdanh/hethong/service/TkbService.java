@@ -74,22 +74,20 @@ public class TkbService {
         return dtos;
     }
 
-
-    public void taoThoiKhoaBieu(Long maGd, String maMh, List<Integer> thuHoc) {
-        Optional<LichGd> lichGd = lichGdRepository.findById(maGd);
-
-        Optional<MonHoc> monHoc = monHocRepository.findById(maMh);
-
-        int soTiet = monHoc.get().getSoTiet();
-        int tietMotBuoi = lichGd.get().getStKt() - lichGd.get().getStBd() + 1;
-        int soBuoi = (int) Math.ceil((double) soTiet / tietMotBuoi);
-
-        List<NgayLe> ngayLe = ngayLeRepository.findAll();
-
-
-        int daThem = 0;
-
-
+    public List<TkbDto> getTkbByMaGd(Long maGd) {
+        List<Object[]> results = tkbRepository.findByMaGdNative(maGd);
+        return results.stream().map(row -> {
+            TkbDto tkbDto = new TkbDto();
+            tkbDto.setId(((Number) row[0]).longValue()); // ma_tkb
+            tkbDto.setMaGd(((Number) row[1]).longValue()); // ma_gd
+            tkbDto.setNgayHoc(row[2] instanceof java.sql.Date
+                    ? ((java.sql.Date) row[2]).toLocalDate()
+                    : (LocalDate) row[2]); // ngay_hoc
+            tkbDto.setPhongHoc((String) row[3]); // phong_hoc
+            tkbDto.setStBd(((Number) row[4]).intValue()); // st_bd
+            tkbDto.setStKt(((Number) row[5]).intValue()); // st_kt
+            // maGv, tenGv, maMh, tenMh are not in tkb table, so they remain null
+            return tkbDto;
+        }).collect(Collectors.toList());
     }
-
 }
