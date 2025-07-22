@@ -122,4 +122,12 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
         """, nativeQuery = true)
     List<Object[]> findMonHocByHocKyAndNam(@Param("hocKy") Integer hocKy,
                                            @Param("namHoc") Integer namHoc);
+
+    //Lấy môn học cho kết quả điểm danh
+    @Query(value = """
+        SELECT DISTINCT gd.ma_gd,mh.ma_mh, mh.ten_mh, gd.phong_hoc, gd.nmh
+        FROM mon_hoc mh
+        JOIN lich_gd gd ON mh.ma_mh = gd.ma_mh
+        """,nativeQuery = true)
+    List<Object[]> getMonHocForDiemDanh();
 }

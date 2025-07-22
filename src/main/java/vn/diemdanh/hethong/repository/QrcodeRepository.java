@@ -35,7 +35,24 @@ public interface QrcodeRepository extends JpaRepository<Qrcode, Long> {
         LIMIT 1
         """, nativeQuery = true)
     Optional<Object[][]> getLatestQRCode(@Param("maTkb") Integer maTkb);
-
+    // 7. KIỂM TRA QRCODE CÒN HỢP LỆ KHÔNG
+    @Query(value = """
+        SELECT 
+            qr.id,
+            qr.ma_tkb,
+            qr.thoi_gian_kt,
+            t.ngay_hoc,
+            t.phong_hoc,
+            CASE 
+                WHEN NOW() <= qr.thoi_gian_kt THEN 'Còn hiệu lực'
+                ELSE 'Hết hiệu lực'
+            END as trang_thai
+        FROM qrcode qr
+        JOIN tkb t ON qr.ma_tkb = t.ma_tkb
+        WHERE qr.id = :qrId
+            AND NOW() <= qr.thoi_gian_kt
+        """, nativeQuery = true)
+    Optional<Object[]> checkQRCodeValidity(@Param("qrId") Long qrId);
     // KIỂM TRA QR CODE TỒN TẠI VÀ TRẠNG THÁI
     @Query(value = """
         SELECT 

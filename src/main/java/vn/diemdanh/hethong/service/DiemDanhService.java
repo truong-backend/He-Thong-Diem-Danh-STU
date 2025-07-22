@@ -11,6 +11,7 @@ import org.springframework.web.server.ResponseStatusException;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhAdmin;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.diemdanh.KetQuaDiemDanhSinhVienDTO;
+import vn.diemdanh.hethong.dto.diemdanh.ThongKeDiemDanhDTO;
 import vn.diemdanh.hethong.dto.monhoc.listMonHocSV.DiemDanhDto;
 import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.entity.DiemDanh;
@@ -43,6 +44,95 @@ public class DiemDanhService {
     DiemDanhLogRepository diemDanhLogRepo;
     @Autowired
     private SinhVienRepository sinhVienRepository;
+
+    public List<ThongKeDiemDanhDTO> getKetQuaDiemDanhAllSinhVien(String maMh, Integer Nmh, Integer maGd) {
+        List<Object[]> result = diemDanhRepository.thongKeDiemDanh(maMh,Nmh,maGd);
+        return result.stream().map(row ->
+                {
+                    ThongKeDiemDanhDTO dto = new ThongKeDiemDanhDTO();
+                    dto.setMaSv((String)row[0]);
+                    dto.setTenSv((String)row[1]);
+                    dto.setTenLop((String)row[2]);
+                    dto.setSo_buoi_hoc((Long) row[3]);
+                    dto.setSo_buoi_diem_danh((Long) row[4]);
+                    dto.setSo_buoi_chua_diem_danh((Long) row[5]);
+                    return dto;
+                }
+        ).collect(Collectors.toList());
+    }
+
+
+    //Quét QR Sinh viên + Thủ công
+    @Transactional
+    public int diemDanhSinhVien(DiemDanhRequest request) {
+        Integer existSinhVien = lichHocRepository.findSinhVienByMaTkb(request.getMaSv(), request.getMaTkb());
+        if (existSinhVien == 0 || existSinhVien == null) {
+            throw new AppException(ErrorCode.SINHVIEN_NOTEXIST_TKB);
+        }
+
+        Integer countDiemDanh = diemDanhLogRepo.getSoLanDiemDanh(
+                request.getMaTkb(),
+                request.getMaSv(),
+                request.getNgayHoc()
+        );
+
+        if (countDiemDanh >= 1) {
+            LocalDateTime timeDiemDanhlan1 = diemDanhRepository.getDiemDanhLan1(
+                    request.getMaTkb(),
+                    request.getMaSv(),
+                    request.getNgayHoc()
+            );
+            if(timeDiemDanhlan1 != null){
+                //So sánh thời gian từ lúc điểm danh đến hiện tại bao nhiêu giờ ,phút, giây
+                Duration checkTimeDiemDanh = Duration.between(timeDiemDanhlan1, LocalDateTime.now());
+                //set thời gian cho phép điểm danh lần tiếp theo.
+                if(checkTimeDiemDanh.toSeconds() < 30){
+                    throw new AppException(ErrorCode.PASSED_DIEMDANH_LAN1);
+                }
+            }
+            int diemDanhCountCurrent = countDiemDanh + 1;
+            String updateGhiChu = "\nĐiểm danh lần " + diemDanhCountCurrent;
+            int diemdanhlanX = diemDanhRepository.markAttendanceManual(
+                    request.getMaTkb(),
+                    request.getMaSv(),
+                    request.getNgayHoc(),
+                    updateGhiChu
+            );
+            if(diemdanhlanX >= 1) {
+                insertDiemDanhLog(request,diemDanhCountCurrent);
+                return diemdanhlanX;
+            }
+        }
+
+        if(countDiemDanh == 0 || countDiemDanh == null) {
+            int firstDiemDanh = diemDanhRepository.markAttendanceManual(
+                    request.getMaTkb(),
+                    request.getMaSv(),
+                    request.getNgayHoc(),
+                    "Đã điểm danh"
+            );
+            if (firstDiemDanh == 1) {
+                insertDiemDanhLog(request, countDiemDanh + 1);
+            }
+            return firstDiemDanh;
+        }
+        return 0;
+    }
+    //Ghi thông tin điểm danh vào log
+    private void insertDiemDanhLog(DiemDanhRequest req,int soLan){
+        List<DiemDanh> existDiemDanh = diemDanhRepository.findDiemDanhExist(
+                req.getMaTkb(), req.getMaSv(), req.getNgayHoc()
+        );
+        if(existDiemDanh != null && existDiemDanh.size() > 0){
+            DiemDanh diemDanhGet = existDiemDanh.get(0);
+
+            DiemDanhLog diemDanhLog = new DiemDanhLog();
+            diemDanhLog.setMaDd(diemDanhGet);
+            diemDanhLog.setLanDiemDanh(soLan);
+            diemDanhLog.setThoiGianDiemDanh(Instant.now());
+            diemDanhLogRepo.save(diemDanhLog);
+        }
+    }
 
     public List<KetQuaDiemDanhSinhVienDTO> getKetQuaDiemDanhSinhVien(String maMH) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -132,7 +222,7 @@ public class DiemDanhService {
 
             DiemDanhLog diemDanhLog = new DiemDanhLog();
             diemDanhLog.setMaDd(diemDanhGet);
-            diemDanhLog.setLanDiemDanh((long) soLan);
+            diemDanhLog.setLanDiemDanh(soLan);
             diemDanhLog.setThoiGianDiemDanh(Instant.now());
             diemDanhLogRepo.save(diemDanhLog);
         }
@@ -146,7 +236,7 @@ public class DiemDanhService {
 
             DiemDanhLog diemDanhLog = new DiemDanhLog();
             diemDanhLog.setMaDd(diemDanhGet);
-            diemDanhLog.setLanDiemDanh((long) soLan);
+            diemDanhLog.setLanDiemDanh(soLan);
             diemDanhLog.setThoiGianDiemDanh(Instant.now());
             diemDanhLogRepo.save(diemDanhLog);
         }

@@ -6,6 +6,7 @@ import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
+import vn.diemdanh.hethong.dto.monhoc.MonHocKetQuaDiemDanhDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
 import vn.diemdanh.hethong.repository.MonHocRepository;
@@ -19,6 +20,19 @@ import java.util.stream.Collectors;
 public class MonHocService {
     @Autowired
     private MonHocRepository monHocRepository;
+
+    public List<MonHocKetQuaDiemDanhDTO> getMonHocKetQuaDiemDanh(){
+        List<Object[]> results = monHocRepository.getMonHocForDiemDanh();
+        return results.stream().map(monhoc -> {
+            MonHocKetQuaDiemDanhDTO dto = new MonHocKetQuaDiemDanhDTO();
+            dto.setMaGd((Integer)monhoc[0]);
+            dto.setMaMh((String) monhoc[1]);
+            dto.setTenMh((String)monhoc[2]);
+            dto.setPhongHoc((String) monhoc[3]);
+            dto.setNmh((Integer) monhoc[4]);
+            return dto;
+        }).collect(Collectors.toList());
+    }
 
 
 

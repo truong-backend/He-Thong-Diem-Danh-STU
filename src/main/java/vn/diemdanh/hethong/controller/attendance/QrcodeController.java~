@@ -32,6 +32,7 @@ public class QrcodeController {
     // ========================== 9. ĐIỂM DANH BẰNG QR CODE ==========================
 
     @PostMapping("/qr")
+    @PostMapping("/qr")
     public ResponseEntity<?> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
         try {
             int result = qrcodeService.markAttendanceByQR(request);

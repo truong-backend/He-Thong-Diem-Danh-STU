@@ -31,22 +31,7 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
             @Param("ghiChu") String ghiChu
     );
 
-    // 6. ĐIỂM DANH THỦ CÔNG - INSERT/UPDATE
-    @Modifying
-    @Transactional
-    @Query(value = """
-        INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1, ghi_chu)
-        VALUES (:maTkb, :maSv, :ngayHoc, NOW(), :ghiChu)
-        ON DUPLICATE KEY UPDATE 
-            diem_danh1 = CASE 
-                WHEN diem_danh1 IS NOT NULL THEN NOW()
-            END,
-            ghi_chu = VALUES(ghi_chu)
-        """, nativeQuery = true)
-    void markAttendanceManual(@Param("maTkb") Integer maTkb,
-                              @Param("maSv") String maSv,
-                              @Param("ngayHoc") LocalDate ngayHoc,
-                              @Param("ghiChu") String ghiChu);
+
     //lấy danh sách điểm danh của sinh viên theo mã sinh viên và mã môn học
     @Query(value = """
         SELECT 
@@ -104,28 +89,23 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
     """,nativeQuery = true)
     List<DiemDanh> findDiemDanhExist(@Param("maTkb") int maTkb,@Param("maSv")String maSv,@Param("ngayHoc")LocalDate ngayHoc);
 
-    //KẾT QUẢ ĐIỂM DANH
+    @Modifying
+    @Transactional
     @Query(value = """
-        select t.ngay_hoc,gd.st_bd,gd.st_kt,
-            count(dl.lan_diem_danh) as svSoLanDD,
-            gvdd.gv_so_lan_dd as gvSoLanDD,
-                case when
-                    count(dl.lan_diem_danh) = gvdd.gv_so_lan_dd then 'Có mặt'
-                    else 'Vắng'
-            end as trangThai
-            from diem_danh_log dl join diem_danh dd on dd.ma_dd = dl.ma_dd
-            join tkb t on t.ma_tkb = dd.ma_tkb
-            join lich_gd gd on gd.ma_gd = t.ma_gd
-            join mon_hoc mh ON mh.ma_mh = gd.ma_mh
-            join(
-                    select dd.ma_tkb,max(dl.lan_diem_danh) as gv_so_lan_dd from diem_danh_log dl 
-                        join diem_danh dd on dd.ma_dd = dl.ma_dd
-                        group by dd.ma_tkb 
-            ) gvdd on gvdd.ma_tkb = dd.ma_tkb
-        where dd.ma_sv = :maSv and mh.ma_mh = :maMH
-        group by t.ngay_hoc, gd.st_bd, gd.st_kt, gvdd.gv_so_lan_dd
-    """,nativeQuery = true)
-    List<Object[]> getKetQuaDDByMaSVAndMaMonHoc(@Param("maSv")String maSv,@Param("maMH")String maMH);
+            INSERT INTO diem_danh (ma_tkb, ma_sv, ngay_hoc, diem_danh1,diem_danh2, ghi_chu)
+            VALUES (:maTkb, :maSv, :ngayHoc, NOW(),Null, :ghiChu)
+            ON DUPLICATE KEY UPDATE 
+                diem_danh2 = CASE 
+                    WHEN diem_danh1 IS NOT NULL and diem_danh2 IS NULL THEN NOW()
+                    ELSE diem_danh2
+                END,
+                ghi_chu = VALUES(ghi_chu)
+            """, nativeQuery = true)
+    int markAttendanceManual(@Param("maTkb") Integer maTkb,
+                             @Param("maSv") String maSv,
+                             @Param("ngayHoc") LocalDate ngayHoc,
+                             @Param("ghiChu") String ghiChu);
+
 
     //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
     @Query(value = """
@@ -193,4 +173,84 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
     List<Object[]> findAttendanceReportByHocKyNamAndMonHoc(@Param("hocKy") Integer hocKy,
                                                            @Param("namHoc") Integer namHoc,
                                                            @Param("maMh") String maMh);
+
+    //KẾT QUẢ ĐIỂM DANH
+    @Query(value = """
+                select t.ngay_hoc,gd.st_bd,gd.st_kt,
+                    count(dl.lan_diem_danh) as svSoLanDD,
+                    gvdd.gv_so_lan_dd as gvSoLanDD,
+                        case when
+                            count(dl.lan_diem_danh) = gvdd.gv_so_lan_dd then 'Có mặt'
+                            else 'Vắng'
+                    end as trangThai
+                    from diem_danh_log dl join diem_danh dd on dd.ma_dd = dl.ma_dd
+                    join tkb t on t.ma_tkb = dd.ma_tkb
+                    join lich_gd gd on gd.ma_gd = t.ma_gd
+                    join mon_hoc mh ON mh.ma_mh = gd.ma_mh
+                    join(
+                            select dd.ma_tkb,max(dl.lan_diem_danh) as gv_so_lan_dd from diem_danh_log dl 
+                                join diem_danh dd on dd.ma_dd = dl.ma_dd
+                                group by dd.ma_tkb 
+                    ) gvdd on gvdd.ma_tkb = dd.ma_tkb
+                where dd.ma_sv = :maSv and mh.ma_mh = :maMH
+                group by t.ngay_hoc, gd.st_bd, gd.st_kt, gvdd.gv_so_lan_dd
+            """, nativeQuery = true)
+    List<Object[]> getKetQuaDDByMaSVAndMaMonHoc(@Param("maSv") String maSv, @Param("maMH") String maMH);
+
+    // Thống kê kết quả điểm danh của sinh viên
+    @Query(value = """
+
+            SELECT
+            sv.ma_sv,
+            sv.ten_sv,
+            l.ten_lop,
+            (SELECT COUNT(*) FROM tkb WHERE ma_gd = gd.ma_gd) AS so_buoi_hoc,
+    
+            COUNT(DISTINCT CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM diem_danh d2
+                    JOIN diem_danh_log dl2 ON dl2.ma_dd = d2.ma_dd
+                    WHERE d2.ma_sv = sv.ma_sv
+                      AND d2.ma_tkb = t.ma_tkb
+                      AND dl2.lan_diem_danh = (
+                          SELECT MAX(dl3.lan_diem_danh)
+                          FROM diem_danh d3
+                          JOIN diem_danh_log dl3 ON dl3.ma_dd = d3.ma_dd
+                          WHERE d3.ma_tkb = t.ma_tkb
+                      )
+                ) THEN t.ma_tkb
+                ELSE NULL
+            END) AS so_buoi_diem_danh,
+    
+            ((SELECT COUNT(*) FROM tkb WHERE ma_gd = gd.ma_gd) -
+             COUNT(DISTINCT CASE
+                 WHEN EXISTS (
+                     SELECT 1
+                     FROM diem_danh d2
+                     JOIN diem_danh_log dl2 ON dl2.ma_dd = d2.ma_dd
+                     WHERE d2.ma_sv = sv.ma_sv
+                       AND d2.ma_tkb = t.ma_tkb
+                       AND dl2.lan_diem_danh = (
+                           SELECT MAX(dl3.lan_diem_danh)
+                           FROM diem_danh d3
+                           JOIN diem_danh_log dl3 ON dl3.ma_dd = d3.ma_dd
+                           WHERE d3.ma_tkb = t.ma_tkb
+                       )
+                 ) THEN t.ma_tkb
+                 ELSE NULL
+             END)) AS so_buoi_chua_diem_danh
+    
+        FROM sinh_vien sv
+        JOIN lop l ON sv.ma_lop = l.ma_lop
+        JOIN lich_hoc lh ON lh.ma_sv = sv.ma_sv
+        JOIN lich_gd gd ON gd.ma_gd = lh.ma_gd
+        JOIN mon_hoc mh ON mh.ma_mh = gd.ma_mh
+        JOIN tkb t ON t.ma_gd = gd.ma_gd
+    
+        WHERE mh.ma_mh = :maMh AND gd.nmh = :Nmh AND gd.ma_gd = :maGd
+    
+        GROUP BY sv.ma_sv, sv.ten_sv, l.ten_lop, gd.ma_gd;          
+            """, nativeQuery = true)
+    List<Object[]> thongKeDiemDanh(@Param("maMh") String maMh, @Param("Nmh") Integer Nmh, @Param("maGd") Integer maGd);
 }
