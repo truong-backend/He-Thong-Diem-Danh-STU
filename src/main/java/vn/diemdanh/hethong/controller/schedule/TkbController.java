@@ -8,9 +8,12 @@ import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.tkb.NgayGiangDayDTO;
 import vn.diemdanh.hethong.dto.tkb.TkbDto;
 import vn.diemdanh.hethong.dto.tkb.TkbGiaoVienDto;
+import vn.diemdanh.hethong.dto.tkb.TkbRequestDto;
 import vn.diemdanh.hethong.entity.LichGd;
+import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.entity.Tkb;
 import vn.diemdanh.hethong.repository.LichGdRepository;
+import vn.diemdanh.hethong.repository.MonHocRepository;
 import vn.diemdanh.hethong.repository.NgayLeRepository;
 import vn.diemdanh.hethong.repository.TkbRepository;
 import vn.diemdanh.hethong.service.TkbService;
@@ -38,61 +41,82 @@ public class TkbController {
     @Autowired
     private NgayLeRepository ngayLeRepository;
 
+    @Autowired
+    private MonHocRepository monHocRepository;
+
     // CREATE - Thêm thời khóa biểu mới
     @PostMapping("/create")
-    public ResponseEntity<?> createTkb(
-            @RequestParam Long maGd,
-            @RequestParam int thu
-    ) {
+    public ResponseEntity<?> createTkb(@RequestBody TkbRequestDto request) {
         try {
-            LichGd lichGd = lichGdRepository.findById(maGd)
+            List<Integer> thu = request.getThu();
+            if (thu == null || thu.isEmpty()) {
+                return ResponseEntity.badRequest().body("Danh sách thứ không được rỗng");
+            }
+
+            LichGd lichGd = lichGdRepository.findById(request.getMaGd())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
+            MonHoc monHoc = monHocRepository.findById(request.getMaMh())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
 
             LocalDate startDate = lichGd.getNgayBd();
             LocalDate endDate = lichGd.getNgayKt();
+            int soTietMonHoc = monHoc.getSoTiet();
+            int tietMotBuoi = lichGd.getStKt() - lichGd.getStBd() + 1;
 
-            List<Tkb> tkbList = new ArrayList<>();
+            List<Tkb> allTkbList = new ArrayList<>();
+            int totalTietDaPhan = 0;
 
             for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-                // Kiểm tra ngày có phải ngày lễ không
-                    Long  isHoliday = ngayLeRepository.existsByDateIsHoliday(date);
+                Long isHoliday = ngayLeRepository.existsByDateIsHoliday(date);
                 if (isHoliday != null && isHoliday == 1L) {
-                    // isHoliday == 1 nghĩa là có ngày lễ
-                    continue; // bỏ qua ngày lễ
+                    continue;
                 }
 
-                // Kiểm tra thứ trong tuần (1 = Monday, ..., 7 = Sunday)
                 int dayOfWeek = date.getDayOfWeek().getValue();
-                if (dayOfWeek != thu) {
-                    continue; // Bỏ qua ngày không đúng thứ
+                if (!thu.contains(dayOfWeek)) {
+                    continue;
                 }
 
-                // Tạo đối tượng Tkb
+                if (totalTietDaPhan >= soTietMonHoc) {
+                    break;
+                }
+
+                int tietConLai = soTietMonHoc - totalTietDaPhan;
+                int stKt = lichGd.getStKt();
+                if (tietConLai < tietMotBuoi) {
+                    stKt = lichGd.getStBd() + tietConLai - 1;
+                }
+
                 Tkb tkb = new Tkb();
                 tkb.setMaGd(lichGd);
                 tkb.setNgayHoc(date);
                 tkb.setPhongHoc(lichGd.getPhongHoc());
                 tkb.setStBd(lichGd.getStBd());
-                tkb.setStKt(lichGd.getStKt());
-                // tkb.setGhiChu(lichGd.getGhiChu()); // Nếu có ghi chú
+                tkb.setStKt(stKt);
 
-                tkbList.add(tkb);
+                allTkbList.add(tkb);
+                totalTietDaPhan += (stKt - lichGd.getStBd() + 1);
             }
 
-            // Lưu tất cả bản ghi
-            List<Tkb> savedTkbs = tkbRepository.saveAll(tkbList);
+            if (totalTietDaPhan < soTietMonHoc) {
+                return ResponseEntity.badRequest().body(
+                        String.format("Không đủ số buổi để phân bổ toàn bộ số tiết môn học. " +
+                                        "Cần %d tiết, chỉ phân bổ được %d tiết. " +
+                                        "Vui lòng chọn thêm thứ hoặc mở rộng thời gian học.",
+                                soTietMonHoc, totalTietDaPhan)
+                );
+            }
 
-            // Chuyển sang DTO để trả về
-            List<TkbDto> dtos = savedTkbs.stream()
-                    .map(this::convertToDto)
-                    .toList();
+            List<Tkb> savedTkbs = tkbRepository.saveAll(allTkbList);
+            List<TkbDto> dtos = savedTkbs.stream().map(this::convertToDto).toList();
 
             return ResponseEntity.ok(dtos);
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm thời khóa biểu: " + e.getMessage());
         }
     }
+
+
 
     // READ - Lấy danh sách thời khóa biểu có phân trang và sắp xếp
 //    @GetMapping
@@ -263,7 +287,15 @@ public class TkbController {
         return tkbService.getTkb(maSv, hocKy, startOfWeek, endOfWeek);
     }
 
-    //Tạo thời khóa biểu cho giảng viên
+    @DeleteMapping("/delete-by-ma-gd/{maGd}")
+    public ResponseEntity<?> deleteTkbByMaGd(@PathVariable Long maGd) {
+        try {
+            tkbService.deleteByMaGd(maGd);
+            return ResponseEntity.ok("Xóa thời khóa biểu theo mã giảng dạy thành công");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi khi xóa thời khóa biểu: " + e.getMessage());
+        }
+    }
 
 
 

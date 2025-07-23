@@ -90,8 +90,4 @@ public class TkbService {
             return tkbDto;
         }).collect(Collectors.toList());
     }
-
-    public void deleteByMaGd(Long maGd) {
-        tkbRepository.deleteByMaGd(maGd);
-    }
 }

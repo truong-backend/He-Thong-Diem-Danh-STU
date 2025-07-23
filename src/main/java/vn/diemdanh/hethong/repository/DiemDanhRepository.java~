@@ -253,12 +253,4 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
         GROUP BY sv.ma_sv, sv.ten_sv, l.ten_lop, gd.ma_gd;          
             """, nativeQuery = true)
     List<Object[]> thongKeDiemDanh(@Param("maMh") String maMh, @Param("Nmh") Integer Nmh, @Param("maGd") Integer maGd);
-
-    @Query(value = """
-        SELECT count(diem_danh1) ,count(diem_danh2) FROM diem_danh
-        where ma_tkb = :maTkb and ma_sv = :maSv and ngay_hoc = :ngayHoc
-        """,nativeQuery = true)
-    Object[] getLanDiemDanh(@Param("maTkb")Integer maTkb,@Param("maSv")String maSv,@Param("ngayHoc")LocalDate ngayHoc);
-
-
 }

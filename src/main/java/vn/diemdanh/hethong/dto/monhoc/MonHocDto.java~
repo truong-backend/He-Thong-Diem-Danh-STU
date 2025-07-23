@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MonHocDto {
 
-//    @NotBlank(message = "Mã môn học không được để trống")
+    @NotBlank(message = "Mã môn học không được để trống")
     @Size(max = 20, message = "Mã môn học không được vượt quá 20 ký tự")
     @Pattern(regexp = "^[A-Za-z0-9]+$", message = "Mã môn học chỉ chứa chữ và số")
     private String maMh;

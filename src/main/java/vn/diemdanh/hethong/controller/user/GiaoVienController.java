@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.diemdanh.DiemDanhQRSinhVienRequest;
 import vn.diemdanh.hethong.dto.giaovien.*;
+import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.GiaoVienRepository;
@@ -45,9 +46,9 @@ public class GiaoVienController {
 
     // Điểm danh quét mã QR sinh viên
     @PostMapping("/diemdanhnguoc")
-    public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhQRSinhVienRequest request) {
+    public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhRequest request) {
         try {
-            int result = diemDanhService.diemDanhMaQRSinhVien(request);
+            int result = diemDanhService.diemDanhSinhVien(request);
             if (result > 0) {
                 return ResponseEntity.ok("Điểm danh thành công");
             }
