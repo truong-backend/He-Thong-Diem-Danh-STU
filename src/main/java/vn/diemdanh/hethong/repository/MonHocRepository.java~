@@ -29,25 +29,21 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
                                          @Param("namHoc") Integer namHoc);
     // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
     @Query(value = """
-
-            SELECT DISTINCT
-                           lg.ma_gd,
-                           lg.nmh as nhom_mon_hoc,
-                           mh.ten_mh,
-                           lg.phong_hoc,
-                           lg.ngay_bd,
-                           lg.ngay_kt,
-                           CASE\s
-                               WHEN lg.nmh = 0 THEN 'Chưa phân công nhóm'
-                               ELSE CONCAT('Tiết ', lg.st_bd, ' - ', lg.st_kt)
-                           END as ca_hoc
-                       FROM lich_gd lg
-                       JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
-                       WHERE lg.ma_gv = :maGv
-                           AND lg.ma_mh = :maMh
-                           AND lg.hoc_ky = :hocKy
-                           AND YEAR(lg.ngay_bd) = :namHoc
-                       ORDER BY lg.nmh
+        SELECT DISTINCT
+            lg.ma_gd,
+            lg.nmh as nhom_mon_hoc,
+            mh.ten_mh,
+            lg.phong_hoc,
+            lg.ngay_bd,
+            lg.ngay_kt,
+            CONCAT('Tiết ', lg.st_bd, ' - ', lg.st_kt) as ca_hoc
+        FROM lich_gd lg
+        JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
+        WHERE lg.ma_gv = :maGv
+            AND lg.ma_mh = :maMh
+            AND lg.hoc_ky = :hocKy
+            AND YEAR(lg.ngay_bd) = :namHoc
+        ORDER BY lg.nmh
         """, nativeQuery = true)
     List<Object[]> findSubjectGroups(@Param("maGv") String maGv,
                                      @Param("maMh") String maMh,

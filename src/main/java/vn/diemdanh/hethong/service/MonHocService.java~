@@ -53,6 +53,7 @@ public class MonHocService {
     }
     // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
     public List<NhomMonHocDTO> getSubjectGroups(String maGv, String maMh, Integer hocKy, Integer namHoc) {
+//        log.info("Fetching subject groups for teacher: {}, subject: {}", maGv, maMh);
         List<Object[]> results = monHocRepository.findSubjectGroups(maGv, maMh, hocKy, namHoc);
 
         return results.stream()

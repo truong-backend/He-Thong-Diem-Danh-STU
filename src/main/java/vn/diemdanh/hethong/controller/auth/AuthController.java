@@ -43,10 +43,7 @@ public class AuthController {
         try {
             log.info("Attempting user login for email: {}", loginRequest.getEmail());
 
-            if (!loginRequest.getEmail().endsWith("@student.stu.edu.vn")) {
-                return ResponseEntity.badRequest()
-                        .body("Email không hợp lệ. Vui lòng sử dụng email sinh viên (@student.stu.edu.vn)");
-            }
+
 
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
