@@ -19,6 +19,8 @@ public class QrcodeController {
 
     // ========================== 8. TẠO QR CODE MỚI ==========================
 
+    // ========================== 8. TẠO QR CODE MỚI ==========================
+
     @PostMapping("/qr/TaoQRCode")
     public ResponseEntity<QRCodeDTO> generateQRCode(@Valid @RequestBody TaoQRCodeRequest request) {
         try {
@@ -32,26 +34,16 @@ public class QrcodeController {
     // ========================== 9. ĐIỂM DANH BẰNG QR CODE ==========================
 
     @PostMapping("/qr")
-    public ResponseEntity<String> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
+    public ResponseEntity<?> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
         try {
-            qrcodeService.markAttendanceByQR(request);
-            return ResponseEntity.ok("Điểm danh thành công");
-        } catch (RuntimeException e) {
-            String message = e.getMessage();
-            HttpStatus status = HttpStatus.BAD_REQUEST;
-
-            if (message.contains("không tồn tại")) {
-                status = HttpStatus.NOT_FOUND;
-            } else if (message.contains("đã hết hiệu lực")) {
-                status = HttpStatus.GONE;
-            } else if (message.contains("đã điểm danh rồi")) {
-                status = HttpStatus.CONFLICT;
+            int result = qrcodeService.markAttendanceByQR(request);
+            if (result > 0) {
+                return ResponseEntity.ok("Điểm danh thành công");
+            } else {
+                return ResponseEntity.ok("Lỗi điểm danh");
             }
-
-            return ResponseEntity.status(status).body(message);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Không thể điểm danh: Lỗi hệ thống");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Điểm danh thất bại: " + e.getMessage());
         }
     }
 }
