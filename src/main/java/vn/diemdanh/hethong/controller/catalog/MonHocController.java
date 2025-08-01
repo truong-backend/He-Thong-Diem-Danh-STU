@@ -10,6 +10,7 @@ import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
+import vn.diemdanh.hethong.dto.monhoc.MonHocKetQuaDiemDanhDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
 import vn.diemdanh.hethong.entity.MonHoc;
@@ -28,6 +29,13 @@ public class MonHocController {
 
     @Autowired
     private MonHocService monHocService;
+    //===========
+    // Lấy môn học cho kết quả điểm danh
+    @GetMapping("/monHocKetQuaDiemDanh")
+    public ResponseEntity<?> getMonHocForDiemDanh(){
+        List<MonHocKetQuaDiemDanhDTO> result = monHocService.getMonHocKetQuaDiemDanh();
+        return ResponseEntity.ok(result);
+    }
 
     // ========== CREATE ==========
 
@@ -152,12 +160,12 @@ public class MonHocController {
     }
 
     @GetMapping("/danh-sach-nhom-mon-hoc")
-    public ResponseEntity<List<NhomMonHocDTO>> getSubjectGroups(
-            @RequestParam String teacherId,
-            @RequestParam String subjectId,
-            @RequestParam Integer semester,
-            @RequestParam Integer year) {
-        return ResponseEntity.ok(monHocService.getSubjectGroups(teacherId, subjectId, semester, year));
+    public ResponseEntity<?> getSubjectGroups(
+            @RequestParam String maGv,
+            @RequestParam String maMh,
+            @RequestParam Integer hocKy,
+            @RequestParam Integer namHoc) {
+        return ResponseEntity.ok(monHocService.getSubjectGroups(maGv, maMh, hocKy, namHoc));
     }
 
     @GetMapping("/danh-sach-mon-hoc-cua-sinh-vien")
