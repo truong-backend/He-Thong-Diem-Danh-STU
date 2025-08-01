@@ -1,15 +1,20 @@
 package vn.diemdanh.hethong.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocDto;
 import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
+import vn.diemdanh.hethong.dto.monhoc.MonHocKetQuaDiemDanhDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
+import vn.diemdanh.hethong.repository.GiaoVienRepository;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,8 +24,21 @@ import java.util.stream.Collectors;
 public class MonHocService {
     @Autowired
     private MonHocRepository monHocRepository;
+    private GiaoVienRepository giaoVienRepository;
 
-
+    // Kết quả điểm danh của môn học theo nhóm môn học
+    public List<MonHocKetQuaDiemDanhDTO> getMonHocKetQuaDiemDanh(){
+        List<Object[]> results = monHocRepository.getMonHocForDiemDanh();
+        return results.stream().map(monhoc -> {
+            MonHocKetQuaDiemDanhDTO dto = new MonHocKetQuaDiemDanhDTO();
+            dto.setMaGd((Integer)monhoc[0]);
+            dto.setMaMh((String) monhoc[1]);
+            dto.setTenMh((String)monhoc[2]);
+            dto.setPhongHoc((String) monhoc[3]);
+            dto.setNmh((Integer) monhoc[4]);
+            return dto;
+        }).collect(Collectors.toList());
+    }
 
 
     // 2. LẤY DANH SÁCH MÔN HỌC CỦA GIẢNG VIÊN
@@ -41,18 +59,17 @@ public class MonHocService {
     public List<NhomMonHocDTO> getSubjectGroups(String maGv, String maMh, Integer hocKy, Integer namHoc) {
 //        log.info("Fetching subject groups for teacher: {}, subject: {}", maGv, maMh);
         List<Object[]> results = monHocRepository.findSubjectGroups(maGv, maMh, hocKy, namHoc);
-
-        return results.stream()
-                .map(row -> NhomMonHocDTO.builder()
-                        .maGd((Integer) row[0])
-                        .nhomMonHoc((Integer) row[1])
-                        .tenMh((String) row[2])
-                        .phongHoc((String) row[3])
-                        .ngayBd(((java.sql.Date) row[4]).toLocalDate())
-                        .ngayKt(((java.sql.Date) row[5]).toLocalDate())
-                        .caHoc((String) row[6])
-                        .build())
-                .collect(Collectors.toList());
+        return results.stream().map(row -> {
+           NhomMonHocDTO dto = new NhomMonHocDTO();
+           dto.setMaGd((Integer) row[0]);
+            dto.setNhomMonHoc((Integer) row[1]);
+            dto.setTenMh((String) row[2]);
+           dto.setPhongHoc((String) row[3]);
+            dto.setNgayBd(((java.sql.Date) row[4]).toLocalDate());
+            dto.setNgayKt(((java.sql.Date) row[5]).toLocalDate());
+            dto.setCaHoc("Tiết " + row[6] + " - " + row[7]);
+           return dto;
+        }).collect(Collectors.toList());
     }
     // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN
     public List<MonHocSinhVienDto> getMonHocCuaSinhVien(String maSv) {
