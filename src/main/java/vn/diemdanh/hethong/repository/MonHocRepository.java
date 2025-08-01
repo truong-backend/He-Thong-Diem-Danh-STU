@@ -29,26 +29,31 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
                                          @Param("namHoc") Integer namHoc);
     // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
     @Query(value = """
-        SELECT DISTINCT
-            lg.ma_gd,
-            lg.nmh as nhom_mon_hoc,
-            mh.ten_mh,
-            lg.phong_hoc,
-            lg.ngay_bd,
-            lg.ngay_kt,
-            CONCAT('Tiết ', lg.st_bd, ' - ', lg.st_kt) as ca_hoc
-        FROM lich_gd lg
-        JOIN mon_hoc mh ON lg.ma_mh = mh.ma_mh
-        WHERE lg.ma_gv = :maGv
-            AND lg.ma_mh = :maMh
-            AND lg.hoc_ky = :hocKy
-            AND YEAR(lg.ngay_bd) = :namHoc
-        ORDER BY lg.nmh
-        """, nativeQuery = true)
-    List<Object[]> findSubjectGroups(@Param("maGv") String maGv,
-                                     @Param("maMh") String maMh,
-                                     @Param("hocKy") Integer hocKy,
-                                     @Param("namHoc") Integer namHoc);
+    SELECT
+        lg.ma_gd,
+        lg.nmh,
+        mh.ten_mh,
+        lg.phong_hoc,
+        lg.ngay_bd,
+        lg.ngay_kt,
+        lg.st_bd, 
+        lg.st_kt
+    FROM lich_gd lg
+    JOIN mon_hoc mh ON mh.ma_mh = lg.ma_mh
+    WHERE lg.ma_gv = :maGv
+      AND lg.ma_mh = :maMh
+      AND lg.hoc_ky = :hocKy
+      AND YEAR(lg.ngay_bd) = :namHoc
+    ORDER BY lg.nmh
+""", nativeQuery = true)
+    List<Object[]> findSubjectGroups(
+            @Param("maGv") String maGv,
+            @Param("maMh") String maMh,
+            @Param("hocKy") Integer hocKy,
+            @Param("namHoc") Integer namHoc
+    );
+
+
     // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN đang hoc
     @Query(value = """
         SELECT 
@@ -61,6 +66,14 @@ public interface MonHocRepository extends JpaRepository<MonHoc, String> {
         WHERE sv.ma_sv = :maSv
     """, nativeQuery = true)
     List<Object[]> findMonHocByMaSv(@Param("maSv") String maSv);
+    //Lấy môn học cho kết quả điểm danh
+    @Query(value = """
+        SELECT DISTINCT gd.ma_gd,mh.ma_mh, mh.ten_mh, gd.phong_hoc, gd.nmh
+        FROM mon_hoc mh
+        JOIN lich_gd gd ON mh.ma_mh = gd.ma_mh
+        """,nativeQuery = true)
+    List<Object[]> getMonHocForDiemDanh();
+
     //Lấy danh sách môn học theo thứ
     @Query(value = """
         SELECT 
