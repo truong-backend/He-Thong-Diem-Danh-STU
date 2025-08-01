@@ -27,7 +27,7 @@ public class DiemDanhLog {
     private DiemDanh maDd;
 
     @Column(name = "lan_diem_danh", columnDefinition = "int UNSIGNED not null")
-    private Long lanDiemDanh;
+    private Integer lanDiemDanh;
 
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "thoi_gian_diem_danh")
