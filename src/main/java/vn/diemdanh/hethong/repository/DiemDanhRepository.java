@@ -95,9 +95,9 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                 select t.ngay_hoc,gd.st_bd,gd.st_kt,
                     count(dl.lan_diem_danh) as svSoLanDD,
                     gvdd.gv_so_lan_dd as gvSoLanDD,
-                        case when
-                            count(dl.lan_diem_danh) = gvdd.gv_so_lan_dd then 'Có mặt'
-                            else 'Vắng'
+                    case when
+                        count(dl.lan_diem_danh) = gvdd.gv_so_lan_dd then 'Có mặt'
+                        else 'Vắng'
                     end as trangThai
                     from diem_danh_log dl join diem_danh dd on dd.ma_dd = dl.ma_dd
                     join tkb t on t.ma_tkb = dd.ma_tkb
@@ -108,10 +108,10 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                                 join diem_danh dd on dd.ma_dd = dl.ma_dd
                                 group by dd.ma_tkb 
                     ) gvdd on gvdd.ma_tkb = dd.ma_tkb
-                where dd.ma_sv = :maSv and mh.ma_mh = :maMH
+                where dd.ma_sv = :maSv and mh.ma_mh = :maMH and gd.nmh = :nmh
                 group by t.ngay_hoc, gd.st_bd, gd.st_kt, gvdd.gv_so_lan_dd
             """, nativeQuery = true)
-    List<Object[]> getKetQuaDDByMaSVAndMaMonHoc(@Param("maSv") String maSv, @Param("maMH") String maMH);
+    List<Object[]> getKetQuaDDByMaSVAndMaMonHoc(@Param("maSv") String maSv, @Param("maMH") String maMH,@Param("nmh") Integer nmh);
 
     //danh sách điểm danh cho theo hoc ky va nam hoc trang quan trị vien
     @Query(value = """
