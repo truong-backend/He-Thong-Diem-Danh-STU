@@ -89,8 +89,8 @@ public class DiemDanhController {
     }
 
     @GetMapping("/ketqua_diemdanh_sinhvien")
-    public ResponseEntity<?> getKetquaDiemdanhTheoSvVaMonHoc(@RequestParam String maMh) {
-        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhSinhVien(maMh));
+    public ResponseEntity<?> getKetquaDiemdanhTheoSvVaMonHoc(@RequestParam String maMh,  @RequestParam Integer nmh) {
+        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhSinhVien(maMh,nmh));
     }
 
     // ========================== QUẢN TRỊ VIÊN - BÁO CÁO ==========================
