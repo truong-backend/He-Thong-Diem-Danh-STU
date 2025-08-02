@@ -63,20 +63,19 @@ public class DiemDanhService {
 
     }
 
-
-    public List<KetQuaDiemDanhSinhVienDTO> getKetQuaDiemDanhSinhVien(String maMH) {
+    public List<KetQuaDiemDanhSinhVienDTO> getKetQuaDiemDanhSinhVien(String maMH,Integer Nmh) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         String maSv = sinhVienRepository.findMaSvByEmail(email);
-        List<Object[]> getKetQua = diemDanhRepository.getKetQuaDDByMaSVAndMaMonHoc(maSv, maMH);
-        return getKetQua.stream().map(row ->
+        List<Object[]> getKetQua = diemDanhRepository.getKetQuaDDByMaSVAndMaMonHoc(maSv, maMH,Nmh);
+        return getKetQua.stream().map((Object[] row) ->
                 {
                     KetQuaDiemDanhSinhVienDTO dto = new KetQuaDiemDanhSinhVienDTO();
                     dto.setNgayHoc(((java.sql.Date) row[0]).toLocalDate());
-                    dto.setStBd((Integer) row[1]);
-                    dto.setStKt((Integer) row[2]);
-                    dto.setSvSolanDD((Integer) row[3]);
-                    dto.setGvSoLanDD((Integer) row[4]);
+                    dto.setStBd(((Number) row[1]).longValue());
+                    dto.setStKt(((Number) row[2]).longValue());
+                    dto.setSvSolanDD(((Number) row[3]).longValue());
+                    dto.setGvSoLanDD(((Number) row[4]).longValue());
                     dto.setTrangThai((String) row[5]);
                     return dto;
                 }
