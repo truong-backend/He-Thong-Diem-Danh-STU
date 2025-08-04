@@ -1,118 +1,63 @@
-package vn.diemdanh.hethong.config;
+spring.application.name=HeThongDiemDanh
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.rekognition.AmazonRekognition;
-import com.amazonaws.services.rekognition.AmazonRekognitionClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@EnableConfigurationProperties(AwsConfig.AwsProperties.class)
-public class AwsConfig {
+spring.datasource.url=jdbc:mysql://db:3306/diemdanh_stu?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&createDatabaseIf>
+spring.datasource.username=root
+spring.datasource.password=root
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-private final AwsProperties awsProperties;
+#spring.datasource.url=jdbc:mysql://localhost:3306/quan_ly_diem_danh?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8
+#spring.datasource.username=root
+#spring.datasource.password=
+#spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-public AwsConfig(AwsProperties awsProperties) {
-this.awsProperties = awsProperties;
-}
 
-@Bean
-public AmazonRekognition rekognitionClient() {
-validateCredentials();
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=true    
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
 
-BasicAWSCredentials awsCreds = new BasicAWSCredentials(
-awsProperties.getCredentials().getAccessKey(),
-awsProperties.getCredentials().getSecretKey()
-);
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=honguyententhanhtruong@gmail.com
+spring.mail.password=vxwl myut haes zlen
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+spring.mail.properties.mail.smtp.timeout=5000
+spring.mail.properties.mail.smtp.connectiontimeout=5000
+spring.mail.properties.mail.smtp.writetimeout=5000
+spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com
 
-return AmazonRekognitionClientBuilder.standard()
-.withRegion(awsProperties.getRegion().getStatic())
-.withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-.build();
-}
+# Logging configuration for debugging JWT issues
+logging.level.vn.diemdanh.hethong.security=DEBUG
+logging.level.org.springframework.security=DEBUG
 
-@Bean
-public AmazonS3 amazonS3() {
-validateCredentials();
+# JWT Configuration
+jwt.secret=f16eef5770f8a61e377d7a7198f5e139115e4a191eba0b4e07ccde5eb437323c692e82c04c5544e06d8acb445142f75cad9cecaf291f88e3f2a715807f9a0f5b
+jwt.expiration=604800000
 
-BasicAWSCredentials awsCreds = new BasicAWSCredentials(
-awsProperties.getCredentials().getAccessKey(),
-awsProperties.getCredentials().getSecretKey()
-);
+# Swagger Configuration
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.operationsSorter=method
 
-return AmazonS3ClientBuilder.standard()
-.withRegion(awsProperties.getRegion().getStatic())
-.withCredentials(new AWSStaticCredentialsProvider(awsCreds))
-.build();
-}
 
-private void validateCredentials() {
-if (awsProperties.getCredentials().getAccessKey() == null || 
-awsProperties.getCredentials().getAccessKey().isEmpty() ||
-awsProperties.getCredentials().getSecretKey() == null || 
-awsProperties.getCredentials().getSecretKey().isEmpty()) {
-throw new IllegalStateException("AWS credentials not found. Please set cloud.aws.credentials.access-key and cloud.aws.credentials.secret-key");
-}
-}
 
-@ConfigurationProperties(prefix = "cloud.aws")
-public static class AwsProperties {
-private Credentials credentials = new Credentials();
-private Region region = new Region();
+logging.level.org.springdoc=DEBUG
 
-// Getters and setters
-public Credentials getCredentials() {
-return credentials;
-}
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
 
-public void setCredentials(Credentials credentials) {
-this.credentials = credentials;
-}
+#debug aws s3
+logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.web.multipart=TRACE
+logging.level.org.springframework.http.converter=TRACE
 
-public Region getRegion() {
-return region;
-}
+# AWS Configuration
+cloud.aws.credentials.access-key=AKIATS35HK5PXLEL5WTQ
+cloud.aws.credentials.secret-key=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
+cloud.aws.region.static=ap-southeast-1
 
-public void setRegion(Region region) {
-this.region = region;
-}
-
-public static class Credentials {
-private String accessKey;
-private String secretKey;
-
-public String getAccessKey() {
-return accessKey;
-}
-
-public void setAccessKey(String accessKey) {
-this.accessKey = accessKey;
-}
-
-public String getSecretKey() {
-return secretKey;
-}
-
-public void setSecretKey(String secretKey) {
-this.secretKey = secretKey;
-}
-}
-
-public static class Region {
-private String static_ = "ap-southeast-1";
-
-public String getStatic() {
-return static_;
-}
-
-public void setStatic(String static_) {
-this.static_ = static_;
-}
-}
-}
-}
+# Alternative AWS configuration (try if above doesn't work)
+aws.accessKeyId=AKIATS35HK5PXLEL5WTQ
+aws.secretKey=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
+aws.region=ap-southeast-1
