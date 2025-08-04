@@ -12,11 +12,15 @@ services:
     restart: no
     networks:
       - app-network
+    env_file:
+      - .env
     environment:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/diemdanh_stu?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
-
+      - ACCESS_KEY=${ACCESS_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - REGION=${REGION}
   db:
     image: mysql:8.0
     container_name: db
