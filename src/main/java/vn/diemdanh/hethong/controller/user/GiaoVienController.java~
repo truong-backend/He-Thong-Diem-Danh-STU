@@ -72,6 +72,7 @@ public class GiaoVienController {
     }
 
     // Điểm danh quét mã QR sinh viên
+    @PreAuthorize("hasRole('teacher')")
     @PostMapping("/diemdanhnguoc")
     public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhRequest request) {
         try {
