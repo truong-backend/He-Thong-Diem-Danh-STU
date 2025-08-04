@@ -1,13 +1,20 @@
 package vn.diemdanh.hethong.service;
 
+import com.amazonaws.services.rekognition.AmazonRekognition;
+import com.amazonaws.services.rekognition.model.Image;
+import com.amazonaws.services.rekognition.model.IndexFacesRequest;
+import com.amazonaws.services.rekognition.model.IndexFacesResult;
+import com.amazonaws.services.rekognition.model.S3Object;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
-import vn.diemdanh.hethong.dto.sinhvien.QRSinhVienInfoDTO;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
+import org.springframework.web.multipart.MultipartFile;
+import vn.diemdanh.hethong.dto.sinhvien.*;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.Lop;
 import vn.diemdanh.hethong.entity.SinhVien;
@@ -16,13 +23,11 @@ import vn.diemdanh.hethong.repository.LopRepository;
 import vn.diemdanh.hethong.repository.SinhVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,18 +44,8 @@ public class SinhVienService {
 
     @Autowired
     private UserService userService;
-
-    public QRSinhVienInfoDTO getQRSinhVien(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() ->
-                new EntityNotFoundException("Không tìm thấy user hoặc email"));
-        SinhVien sinhVien = user.getMaSv();
-
-        QRSinhVienInfoDTO qRSinhVienInfoDTO = new QRSinhVienInfoDTO();
-        qRSinhVienInfoDTO.setMaSv(sinhVien.getMaSv());
-        qRSinhVienInfoDTO.setTenSv(sinhVien.getTenSv());
-        qRSinhVienInfoDTO.setTenLop(sinhVien.getMaLop().getTenLop());
-        return qRSinhVienInfoDTO;
-    }
+    @Autowired private AmazonS3 amazonS3;
+    @Autowired private AmazonRekognition rekognitionClient;
 
     public SinhVienDTOProfile getSinhVienProfile(String email){
         User user = userRepository.findByEmail(email).orElseThrow(() ->
@@ -66,32 +61,71 @@ public class SinhVienService {
         svDTO.setDiaChi(sinhVien.getDiaChi());
         svDTO.setEmail(sinhVien.getEmail());
         svDTO.setSdt(sinhVien.getSdt());
-        svDTO.setAvatar(sinhVien.getAvatar());
+        String avatarUrl = "https://my-quan-ly-diem-danh-stu-dtn00150.s3.ap-southeast-1.amazonaws.com/" + sinhVien.getMaSv() +".jpg";
+        svDTO.setAvatar(avatarUrl);
         return svDTO;
     }
+    public QRSinhVienInfoDTO getQRSinhVien(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() ->
+                new EntityNotFoundException("Không tìm thấy user hoặc email"));
+        SinhVien sinhVien = user.getMaSv();
+
+        QRSinhVienInfoDTO qRSinhVienInfoDTO = new QRSinhVienInfoDTO();
+        qRSinhVienInfoDTO.setMaSv(sinhVien.getMaSv());
+        qRSinhVienInfoDTO.setTenSv(sinhVien.getTenSv());
+        qRSinhVienInfoDTO.setTenLop(sinhVien.getMaLop().getTenLop());
+        return qRSinhVienInfoDTO;
+    }
+
+
 
     public SinhVienDTOProfile maptoDTO(SinhVien sv){
         return new SinhVienDTOProfile(
-          sv.getMaSv(),
-          sv.getTenSv(),
-          sv.getMaLop().getTenLop(),
-          sv.getNgaySinh(),
-          sv.getPhai(),
-          sv.getDiaChi(),
-          sv.getEmail(),
-          sv.getSdt(), sv.getAvatar()
+                sv.getMaSv(),
+                sv.getTenSv(),
+                sv.getMaLop().getTenLop(),
+                sv.getNgaySinh(),
+                sv.getPhai(),
+                sv.getDiaChi(),
+                sv.getEmail(),
+                sv.getSdt(),
+                sv.getAvatar()
         );
     }
-    public SinhVienDTOProfile updateProfileSinhVien(String email,SinhVienDTOProfile svDTO){
+
+    public SinhVienDTOProfile updateProfileSinhVien(String email, SinhVienUpdateRequest svDTO, MultipartFile avatarFile){
         User user = userRepository.findByEmail(email).orElseThrow(()
                 -> new EntityNotFoundException("Không tìm thấy user hoặc email"));
 
-        SinhVien updateSV = user.getMaSv();
-        updateSV.setSdt(svDTO.getSdt());
-        updateSV.setDiaChi(svDTO.getDiaChi());
-        SinhVien saved = sinhVienRepository.save(updateSV);
-        return maptoDTO(saved);
+        SinhVien sv = user.getMaSv();
+        sv.setDiaChi(svDTO.getDiaChi());
+        sv.setSdt(svDTO.getSdt());
+        if(avatarFile != null && !avatarFile.isEmpty()) {
+            try {
+                String fileName = sv.getMaSv() + ".jpg";
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentType("image/jpeg");
+                metadata.setContentLength(avatarFile.getSize());
 
+                amazonS3.putObject(new PutObjectRequest("my-quan-ly-diem-danh-stu-dtn00150", fileName, avatarFile.getInputStream(), metadata));
+                String fileUrl = amazonS3.getUrl("my-quan-ly-diem-danh-stu-dtn00150", fileName).toString();
+                sv.setAvatar(fileUrl);
+                Image image = new Image().withS3Object(new S3Object().withBucket("my-quan-ly-diem-danh-stu-dtn00150").withName(fileName));
+                IndexFacesRequest indexFacesRequest = new IndexFacesRequest()
+                        .withCollectionId("diem-danh-stu")
+                        .withImage(image)
+                        .withExternalImageId(fileName)
+                        .withDetectionAttributes("DEFAULT");
+                IndexFacesResult indexFacesResult = rekognitionClient.indexFaces(indexFacesRequest);
+                if(indexFacesResult.getFaceRecords().isEmpty()) {
+                    throw new RuntimeException("Không thể index khuôn mặt từ avatar");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Lỗi khi lưu avatar hoặc index Rekognition: " + e);
+            }
+        }
+        SinhVien saved = sinhVienRepository.save(sv);
+        return maptoDTO(saved);
     }
 
     public void createSinhVien(CreateSinhVienRequest request) {
@@ -138,10 +172,107 @@ public class SinhVienService {
         return sinhVienRepository.findAll();
     }
 
+    // Lấy danh sách sinh viên không phân trang
+    public List<SinhVienDto> getAllSinhVienNoPagination() {
+        List<SinhVien> sinhViens = sinhVienRepository.findAll();
+        return sinhViens.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
 
-    // 5. LẤY DANH SÁCH SINH VIÊN CHO ĐIỂM DANH
+    // Lấy danh sách sinh viên có phân trang, sắp xếp và tìm kiếm
+    public Page<SinhVienDto> getAllSinhVienWithPagination(int page, int size, String[] sort, String search) {
+        String sortField = sort[0];
+        String sortDir = sort.length > 1 ? sort[1] : "asc";
+
+        if (!isValidSortField(sortField)) {
+            throw new IllegalArgumentException(
+                    "Trường sắp xếp không hợp lệ. Các trường hợp lệ: maSv, tenSv, ngaySinh, email, maLop");
+        }
+
+        Sort.Direction direction = sortDir.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+        Page<SinhVien> sinhViens;
+        if (search != null && !search.trim().isEmpty()) {
+            sinhViens = sinhVienRepository.findByMaSvContainingIgnoreCase(search.trim(), pageable);
+        } else {
+            sinhViens = sinhVienRepository.findAll(pageable);
+        }
+
+        return sinhViens.map(this::convertToDto);
+    }
+
+    // Lấy thông tin sinh viên theo mã
+    public SinhVienDto getSinhVienByMaSv(String maSv) {
+        SinhVien sv = sinhVienRepository.findById(maSv)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
+        return convertToDto(sv);
+    }
+
+    // Cập nhật sinh viên
+    public void updateSinhVien(String maSv, UpdateSinhVienRequest request) {
+        SinhVien sv = sinhVienRepository.findById(maSv)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
+
+        Lop lop = lopRepository.findById(request.getMaLop())
+                .orElseThrow(() -> new RuntimeException("Lớp không tồn tại"));
+
+        sv.setTenSv(request.getTenSv());
+        sv.setNgaySinh(request.getNgaySinh());
+        sv.setPhai(request.getPhai());
+        sv.setDiaChi(request.getDiaChi());
+        sv.setSdt(request.getSdt());
+        sv.setEmail(request.getEmail());
+        sv.setMaLop(lop);
+
+        sinhVienRepository.save(sv);
+
+        // Cập nhật email trong bảng User nếu có
+        userRepository.findByEmail(sv.getEmail()).ifPresent(user -> {
+            user.setEmail(request.getEmail());
+            user.setUpdatedAt(Instant.now());
+            userRepository.save(user);
+        });
+    }
+
+    // Xóa sinh viên
+    public void deleteSinhVien(String maSv) {
+        SinhVien sv = sinhVienRepository.findById(maSv)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
+
+        // Xóa user liên quan nếu có
+        userRepository.findByEmail(sv.getEmail()).ifPresent(userRepository::delete);
+
+        // Xóa sinh viên
+        sinhVienRepository.delete(sv);
+    }
+
+    // Hàm chuyển đổi entity sang DTO
+    private SinhVienDto convertToDto(SinhVien sv) {
+        SinhVienDto dto = new SinhVienDto();
+        dto.setMaSv(sv.getMaSv());
+        dto.setTenSv(sv.getTenSv());
+        dto.setNgaySinh(sv.getNgaySinh());
+        dto.setPhai(sv.getPhai());
+        dto.setDiaChi(sv.getDiaChi());
+        dto.setSdt(sv.getSdt());
+        dto.setEmail(sv.getEmail());
+        dto.setMaLop(sv.getMaLop().getMaLop());
+        dto.setTenLop(sv.getMaLop().getTenLop());
+        dto.setTenKhoa(sv.getMaLop().getMaKhoa().getTenKhoa());
+        dto.setAvatar(sv.getAvatar());
+        dto.setHasAccount(userRepository.findByEmail(sv.getEmail()).isPresent());
+        return dto;
+    }
+
+    // Kiểm tra trường sắp xếp hợp lệ
+    private boolean isValidSortField(String field) {
+        return Arrays.asList("maSv", "tenSv", "ngaySinh", "email", "maLop").contains(field);
+    }
+
+    // Lấy danh sách sinh viên cho điểm danh
     public List<SinhVienDiemDanhDTO> getStudentsForAttendance(Integer maTkb) {
-//        log.info("Fetching students for attendance, class: {}", maTkb);
         List<Object[]> results = sinhVienRepository.findStudentsForAttendance(maTkb);
 
         return results.stream()

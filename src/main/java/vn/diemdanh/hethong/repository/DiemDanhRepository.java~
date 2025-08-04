@@ -192,10 +192,10 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                                 join diem_danh dd on dd.ma_dd = dl.ma_dd
                                 group by dd.ma_tkb 
                     ) gvdd on gvdd.ma_tkb = dd.ma_tkb
-                where dd.ma_sv = :maSv and mh.ma_mh = :maMH
+                where dd.ma_sv = :maSv and mh.ma_mh = :maMH and gd.nmh = :Nmh
                 group by t.ngay_hoc, gd.st_bd, gd.st_kt, gvdd.gv_so_lan_dd
             """, nativeQuery = true)
-    List<Object[]> getKetQuaDDByMaSVAndMaMonHoc(@Param("maSv") String maSv, @Param("maMH") String maMH);
+    List<Object[]> getKetQuaDDByMaSVAndMaMonHoc(@Param("maSv") String maSv, @Param("maMH") String maMH,@Param("Nmh")Integer nmh);
 
     // Thống kê kết quả điểm danh của sinh viên
     @Query(value = """
@@ -253,4 +253,12 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
         GROUP BY sv.ma_sv, sv.ten_sv, l.ten_lop, gd.ma_gd;          
             """, nativeQuery = true)
     List<Object[]> thongKeDiemDanh(@Param("maMh") String maMh, @Param("Nmh") Integer Nmh, @Param("maGd") Integer maGd);
+
+    @Query(value = """
+        SELECT count(diem_danh1) ,count(diem_danh2) FROM diem_danh
+        where ma_tkb = :maTkb and ma_sv = :maSv and ngay_hoc = :ngayHoc
+        """,nativeQuery = true)
+    Object[] getLanDiemDanh(@Param("maTkb")Integer maTkb,@Param("maSv")String maSv,@Param("ngayHoc")LocalDate ngayHoc);
+
+
 }

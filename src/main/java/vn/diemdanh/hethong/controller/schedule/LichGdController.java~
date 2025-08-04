@@ -240,7 +240,7 @@ public class LichGdController {
 
     // -------------------- LẤY LỊCH GIẢNG DẠY THEO MÃ GIÁO VIÊN --------------------
     @GetMapping("/giang-vien/{maGv}")
-    public List<Object[]> getLichByMaGv(@PathVariable String maGv) {
+    public List<LichGdDto> getLichByMaGv(@PathVariable String maGv) {
         return lichGdService.getLichGdByMaGv(maGv);
     }
 }

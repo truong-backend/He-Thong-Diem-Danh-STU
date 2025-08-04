@@ -3,26 +3,20 @@ package vn.diemdanh.hethong.controller.user;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import org.springframework.web.multipart.MultipartFile;
 import vn.diemdanh.hethong.dto.giaovien.*;
 import vn.diemdanh.hethong.dto.thucong.DiemDanhRequest;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.service.DiemDanhService;
-import vn.diemdanh.hethong.service.FaceRekognitionService;
 import vn.diemdanh.hethong.service.GiaoVienService;
 import vn.diemdanh.hethong.service.UserService;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/giao-vien")
@@ -36,38 +30,6 @@ public class GiaoVienController {
 
     @Autowired
     private UserService userService;
-
-    @Autowired private FaceRekognitionService faceRekognitionService;
-
-    @PostMapping(value="/diemdanh-face",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> diemdanhFace(
-            @RequestPart("file") MultipartFile file,
-            @RequestParam("maTkb") Integer maTkb,
-            @RequestParam("ngayHoc") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ngayHoc,
-            @RequestParam("ghiChu") String ghiChu
-    ) {
-        try {
-            Optional<String> maSv = faceRekognitionService.detectStudentFaceId(file);
-            if(maSv.isPresent()){
-                DiemDanhRequest request = new DiemDanhRequest();
-                request.setMaTkb(maTkb);
-                request.setMaSv(maSv.get());
-                request.setNgayHoc(ngayHoc);
-                request.setGhiChu(ghiChu);
-                int result = diemDanhService.diemDanhSinhVien(request);
-                if (result > 0) {
-                    return ResponseEntity.ok("Điểm danh thành công");
-                }
-                return ResponseEntity.ok("Lỗi điểm danh khuôn mặt");
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("Không nhận diện được sinh viên");
-            }
-        }catch (Exception e){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Điểm danh thất bại: " + e.getMessage());
-        }
-    }
 
     // Điểm danh quét mã QR sinh viên
     @PostMapping("/diemdanhnguoc")

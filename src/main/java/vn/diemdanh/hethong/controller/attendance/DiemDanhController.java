@@ -25,19 +25,40 @@ public class DiemDanhController {
     @Autowired
     private DiemDanhService diemDanhService;
 
+    //Thống kê điểm danh
+    @GetMapping("/thongke_diemdanh")
+    public ResponseEntity<?> thongKeDiemDanh(@RequestParam String maMh,
+                                             @RequestParam Integer nmh,
+                                             @RequestParam Integer maGd) {
+        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhAllSinhVien(maMh, nmh, maGd));
+    }
+    // Xuất excel thống kê điểm danh
+    @GetMapping("/export-thong-ke-excel")
+    public void xuatThongKeDiemDanh(HttpServletResponse response,
+                                    @RequestParam String maMh,
+                                    @RequestParam Integer nmh,
+                                    @RequestParam Integer maGd) throws IOException {
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=thong_ke_diem_danh.xlsx");
+        List<ThongKeDiemDanhDTO>  thongKe  = diemDanhService.getKetQuaDiemDanhAllSinhVien(maMh, nmh, maGd);
+        ExcelThongKeExport excel = new ExcelThongKeExport(thongKe);
+        excel.export(response);
+    }
+
+
     // ========================== ĐIỂM DANH THỦ CÔNG ==========================
 
     @PostMapping("/diem-danh-thu-cong")
-    public ResponseEntity<?> markAttendanceManual(@Valid @RequestBody DiemDanhRequest request) {
-        try{
+    public ResponseEntity<String> markAttendanceManual(@Valid @RequestBody DiemDanhRequest request) {
+        try {
             int result = diemDanhService.diemDanhSinhVien(request);
             if (result > 0) {
                 return ResponseEntity.ok("Điểm danh thành công");
-            } else {
-                return ResponseEntity.ok("Lỗi điểm danh");
             }
+            return ResponseEntity.ok("Lỗi điểm danh");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Điểm danh thất bại: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Điểm danh thất bại: " + e.getMessage());
         }
     }
 
@@ -68,8 +89,8 @@ public class DiemDanhController {
     }
 
     @GetMapping("/ketqua_diemdanh_sinhvien")
-    public ResponseEntity<?> getKetquaDiemdanhTheoSvVaMonHoc(@RequestParam String maMh) {
-        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhSinhVien(maMh));
+    public ResponseEntity<?> getKetquaDiemdanhTheoSvVaMonHoc(@RequestParam String maMh,  @RequestParam Integer nmh) {
+        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhSinhVien(maMh,nmh));
     }
 
     // ========================== QUẢN TRỊ VIÊN - BÁO CÁO ==========================
@@ -111,25 +132,5 @@ public class DiemDanhController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-
-    //Thống kê điểm danh
-    @GetMapping("/thongke_diemdanh")
-    public ResponseEntity<?> thongKeDiemDanh(@RequestParam String maMh,
-                                             @RequestParam Integer nmh,
-                                             @RequestParam Integer maGd) {
-        return ResponseEntity.ok(diemDanhService.getKetQuaDiemDanhAllSinhVien(maMh, nmh, maGd));
-    }
-    // Xuất excel thống kê điểm danh
-    @GetMapping("/export-thong-ke-excel")
-    public void xuatThongKeDiemDanh(HttpServletResponse response,
-                                    @RequestParam String maMh,
-                                    @RequestParam Integer nmh,
-                                    @RequestParam Integer maGd) throws IOException {
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=thong_ke_diem_danh.xlsx");
-        List<ThongKeDiemDanhDTO>  thongKe  = diemDanhService.getKetQuaDiemDanhAllSinhVien(maMh, nmh, maGd);
-        ExcelThongKeExport excel = new ExcelThongKeExport(thongKe);
-        excel.export(response);
     }
 }

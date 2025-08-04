@@ -162,22 +162,38 @@ public class AdminService implements UserDetailsService {
         Admin admin = adminRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found with id: " + id));
 
-        admin.setUsername(request.getUsername());
-        admin.setRole(request.getRole());
-        admin.setUpdatedAt(Instant.now());
-
+        // Kiểm tra email đã tồn tại nhưng thuộc admin khác
         if (request.getEmail() != null) {
+            Optional<Admin> existingByEmail = adminRepository.findByEmail(request.getEmail());
+            if (existingByEmail.isPresent() && !existingByEmail.get().getId().equals(id)) {
+                throw new RuntimeException("Email đã tồn tại trong hệ thống");
+            }
             admin.setEmail(request.getEmail());
         }
+
+        // Kiểm tra username đã tồn tại nhưng thuộc admin khác
+        if (request.getUsername() != null) {
+            Optional<Admin> existingByUsername = adminRepository.findByUsername(request.getUsername());
+            if (existingByUsername.isPresent() && !existingByUsername.get().getId().equals(id)) {
+                throw new RuntimeException("Username đã tồn tại trong hệ thống");
+            }
+            admin.setUsername(request.getUsername());
+        }
+
         if (request.getFullName() != null) {
             admin.setFullName(request.getFullName());
         }
+
         if (request.getPassword() != null) {
             admin.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
+        admin.setRole(request.getRole());
+        admin.setUpdatedAt(Instant.now());
+
         Admin updatedAdmin = adminRepository.save(admin);
-        return updatedAdmin != null ? new AdminDto(
+
+        return new AdminDto(
                 updatedAdmin.getId(),
                 updatedAdmin.getUsername(),
                 updatedAdmin.getEmail(),
@@ -186,8 +202,9 @@ public class AdminService implements UserDetailsService {
                 updatedAdmin.getAvatar(),
                 updatedAdmin.getCreatedAt(),
                 updatedAdmin.getUpdatedAt()
-        ) : null;
+        );
     }
+
 
     public void deleteAdmin(Integer id) {
         Admin admin = adminRepository.findById(id)

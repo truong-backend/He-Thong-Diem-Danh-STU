@@ -162,12 +162,12 @@ public class MonHocController {
     @GetMapping("/danh-sach-nhom-mon-hoc")
     public ResponseEntity<List<NhomMonHocDTO>> getSubjectGroups(
             @RequestParam String teacherId,
-//            @RequestParam String subjectId,
+            @RequestParam String subjectId,
             @RequestParam Integer semester,
             @RequestParam Integer year) {
-//
-        return ResponseEntity.ok(monHocService.getSubjectGroups(teacherId, semester, year));
+        return ResponseEntity.ok(monHocService.getSubjectGroups(teacherId, subjectId, semester, year));
     }
+
     @GetMapping("/danh-sach-mon-hoc-cua-sinh-vien")
     public ResponseEntity<List<MonHocSinhVienDto>> getMonHocCuaSinhVien(@RequestParam String maSv) {
         return ResponseEntity.ok(monHocService.getMonHocCuaSinhVien(maSv));

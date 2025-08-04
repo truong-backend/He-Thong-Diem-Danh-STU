@@ -1,19 +1,10 @@
 package vn.diemdanh.hethong.dto.admin;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.Data;
 import jakarta.validation.constraints.*;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class UpdateAdminRequest {
-
     @NotBlank(message = "Username không được để trống")
     @Size(max = 50, message = "Username không được vượt quá 50 ký tự")
     private String username;

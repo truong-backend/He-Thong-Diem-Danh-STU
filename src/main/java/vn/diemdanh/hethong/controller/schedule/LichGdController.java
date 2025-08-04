@@ -2,53 +2,30 @@ package vn.diemdanh.hethong.controller.schedule;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
 import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
-import vn.diemdanh.hethong.entity.GiaoVien;
-import vn.diemdanh.hethong.entity.LichGd;
-import vn.diemdanh.hethong.entity.MonHoc;
-import vn.diemdanh.hethong.repository.GiaoVienRepository;
-import vn.diemdanh.hethong.repository.LichGdRepository;
-import vn.diemdanh.hethong.repository.MonHocRepository;
 import vn.diemdanh.hethong.service.LichGdService;
-import vn.diemdanh.hethong.service.TkbService;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/lichgd")
 public class LichGdController {
 
-    @Autowired private LichGdRepository lichGdRepository;
-    @Autowired private LichGdService lichGdService;
-    @Autowired private GiaoVienRepository giaoVienRepository;
-    @Autowired private MonHocRepository monHocRepository;
-    @Autowired private TkbService tkbService;
+    @Autowired
+    private LichGdService lichGdService;
 
     // -------------------- CREATE --------------------
     @PostMapping
     public ResponseEntity<?> createLichGd(@Valid @RequestBody LichGdDto request) {
         try {
-            GiaoVien giaoVien = getGiaoVien(request.getMaGv());
-            MonHoc monHoc = getMonHoc(request.getMaMh());
-
-            if (request.getNgayKt().isBefore(request.getNgayBd())) {
-                return ResponseEntity.badRequest().body("Ngày kết thúc phải sau ngày bắt đầu");
-            }
-
-            if (request.getStKt() <= request.getStBd()) {
-                return ResponseEntity.badRequest().body("Tiết kết thúc phải sau tiết bắt đầu");
-            }
-
-
-            LichGd lichGd = saveNewLichGd(request, giaoVien, monHoc);
-
-            return ResponseEntity.ok(convertToDto(lichGd));
+            LichGdDto result = lichGdService.createLichGd(request);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi thêm lịch giảng dạy: " + e.getMessage());
         }
@@ -65,15 +42,10 @@ public class LichGdController {
             @RequestParam(required = false) String maMh,
             @RequestParam(required = false) Integer hocKy) {
         try {
-            if (!isValidSortField(sortBy)) {
-                return ResponseEntity.badRequest().body("Trường sắp xếp không hợp lệ");
-            }
-
-            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
-            Page<LichGd> lichGds = filterLichGd(maGv, maMh, hocKy, pageable);
-            Page<LichGdDto> dtos = lichGds.map(this::convertToDto);
-
-            return ResponseEntity.ok(dtos);
+            Page<LichGdDto> result = lichGdService.getLichGdList(page, size, sortBy, sortDir, maGv, maMh, hocKy);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách: " + e.getMessage());
         }
@@ -82,8 +54,8 @@ public class LichGdController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getLichGd(@PathVariable Long id) {
         try {
-            LichGd lichGd = findLichGdById(id);
-            return ResponseEntity.ok(convertToDto(lichGd));
+            LichGdDto result = lichGdService.getLichGdById(id);
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin: " + e.getMessage());
         }
@@ -92,10 +64,8 @@ public class LichGdController {
     @GetMapping("/all")
     public ResponseEntity<?> getAllLichGd() {
         try {
-            List<LichGdDto> dtos = lichGdRepository.findAll().stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
+            List<LichGdDto> result = lichGdService.getAllLichGd();
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách: " + e.getMessage());
         }
@@ -105,34 +75,10 @@ public class LichGdController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateLichGd(@PathVariable Long id, @Valid @RequestBody LichGdDto request) {
         try {
-            LichGd lichGd = findLichGdById(id);
-
-            if (!lichGd.getMaGv().getMaGv().equals(request.getMaGv())) {
-                lichGd.setMaGv(getGiaoVien(request.getMaGv()));
-            }
-
-            if (!lichGd.getMaMh().getMaMh().equals(request.getMaMh())) {
-                lichGd.setMaMh(getMonHoc(request.getMaMh()));
-            }
-
-            if (request.getNgayKt().isBefore(request.getNgayBd())) {
-                return ResponseEntity.badRequest().body("Ngày kết thúc phải sau ngày bắt đầu");
-            }
-
-            if (request.getStKt() <= request.getStBd()) {
-                return ResponseEntity.badRequest().body("Tiết kết thúc phải sau tiết bắt đầu");
-            }
-
-            lichGd.setNmh(request.getNmh());
-            lichGd.setPhongHoc(request.getPhongHoc());
-            lichGd.setNgayBd(request.getNgayBd());
-            lichGd.setNgayKt(request.getNgayKt());
-            lichGd.setStBd(request.getStBd());
-            lichGd.setStKt(request.getStKt());
-            lichGd.setHocKy(request.getHocKy());
-
-            lichGd = lichGdRepository.save(lichGd);
-            return ResponseEntity.ok(convertToDto(lichGd));
+            LichGdDto result = lichGdService.updateLichGd(id, request);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi cập nhật: " + e.getMessage());
         }
@@ -142,8 +88,7 @@ public class LichGdController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteLichGd(@PathVariable Long id) {
         try {
-            LichGd lichGd = findLichGdById(id);
-            lichGdRepository.delete(lichGd);
+            lichGdService.deleteLichGd(id);
             return ResponseEntity.ok("Xóa thành công");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Lỗi khi xóa: " + e.getMessage());
@@ -153,13 +98,19 @@ public class LichGdController {
     // -------------------- HỌC KỲ --------------------
     @GetMapping("/hoc-ky/{maGv}")
     public ResponseEntity<List<HocKyDTO>> getAllHocKy(@PathVariable String maGv) {
-        return ResponseEntity.ok(lichGdService.getAllSemesters(maGv));
+        try {
+            List<HocKyDTO> result = lichGdService.getAllSemesters(maGv);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/hoc-ky")
     public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
         try {
-            return ResponseEntity.ok(lichGdService.getAllHocKy());
+            List<HocKyDTO> result = lichGdService.getAllHocKy();
+            return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
@@ -167,80 +118,27 @@ public class LichGdController {
 
     // -------------------- MÃ GIẢNG DẠY --------------------
     @GetMapping("/ma-gd")
-    public Integer getMaGd(
+    public ResponseEntity<Integer> getMaGd(
             @RequestParam int hocKy,
             @RequestParam String maMh,
             @RequestParam String maGv,
             @RequestParam int nhom) {
-        return lichGdService.getMaGd(hocKy, maMh, maGv, nhom);
-    }
-
-    // -------------------- PRIVATE METHODS --------------------
-    private LichGd findLichGdById(Long id) {
-        return lichGdRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lịch giảng dạy"));
-    }
-
-    private GiaoVien getGiaoVien(String maGv) {
-        return giaoVienRepository.findById(maGv)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy giáo viên"));
-    }
-
-    private MonHoc getMonHoc(String maMh) {
-        return monHocRepository.findById(maMh)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
-    }
-
-    private LichGd saveNewLichGd(LichGdDto request, GiaoVien gv, MonHoc mh) {
-        LichGd lichGd = new LichGd();
-        lichGd.setMaGv(gv);
-        lichGd.setMaMh(mh);
-        lichGd.setNmh(request.getNmh());
-        lichGd.setPhongHoc(request.getPhongHoc());
-        lichGd.setNgayBd(request.getNgayBd());
-        lichGd.setNgayKt(request.getNgayKt());
-        lichGd.setStBd(request.getStBd());
-        lichGd.setStKt(request.getStKt());
-        lichGd.setHocKy(request.getHocKy());
-        return lichGdRepository.save(lichGd);
-    }
-
-    private Page<LichGd> filterLichGd(String maGv, String maMh, Integer hocKy, Pageable pageable) {
-        if (maGv != null && !maGv.isEmpty()) {
-            return lichGdRepository.findByMaGv(getGiaoVien(maGv), pageable);
-        } else if (maMh != null && !maMh.isEmpty()) {
-            return lichGdRepository.findByMaMh(getMonHoc(maMh), pageable);
-        } else if (hocKy != null) {
-            return lichGdRepository.findByHocKy(hocKy, pageable);
-        } else {
-            return lichGdRepository.findAll(pageable);
+        try {
+            Integer result = lichGdService.getMaGd(hocKy, maMh, maGv, nhom);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
-    }
-
-    private LichGdDto convertToDto(LichGd lichGd) {
-        LichGdDto dto = new LichGdDto();
-        dto.setId(lichGd.getId());
-        dto.setMaGv(lichGd.getMaGv().getMaGv());
-        dto.setTenGv(lichGd.getMaGv().getTenGv());
-        dto.setMaMh(lichGd.getMaMh().getMaMh());
-        dto.setTenMh(lichGd.getMaMh().getTenMh());
-        dto.setNmh(lichGd.getNmh());
-        dto.setPhongHoc(lichGd.getPhongHoc());
-        dto.setNgayBd(lichGd.getNgayBd());
-        dto.setNgayKt(lichGd.getNgayKt());
-        dto.setStBd(lichGd.getStBd());
-        dto.setStKt(lichGd.getStKt());
-        dto.setHocKy(lichGd.getHocKy());
-        return dto;
-    }
-
-    private boolean isValidSortField(String field) {
-        return Arrays.asList("id", "nmh", "phongHoc", "ngayBd", "ngayKt", "stBd", "stKt", "hocKy").contains(field);
     }
 
     // -------------------- LẤY LỊCH GIẢNG DẠY THEO MÃ GIÁO VIÊN --------------------
     @GetMapping("/giang-vien/{maGv}")
-    public List<LichGdDto> getLichByMaGv(@PathVariable String maGv) {
-        return lichGdService.getLichGdByMaGv(maGv);
+    public ResponseEntity<List<LichGdDto>> getLichByMaGv(@PathVariable String maGv) {
+        try {
+            List<LichGdDto> result = lichGdService.getLichGdByMaGv(maGv);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

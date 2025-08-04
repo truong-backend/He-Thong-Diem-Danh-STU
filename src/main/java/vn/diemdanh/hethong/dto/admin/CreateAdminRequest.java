@@ -1,8 +1,13 @@
 package vn.diemdanh.hethong.dto.admin;
 
-import lombok.Data;
+import lombok.*;
 import jakarta.validation.constraints.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Data
 public class CreateAdminRequest {
     @NotBlank(message = "Username không được để trống")

@@ -1,48 +1,25 @@
 package vn.diemdanh.hethong.controller.user;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import vn.diemdanh.hethong.dto.giaovien.GiaoVienDTO_Profile;
-import vn.diemdanh.hethong.dto.khoa.KhoaDto;
 import vn.diemdanh.hethong.dto.sinhvien.*;
-import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
-import vn.diemdanh.hethong.entity.*;
-import vn.diemdanh.hethong.repository.LopRepository;
-import vn.diemdanh.hethong.repository.SinhVienRepository;
-import vn.diemdanh.hethong.repository.UserRepository;
-
-import jakarta.validation.Valid;
 import vn.diemdanh.hethong.service.SinhVienService;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sinh-vien")
 public class SinhVienController {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SinhVienRepository sinhVienRepository;
-
-    @Autowired
-    private LopRepository lopRepository;
-
-    @Autowired
     private SinhVienService sinhVienService;
 
+    // Lấy QR sinh viên hiện tại
     @GetMapping("/qr-sinhvien")
     public ResponseEntity<?> getQRSinhVienInfo(@AuthenticationPrincipal UserDetails userDetails) {
         try {
@@ -50,79 +27,66 @@ public class SinhVienController {
             QRSinhVienInfoDTO qrSV = sinhVienService.getQRSinhVien(email);
             return ResponseEntity.ok(qrSV);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy QR sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi lấy QR sinh viên: " + e.getMessage());
         }
     }
 
+    // Lấy profile sinh viên hiện tại
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfileSinhVien(@AuthenticationPrincipal UserDetails userDetails){
+    public ResponseEntity<?> getProfileSinhVien(@AuthenticationPrincipal UserDetails userDetails) {
         try {
             String email = userDetails.getUsername();
-            SinhVienDTOProfile sinhVienDTOProfile = sinhVienService.getSinhVienProfile(email);
-            return ResponseEntity.ok(sinhVienDTOProfile);
+            SinhVienDTOProfile profile = sinhVienService.getSinhVienProfile(email);
+            return ResponseEntity.ok(profile);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin sinh viên: " + e.getMessage());
-
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi lấy thông tin sinh viên: " + e.getMessage());
         }
     }
 
+    // Cập nhật profile sinh viên hiện tại
     @PutMapping("/update-profile")
-    public ResponseEntity<?> updateProfileTeacher(@AuthenticationPrincipal UserDetails userDetails,@RequestBody @Valid SinhVienDTOProfile sinhVienDTOProfile) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok(sinhVienService.updateProfileSinhVien(email,sinhVienDTOProfile));
+    public ResponseEntity<?> updateProfileSinhVien(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody SinhVienDTOProfile profileRequest) {
+        try {
+            String email = userDetails.getUsername();
+            SinhVienDTOProfile updated = sinhVienService.updateProfileSinhVien(email, profileRequest);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi cập nhật thông tin sinh viên: " + e.getMessage());
+        }
     }
-    // ✅ API lấy danh sách không phân trang
+
+    // Lấy danh sách sinh viên không phân trang
     @GetMapping("/all")
     public ResponseEntity<?> getAllSinhVienNoPagination() {
         try {
-            List<SinhVien> sinhViens = sinhVienService.findAll();
-            List<SinhVienDto> dtos = sinhViens.stream()
-                    .map(this::convertToDto)
-                    .collect(Collectors.toList());
+            List<SinhVienDto> dtos = sinhVienService.getAllSinhVienNoPagination();
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi lấy danh sách sinh viên: " + e.getMessage());
         }
     }
 
-    private SinhVienDto convertToDto(SinhVien sinhVien) {
-        SinhVienDto dto = new SinhVienDto();
-        dto.setMaSv(sinhVien.getMaSv());
-        dto.setTenSv(sinhVien.getTenSv());
-        dto.setNgaySinh(sinhVien.getNgaySinh());
-        dto.setPhai(sinhVien.getPhai());
-        dto.setDiaChi(sinhVien.getDiaChi());
-        dto.setSdt(sinhVien.getSdt());
-        dto.setEmail(sinhVien.getEmail());
-        dto.setMaLop(sinhVien.getMaLop().getMaLop());
-        dto.setTenLop(sinhVien.getMaLop().getTenLop());
-        dto.setTenKhoa(sinhVien.getMaLop().getMaKhoa().getTenKhoa());
-        dto.setAvatar(sinhVien.getAvatar());
-        dto.setHasAccount(userRepository.findByEmail(sinhVien.getEmail()).isPresent());
-        return dto;
-    }
-
-
-
-    // CREATE - Thêm sinh viên mới
+    // Thêm sinh viên mới
     @PostMapping
     public ResponseEntity<?> createSinhVien(@Valid @RequestBody CreateSinhVienRequest request) {
         try {
             sinhVienService.createSinhVien(request);
             return ResponseEntity.ok("Thêm sinh viên thành công");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi thêm sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi thêm sinh viên: " + e.getMessage());
         }
     }
 
     /**
-     * Lấy danh sách sinh viên với phân trang và sắp xếp
-     * Các thuộc tính sắp xếp hợp lệ:
-     * - maSv: Mã sinh viên
-     * - tenSv: Tên sinh viên
-     * - ngaySinh: Ngày sinh
-     * - email: Email
-     * - maLop: Mã lớp
+     * Lấy danh sách sinh viên có phân trang, sắp xếp và tìm kiếm
+     * Các trường hợp lệ để sắp xếp: maSv, tenSv, ngaySinh, email, maLop
      */
     @GetMapping
     public ResponseEntity<?> getAllSinhVien(
@@ -131,156 +95,58 @@ public class SinhVienController {
             @RequestParam(defaultValue = "maSv,asc") String[] sort,
             @RequestParam(required = false) String search) {
         try {
-            // Validate sort field
-            String sortField = sort[0];
-            String sortDirection = sort.length > 1 ? sort[1] : "asc";
-
-            if (!isValidSortField(sortField)) {
-                return ResponseEntity.badRequest()
-                        .body("Trường sắp xếp không hợp lệ. Các trường hợp lệ: maSv, tenSv, ngaySinh, email, maLop");
-            }
-
-            // Create pageable with sort
-            Pageable pageable = PageRequest.of(
-                    page,
-                    size,
-                    sortDirection.equalsIgnoreCase("desc") ?
-                            Sort.by(sortField).descending() :
-                            Sort.by(sortField).ascending()
-            );
-
-            // Get students with search
-            Page<SinhVien> sinhViens;
-            if (search != null && !search.trim().isEmpty()) {
-                sinhViens = sinhVienRepository.findByMaSvContainingIgnoreCase(search.trim(), pageable);
-            } else {
-                sinhViens = sinhVienRepository.findAll(pageable);
-            }
-
-            // Map to DTOs
-            Page<SinhVienDto> dtos = sinhViens.map(sinhVien -> {
-                SinhVienDto dto = new SinhVienDto();
-                dto.setMaSv(sinhVien.getMaSv());
-                dto.setTenSv(sinhVien.getTenSv());
-                dto.setNgaySinh(sinhVien.getNgaySinh());
-                dto.setPhai(sinhVien.getPhai());
-                dto.setDiaChi(sinhVien.getDiaChi());
-                dto.setSdt(sinhVien.getSdt());
-                dto.setEmail(sinhVien.getEmail());
-                dto.setMaLop(sinhVien.getMaLop().getMaLop());
-                dto.setTenLop(sinhVien.getMaLop().getTenLop());
-                dto.setTenKhoa(sinhVien.getMaLop().getMaKhoa().getTenKhoa());
-                dto.setAvatar(sinhVien.getAvatar());
-                dto.setHasAccount(userRepository.findByEmail(sinhVien.getEmail()).isPresent());
-                return dto;
-            });
-
+            Page<SinhVienDto> dtos = sinhVienService.getAllSinhVienWithPagination(page, size, sort, search);
             return ResponseEntity.ok(dtos);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi lấy danh sách sinh viên: " + e.getMessage());
         }
     }
 
-    /**
-     * Kiểm tra tính hợp lệ của trường sắp xếp cho sinh viên
-     */
-    private boolean isValidSortField(String field) {
-        return Arrays.asList("maSv", "tenSv", "ngaySinh", "email", "maLop")
-                .contains(field);
-    }
-
-    // READ - Lấy thông tin một sinh viên
+    // Lấy thông tin 1 sinh viên theo mã
     @GetMapping("/{maSv}")
     public ResponseEntity<?> getSinhVien(@PathVariable String maSv) {
         try {
-            SinhVien sinhVien = sinhVienRepository.findById(maSv)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
-
-            SinhVienDto dto = new SinhVienDto();
-            dto.setMaSv(sinhVien.getMaSv());
-            dto.setTenSv(sinhVien.getTenSv());
-            dto.setNgaySinh(sinhVien.getNgaySinh());
-            dto.setPhai(sinhVien.getPhai());
-            dto.setDiaChi(sinhVien.getDiaChi());
-            dto.setSdt(sinhVien.getSdt());
-            dto.setEmail(sinhVien.getEmail());
-            dto.setMaLop(sinhVien.getMaLop().getMaLop());
-            dto.setTenLop(sinhVien.getMaLop().getTenLop());
-            dto.setTenKhoa(sinhVien.getMaLop().getMaKhoa().getTenKhoa());
-            dto.setAvatar(sinhVien.getAvatar());
-            
-            Optional<User> userOpt = userRepository.findByEmail(sinhVien.getEmail());
-            dto.setHasAccount(userOpt.isPresent());
-
+            SinhVienDto dto = sinhVienService.getSinhVienByMaSv(maSv);
             return ResponseEntity.ok(dto);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy thông tin sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi lấy thông tin sinh viên: " + e.getMessage());
         }
     }
 
-    // UPDATE - Cập nhật thông tin sinh viên
+    // Cập nhật sinh viên
     @PutMapping("/{maSv}")
-    public ResponseEntity<?> updateSinhVien(@PathVariable String maSv, @Valid @RequestBody UpdateSinhVienRequest request) {
+    public ResponseEntity<?> updateSinhVien(
+            @PathVariable String maSv,
+            @Valid @RequestBody UpdateSinhVienRequest request) {
         try {
-            SinhVien sinhVien = sinhVienRepository.findById(maSv)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
-
-            // Kiểm tra lớp mới có tồn tại không
-            Lop lop = lopRepository.findById(request.getMaLop())
-                    .orElseThrow(() -> new RuntimeException("Lớp không tồn tại"));
-
-            // Cập nhật thông tin sinh viên
-            sinhVien.setTenSv(request.getTenSv());
-            sinhVien.setNgaySinh(request.getNgaySinh());
-            sinhVien.setPhai(request.getPhai());
-            sinhVien.setDiaChi(request.getDiaChi());
-            sinhVien.setSdt(request.getSdt());
-            sinhVien.setEmail(request.getEmail());
-            sinhVien.setMaLop(lop);
-
-            sinhVienRepository.save(sinhVien);
-
-            // Cập nhật email trong user nếu có tài khoản
-            Optional<User> userOpt = userRepository.findByEmail(sinhVien.getEmail());
-            if (userOpt.isPresent()) {
-                User user = userOpt.get();
-                user.setEmail(request.getEmail());
-                user.setUpdatedAt(Instant.now());
-                userRepository.save(user);
-            }
-
+            sinhVienService.updateSinhVien(maSv, request);
             return ResponseEntity.ok("Cập nhật sinh viên thành công");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi cập nhật sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi cập nhật sinh viên: " + e.getMessage());
         }
     }
 
-    // DELETE - Xóa sinh viên
+    // Xóa sinh viên
     @DeleteMapping("/{maSv}")
     public ResponseEntity<?> deleteSinhVien(@PathVariable String maSv) {
         try {
-            SinhVien sinhVien = sinhVienRepository.findById(maSv)
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sinh viên"));
-
-            // Xóa tài khoản user nếu có
-            Optional<User> userOpt = userRepository.findByEmail(sinhVien.getEmail());
-            userOpt.ifPresent(user -> userRepository.delete(user));
-
-            // Xóa sinh viên
-            sinhVienRepository.delete(sinhVien);
-
+            sinhVienService.deleteSinhVien(maSv);
             return ResponseEntity.ok("Xóa sinh viên thành công");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi xóa sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body("Lỗi khi xóa sinh viên: " + e.getMessage());
         }
     }
-    // 5. LẤY DANH SÁCH SINH VIÊN CHO ĐIỂM DANH
+
+    // Lấy danh sách sinh viên cho điểm danh theo mã thời khóa biểu
     @GetMapping("/students/{maTkb}")
     public ResponseEntity<List<SinhVienDiemDanhDTO>> getStudentsForAttendance(@PathVariable Integer maTkb) {
         List<SinhVienDiemDanhDTO> students = sinhVienService.getStudentsForAttendance(maTkb);
         return ResponseEntity.ok(students);
     }
-
-
-
-} 
+}

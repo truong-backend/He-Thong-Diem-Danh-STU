@@ -32,9 +32,9 @@ public class QrcodeService {
     @Autowired
     private DiemDanhRepository diemDanhRepo;
     @Autowired
-    private LichHocRepository lichHocRepository;
+    DiemDanhLogRepository diemDanhLogRepo;
     @Autowired
-    private DiemDanhLogRepository diemDanhLogRepo;
+    LichHocRepository lichHocRepository;
     // 8. TẠO QR CODE MỚI
     @Transactional
     public QRCodeDTO createQRCode(TaoQRCodeRequest request) {
@@ -55,6 +55,7 @@ public class QrcodeService {
             throw new RuntimeException("Không thể tạo QR Code", e);
         }
     }
+
     //Ghi thông tin điểm danh vào log
     private void insertDiemDanhLog(DiemDanhRequest req,int soLan){
         List<DiemDanh> existDiemDanh = diemDanhRepo.findDiemDanhExist(
@@ -87,59 +88,64 @@ public class QrcodeService {
         if(existSinhVien == 0|| existSinhVien == null) {
             throw new AppException(ErrorCode.SINHVIEN_NOTEXIST_TKB);
         }
-        Integer countDiemDanh = diemDanhLogRepo.getSoLanDiemDanh(
+        Object[] countDiemDanh = diemDanhRepo.getLanDiemDanh(
                 maTkb,
                 request.getMaSv(),
                 ngayHoc
         );
-        if(countDiemDanh >= 1) {
-            LocalDateTime timeDiemDanhLan1 =  diemDanhRepo.getDiemDanhLan1(
+        Object[] result = (Object[]) countDiemDanh[0];
+        Integer diemDanh1 = ((Number) result[0]).intValue();
+        Integer diemDanh2= ((Number) result[1]).intValue();
+//        Integer countDiemDanh = diemDanhLogRepo.getSoLanDiemDanh(
+//                maTkb,
+//                request.getMaSv(),
+//                ngayHoc
+//        );
+        int diemDanhCountCurrent = 0;
+        String ghiChu = "";
+        if(diemDanh1 == 1 && diemDanh2 == 1){
+            throw new AppException(ErrorCode.PASSED_DIEMDANH_ALL);
+        }
+        if(diemDanh1 == 0){
+            diemDanhCountCurrent = diemDanh1 + 1;
+            ghiChu = "\nĐiểm danh lần " + diemDanhCountCurrent;
+        }
+        else if (diemDanh1 == 1 && diemDanh2 == 0) {
+            LocalDateTime timeDiemDanhlan1 = diemDanhRepo.getDiemDanhLan1(
                     maTkb,
                     request.getMaSv(),
                     ngayHoc
             );
-            //Kiểm tra thời gian điểm danh - tránh spam
-            if(timeDiemDanhLan1 != null) {
-                Duration checkDiemDanh = Duration.between(timeDiemDanhLan1, LocalDateTime.now());
-                if(checkDiemDanh.toSeconds() < 30){
+            if(timeDiemDanhlan1 != null){
+                //So sánh thời gian từ lúc điểm danh đến hiện tại bao nhiêu giờ ,phút, giây
+                Duration checkTimeDiemDanh = Duration.between(timeDiemDanhlan1, LocalDateTime.now());
+                //set thời gian cho phép điểm danh lần tiếp theo.
+                if(checkTimeDiemDanh.toSeconds() < 30){
                     throw new AppException(ErrorCode.PASSED_DIEMDANH_LAN1);
                 }
             }
-            int diemDanhCurrent = countDiemDanh + 1;
-            String updateGhiChu = "\nĐiểm danh lần " + diemDanhCurrent;
-            int diemDanhLanX = diemDanhRepo.markAttendanceManual(
-                    maTkb,
-                    request.getMaSv(),
-                    ngayHoc,
-                    updateGhiChu
-            );
-            if(diemDanhLanX >= 1){
-                DiemDanhRequest req = new DiemDanhRequest();
-                req.setMaTkb(maTkb);
-                req.setMaSv(request.getMaSv());
-                req.setNgayHoc(ngayHoc);
-                req.setGhiChu(updateGhiChu);
-                insertDiemDanhLog(req,diemDanhCurrent);
-            }
-            return diemDanhLanX;
+            diemDanhCountCurrent = diemDanh1 + 1;
+            ghiChu = "\nĐiểm danh lần " + diemDanhCountCurrent;
         }
-        if(countDiemDanh == 0 || countDiemDanh == null) {
-            int firstDiemDanh = diemDanhRepo.markAttendanceManual(
-                    maTkb,
-                    request.getMaSv(),
-                    ngayHoc,
-                    "Đã điểm danh"
-            );
-            if(firstDiemDanh == 1){
-                DiemDanhRequest req = new DiemDanhRequest();
-                req.setMaTkb(maTkb);
-                req.setMaSv(request.getMaSv());
-                req.setNgayHoc(ngayHoc);
-                req.setGhiChu("Đã điểm danh");
-                insertDiemDanhLog(req,countDiemDanh + 1);
-            }
-            return firstDiemDanh;
+
+
+        int resultDiemDanh = diemDanhRepo.markAttendanceManual(
+                maTkb,
+                request.getMaSv(),
+                ngayHoc,
+                ghiChu
+        );
+        if (resultDiemDanh >= 1) {
+            DiemDanhRequest req = new DiemDanhRequest();
+            req.setMaTkb(maTkb);
+            req.setMaSv(request.getMaSv());
+            req.setNgayHoc(ngayHoc);
+            req.setGhiChu(ghiChu);
+            insertDiemDanhLog(req, diemDanhCountCurrent);
+            return resultDiemDanh;
         }
+
         return 0;
     }
+
 }

@@ -26,4 +26,12 @@ public interface GiaoVienRepository extends JpaRepository<GiaoVien, String> {
     List<Object[]> findGiaoVienByHocKyNamAndMonHoc(@Param("hocKy") Integer hocKy,
                                                    @Param("namHoc") Integer namHoc,
                                                    @Param("maMh") String maMh);
+
+    boolean existsBySdt(String sdt);
+
+    boolean existsBySdtAndMaGvNot(String sdt, String maGv);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailAndMaGvNot(String email, String maGv);
 }

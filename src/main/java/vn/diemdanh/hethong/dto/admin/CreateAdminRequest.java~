@@ -1,4 +1,4 @@
-package vn.diemdanh.hethong.dto.user_managerment;
+package vn.diemdanh.hethong.dto.admin;
 
 import lombok.Data;
 import jakarta.validation.constraints.*;

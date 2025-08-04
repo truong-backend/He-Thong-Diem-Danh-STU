@@ -1,6 +1,7 @@
 package vn.diemdanh.hethong.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
@@ -9,37 +10,126 @@ import vn.diemdanh.hethong.dto.monhoc.MonHocGiangVienDTO;
 import vn.diemdanh.hethong.dto.monhoc.MonHocKetQuaDiemDanhDTO;
 import vn.diemdanh.hethong.dto.monhoc.NhomMonHocDTO;
 import vn.diemdanh.hethong.dto.tkb.ThoiKhoaBieuDTO;
+import vn.diemdanh.hethong.entity.MonHoc;
 import vn.diemdanh.hethong.repository.MonHocRepository;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class MonHocService {
+
     @Autowired
     private MonHocRepository monHocRepository;
 
-    public List<MonHocKetQuaDiemDanhDTO> getMonHocKetQuaDiemDanh(){
+    // ========== BUSINESS LOGIC METHODS ==========
+
+    /**
+     * Tạo môn học mới
+     */
+    public MonHocDto createMonHoc(MonHocDto request) {
+        // Kiểm tra mã môn học đã tồn tại
+        if (monHocRepository.findById(request.getMaMh()).isPresent()) {
+            throw new IllegalArgumentException("Mã môn học đã tồn tại");
+        }
+
+        // Validate số tiết
+        if (request.getSoTiet() <= 0) {
+            throw new IllegalArgumentException("Số tiết phải lớn hơn 0");
+        }
+
+        MonHoc monHoc = new MonHoc();
+        monHoc.setMaMh(request.getMaMh());
+        monHoc.setTenMh(request.getTenMh());
+        monHoc.setSoTiet(request.getSoTiet());
+
+        monHoc = monHocRepository.save(monHoc);
+        return convertToDto(monHoc);
+    }
+
+    /**
+     * Lấy danh sách môn học có phân trang
+     */
+    public Page<MonHocDto> getMonHocList(int page, int size, String sortBy, String sortDir) {
+        // Validate sort field
+        if (!isValidSortField(sortBy)) {
+            throw new IllegalArgumentException("Trường sắp xếp không hợp lệ");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDir), sortBy));
+        Page<MonHoc> monHocs = monHocRepository.findAll(pageable);
+        return monHocs.map(this::convertToDto);
+    }
+
+    /**
+     * Lấy thông tin môn học theo mã
+     */
+    public MonHocDto getMonHocById(String maMh) {
+        MonHoc monHoc = monHocRepository.findById(maMh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+        return convertToDto(monHoc);
+    }
+
+    /**
+     * Lấy tất cả môn học không phân trang
+     */
+    public List<MonHocDto> getAllMonHocWithoutPaging() {
+        return monHocRepository.findAll(Sort.by("maMh"))
+                .stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Cập nhật môn học
+     */
+    public MonHocDto updateMonHoc(String maMh, MonHocDto request) {
+        MonHoc monHoc = monHocRepository.findById(maMh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+
+        // Validate số tiết
+        if (request.getSoTiet() <= 0) {
+            throw new IllegalArgumentException("Số tiết phải lớn hơn 0");
+        }
+
+        monHoc.setTenMh(request.getTenMh());
+        monHoc.setSoTiet(request.getSoTiet());
+
+        monHoc = monHocRepository.save(monHoc);
+        return convertToDto(monHoc);
+    }
+
+    /**
+     * Xóa môn học
+     */
+    public void deleteMonHoc(String maMh) {
+        MonHoc monHoc = monHocRepository.findById(maMh)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
+        monHocRepository.delete(monHoc);
+    }
+
+    // ========== EXISTING METHODS ==========
+
+    public List<MonHocKetQuaDiemDanhDTO> getMonHocKetQuaDiemDanh() {
         List<Object[]> results = monHocRepository.getMonHocForDiemDanh();
         return results.stream().map(monhoc -> {
             MonHocKetQuaDiemDanhDTO dto = new MonHocKetQuaDiemDanhDTO();
-            dto.setMaGd((Integer)monhoc[0]);
+            dto.setMaGd((Integer) monhoc[0]);
             dto.setMaMh((String) monhoc[1]);
-            dto.setTenMh((String)monhoc[2]);
+            dto.setTenMh((String) monhoc[2]);
             dto.setPhongHoc((String) monhoc[3]);
             dto.setNmh((Integer) monhoc[4]);
             return dto;
         }).collect(Collectors.toList());
     }
 
-
-
-
-    // 2. LẤY DANH SÁCH MÔN HỌC CỦA GIẢNG VIÊN
+    /**
+     * Lấy danh sách môn học của giảng viên
+     */
     public List<MonHocGiangVienDTO> getSubjectsByTeacher(String maGv, Integer hocKy, Integer namHoc) {
-//        log.info("Fetching subjects for teacher: {}, semester: {}, year: {}", maGv, hocKy, namHoc);
         List<Object[]> results = monHocRepository.findSubjectsByTeacher(maGv, hocKy, namHoc);
 
         return results.stream()
@@ -51,9 +141,11 @@ public class MonHocService {
                         .build())
                 .collect(Collectors.toList());
     }
-    // 3. LẤY DANH SÁCH NHÓM MÔN HỌC
+
+    /**
+     * Lấy danh sách nhóm môn học
+     */
     public List<NhomMonHocDTO> getSubjectGroups(String maGv, String maMh, Integer hocKy, Integer namHoc) {
-//        log.info("Fetching subject groups for teacher: {}, subject: {}", maGv, maMh);
         List<Object[]> results = monHocRepository.findSubjectGroups(maGv, maMh, hocKy, namHoc);
 
         return results.stream()
@@ -68,7 +160,10 @@ public class MonHocService {
                         .build())
                 .collect(Collectors.toList());
     }
-    // 4. LẤY DANH SÁCH MÔN HỌC CỦA SINH VIÊN
+
+    /**
+     * Lấy danh sách môn học của sinh viên
+     */
     public List<MonHocSinhVienDto> getMonHocCuaSinhVien(String maSv) {
         List<Object[]> results = monHocRepository.findMonHocByMaSv(maSv);
 
@@ -76,16 +171,19 @@ public class MonHocService {
                 .map(r -> MonHocSinhVienDto.builder()
                         .maMh((String) r[0])
                         .tenMh((String) r[1])
-                        .soTiet(((Number) r[2]).intValue()) // an toàn nếu là Integer/BigInteger
+                        .soTiet(((Number) r[2]).intValue())
                         .nmh((Integer) r[3])
                         .hocKy((Integer) r[4])
                         .phongHoc((String) r[5])
-                        .ngayBd(((java.sql.Date) r[6])) // nếu dùng LocalDate
+                        .ngayBd(((java.sql.Date) r[6]))
                         .ngayKt(((java.sql.Date) r[7]))
                         .build())
                 .collect(Collectors.toList());
     }
-    //lấy danh sách
+
+    /**
+     * Lấy lịch học theo thứ
+     */
     public List<LichHocTheoThuDto> getLichHocTheoThu(int thu) {
         List<Object[]> results = monHocRepository.findLichHocByThu(thu);
 
@@ -99,14 +197,17 @@ public class MonHocService {
                         .build())
                 .collect(Collectors.toList());
     }
-    //lấy danh sách môn của sinh viên để phục vụ hiển thị thời khóa biếu
+
+    /**
+     * Lấy thời khóa biểu theo mã sinh viên
+     */
     public List<ThoiKhoaBieuDTO> getThoiKhoaBieuByMaSv(String maSv) {
         List<Object[]> rawList = monHocRepository.findThoiKhoaBieuByMaSv(maSv);
 
         return rawList.stream().map(obj -> ThoiKhoaBieuDTO.builder()
                 .maMonHoc((String) obj[0])
                 .tenMonHoc((String) obj[1])
-                .nhomMonHoc(((Number) obj[2]).intValue())  // cast Long -> Integer
+                .nhomMonHoc(((Number) obj[2]).intValue())
                 .soTiet(((Number) obj[3]).intValue())
                 .maLop((String) obj[4])
                 .thu(((Number) obj[5]).intValue())
@@ -117,7 +218,10 @@ public class MonHocService {
                 .build()
         ).collect(Collectors.toList());
     }
-    //    //lay danh sach mon hoc cho trong quan tri vien
+
+    /**
+     * Lấy môn học theo học kỳ và năm
+     */
     public List<MonHocDto> getMonHocByHocKyAndNam(Integer hocKy, Integer namHoc) {
         List<Object[]> results = monHocRepository.findMonHocByHocKyAndNam(hocKy, namHoc);
         return results.stream()
@@ -129,4 +233,23 @@ public class MonHocService {
                 .collect(Collectors.toList());
     }
 
+    // ========== UTILITY METHODS ==========
+
+    /**
+     * Convert Entity to DTO
+     */
+    private MonHocDto convertToDto(MonHoc monHoc) {
+        MonHocDto dto = new MonHocDto();
+        dto.setMaMh(monHoc.getMaMh());
+        dto.setTenMh(monHoc.getTenMh());
+        dto.setSoTiet(monHoc.getSoTiet());
+        return dto;
+    }
+
+    /**
+     * Validate sort field
+     */
+    private boolean isValidSortField(String field) {
+        return Arrays.asList("maMh", "tenMh", "soTiet").contains(field);
+    }
 }

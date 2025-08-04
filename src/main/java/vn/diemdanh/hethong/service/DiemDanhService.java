@@ -25,6 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,21 +48,39 @@ public class DiemDanhService {
 
     public List<ThongKeDiemDanhDTO> getKetQuaDiemDanhAllSinhVien(String maMh, Integer Nmh, Integer maGd) {
         List<Object[]> result = diemDanhRepository.thongKeDiemDanh(maMh,Nmh,maGd);
-        return result.stream().map(row ->
-                {
-                    ThongKeDiemDanhDTO dto = new ThongKeDiemDanhDTO();
-                    dto.setMaSv((String)row[0]);
-                    dto.setTenSv((String)row[1]);
-                    dto.setTenLop((String)row[2]);
-                    dto.setSo_buoi_hoc((Long) row[3]);
-                    dto.setSo_buoi_diem_danh((Long) row[4]);
-                    dto.setSo_buoi_chua_diem_danh((Long) row[5]);
-                    return dto;
-                }
-        ).collect(Collectors.toList());
+        List<ThongKeDiemDanhDTO> list = new ArrayList<>();
+        for (Object[] row : result) {
+            ThongKeDiemDanhDTO dto = new ThongKeDiemDanhDTO();
+            dto.setMaSv((String) row[0]);
+            dto.setTenSv((String) row[1]);
+            dto.setTenLop((String) row[2]);
+            dto.setSo_buoi_hoc(((Number) row[3]).longValue());
+            dto.setSo_buoi_diem_danh(((Number) row[4]).longValue());
+            dto.setSo_buoi_chua_diem_danh(((Number) row[5]).longValue());
+            list.add(dto);
+        }
+        return list;
+
     }
 
-
+    public List<KetQuaDiemDanhSinhVienDTO> getKetQuaDiemDanhSinhVien(String maMH,Integer Nmh) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        String maSv = sinhVienRepository.findMaSvByEmail(email);
+        List<Object[]> getKetQua = diemDanhRepository.getKetQuaDDByMaSVAndMaMonHoc(maSv, maMH,Nmh);
+        return getKetQua.stream().map((Object[] row) ->
+                {
+                    KetQuaDiemDanhSinhVienDTO dto = new KetQuaDiemDanhSinhVienDTO();
+                    dto.setNgayHoc(((java.sql.Date) row[0]).toLocalDate());
+                    dto.setStBd(((Number) row[1]).longValue());
+                    dto.setStKt(((Number) row[2]).longValue());
+                    dto.setSvSolanDD(((Number) row[3]).longValue());
+                    dto.setGvSoLanDD(((Number) row[4]).longValue());
+                    dto.setTrangThai((String) row[5]);
+                    return dto;
+                }
+        ).toList();
+    }
     //Quét QR Sinh viên + Thủ công
     @Transactional
     public int diemDanhSinhVien(DiemDanhRequest request) {
@@ -83,8 +102,15 @@ public class DiemDanhService {
 //                request.getMaSv(),
 //                request.getNgayHoc()
 //        );
-        if(diemDanh1 == 1 && diemDanh2 == 1){
-            throw new AppException(ErrorCode.PASSED_DIEMDANH_ALL);
+        int diemDanhCountCurrent = 0;
+        String ghiChu = "";
+
+//        if(diemDanh1 == 1 && diemDanh2 == 1){
+//            throw new AppException(ErrorCode.PASSED_DIEMDANH_ALL);
+//        }
+        if(diemDanh1 == 0){
+            diemDanhCountCurrent = diemDanh1 + 1;
+            ghiChu = "Điểm danh lần " + diemDanhCountCurrent;
         }
         if (diemDanh1 == 1 && diemDanh2 == 0) {
             LocalDateTime timeDiemDanhlan1 = diemDanhRepository.getDiemDanhLan1(
@@ -100,31 +126,25 @@ public class DiemDanhService {
                     throw new AppException(ErrorCode.PASSED_DIEMDANH_LAN1);
                 }
             }
-            int diemDanhCountCurrent = (int) (diemDanh1 + 1);
-            String updateGhiChu = "\nĐiểm danh lần " + diemDanhCountCurrent;
-            int diemdanhlanX = diemDanhRepository.markAttendanceManual(
-                    request.getMaTkb(),
-                    request.getMaSv(),
-                    request.getNgayHoc(),
-                    updateGhiChu
-            );
-            if(diemdanhlanX >= 1) {
-                insertDiemDanhLog(request,diemDanhCountCurrent);
-                return diemdanhlanX;
-            }
+            diemDanhCountCurrent = diemDanh1 + 1;
+            ghiChu = "Điểm danh lần " + diemDanhCountCurrent;
+        }else if (diemDanh1 == 1 && diemDanh2 == 1) {
+            throw new AppException(ErrorCode.PASSED_DIEMDANH_ALL);
         }
 
-        if(diemDanh1 == 0 || diemDanh1 == null) {
-            int firstDiemDanh = diemDanhRepository.markAttendanceManual(
-                    request.getMaTkb(),
-                    request.getMaSv(),
-                    request.getNgayHoc(),
-                    "Điểm danh lần 1"
-            );
-            if (firstDiemDanh == 1) {
-                insertDiemDanhLog(request, (int) (diemDanh1 + 1));
-            }
-            return firstDiemDanh;
+        System.out.println("maTkb: " + request.getMaTkb());
+        System.out.println("maSv: " + request.getMaSv());
+        System.out.println("ngayHoc: " + request.getNgayHoc());
+
+        int resultDiemDanh = diemDanhRepository.markAttendanceManual(
+                request.getMaTkb(),
+                request.getMaSv(),
+                request.getNgayHoc(),
+                ghiChu
+        );
+        if (resultDiemDanh >= 1) {
+            insertDiemDanhLog(request, diemDanhCountCurrent);
+            return resultDiemDanh;
         }
         return 0;
     }
@@ -144,54 +164,6 @@ public class DiemDanhService {
         }
     }
 
-    public List<KetQuaDiemDanhSinhVienDTO> getKetQuaDiemDanhSinhVien(String maMH) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        String maSv = sinhVienRepository.findMaSvByEmail(email);
-        List<Object[]> getKetQua = diemDanhRepository.getKetQuaDDByMaSVAndMaMonHoc(maSv, maMH);
-        return getKetQua.stream().map(row ->
-                {
-                    KetQuaDiemDanhSinhVienDTO dto = new KetQuaDiemDanhSinhVienDTO();
-                    dto.setNgayHoc(((java.sql.Date) row[0]).toLocalDate());
-                    dto.setStBd(((Number) row[1]).intValue());
-                    dto.setStKt(((Number) row[2]).intValue());
-                    dto.setSvSolanDD(((Number) row[3]).intValue());
-                    dto.setGvSoLanDD(((Number) row[4]).intValue());
-                    dto.setTrangThai((String) row[5]);
-                    return dto;
-                }
-        ).toList();
-    }
-
-    //Ghi thông tin điểm danh vào log
-    private void insertDiemDanhLog(DiemDanhQRSinhVienRequest req,int soLan){
-        List<DiemDanh> existDiemDanh = diemDanhRepository.findDiemDanhExist(
-                req.getMaTkb(),req.getMaSv(),req.getNgayHoc()
-        );
-        if(existDiemDanh != null && existDiemDanh.size() > 0){
-            DiemDanh diemDanhGet = existDiemDanh.get(0);
-
-            DiemDanhLog diemDanhLog = new DiemDanhLog();
-            diemDanhLog.setMaDd(diemDanhGet);
-            diemDanhLog.setLanDiemDanh(soLan);
-            diemDanhLog.setThoiGianDiemDanh(Instant.now());
-            diemDanhLogRepo.save(diemDanhLog);
-        }
-    }
-    private void insertDiemDanhLogManual(DiemDanhRequest req,int soLan){
-        List<DiemDanh> existDiemDanh = diemDanhRepository.findDiemDanhExist(
-                req.getMaTkb(),req.getMaSv(),req.getNgayHoc()
-        );
-        if(existDiemDanh != null && existDiemDanh.size() > 0){
-            DiemDanh diemDanhGet = existDiemDanh.get(0);
-
-            DiemDanhLog diemDanhLog = new DiemDanhLog();
-            diemDanhLog.setMaDd(diemDanhGet);
-            diemDanhLog.setLanDiemDanh(soLan);
-            diemDanhLog.setThoiGianDiemDanh(Instant.now());
-            diemDanhLogRepo.save(diemDanhLog);
-        }
-    }
     // Xóa điểm danh
     public boolean huyDiemDanh(String maSv, int maTkb, LocalDate ngayHoc,String ghiChu) {
         int deletedCount = diemDanhRepository.deleteDiemDanhByMaSvAndMaTkbAndNgayHoc(maSv, maTkb, ngayHoc,ghiChu);
@@ -204,57 +176,6 @@ public class DiemDanhService {
                 .map(tkb -> tkb.getMaGd().getHocKy().toString())
                 .distinct()
                 .collect(Collectors.toList());
-    }
-
-    // 6. ĐIỂM DANH THỦ CÔNG
-    @Transactional
-    public void markAttendanceManual(DiemDanhRequest request) {
-        try {
-            Integer existSinhVien = lichHocRepository.findSinhVienByMaTkb(request.getMaSv(),request.getMaTkb());
-            if(existSinhVien == null || existSinhVien == 0){
-                throw new AppException(ErrorCode.SINHVIEN_NOTEXIST_TKB);
-            }
-            Integer countDiemDanh = diemDanhLogRepo.getSoLanDiemDanh(
-                    request.getMaTkb(),
-                    request.getMaSv(),
-                    request.getNgayHoc()
-            );
-            if(countDiemDanh >= 1){
-                LocalDateTime timeDiemDanhlan1 = diemDanhRepository.getDiemDanhLan1(
-                        request.getMaTkb(),
-                        request.getMaSv(),
-                        request.getNgayHoc()
-                );
-                if(timeDiemDanhlan1 != null){
-                    Duration checkTimeDiemDanh = Duration.between(timeDiemDanhlan1, LocalDateTime.now());
-                    if(checkTimeDiemDanh.toSeconds() < 30){
-                        throw new AppException(ErrorCode.PASSED_DIEMDANH_LAN1);
-                    }
-                }
-                int diemDanhCountCurrent = countDiemDanh + 1;
-                String updateGhiChu = "\nĐã điểm danh";
-                diemDanhRepository.diemDanhQuetMaQRSinhVienLanX(
-                        request.getMaTkb(),
-                        request.getMaSv(),
-                        request.getNgayHoc(),
-                        updateGhiChu
-                );
-                insertDiemDanhLogManual(request,countDiemDanh);
-            }
-            if(countDiemDanh == 0 || countDiemDanh == null) {
-                diemDanhRepository.markAttendanceManual(
-                        request.getMaTkb(),
-                        request.getMaSv(),
-                        request.getNgayHoc(),
-                        request.getGhiChu()
-                );
-                insertDiemDanhLogManual(request,countDiemDanh + 1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("Điểm danh thủ công thất bại - Lỗi Hệ Thống" + e.getMessage(),e);
-        }
-
     }
 
     // lấy danh sách điểm danh của sinh vien
