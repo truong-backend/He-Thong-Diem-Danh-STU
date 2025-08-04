@@ -106,7 +106,7 @@ public class GiaoVienController {
         return ResponseEntity.ok(updatedProfile);
     }
 
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasRole('admin')")
     // Thêm giáo viên mới
     @PostMapping
     public ResponseEntity<?> createGiaoVien(@Valid @RequestBody CreateGiaoVienRequest request) {
@@ -146,7 +146,7 @@ public class GiaoVienController {
     }
 
     // Cập nhật giáo viên theo mã
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/{maGv}")
     public ResponseEntity<?> updateGiaoVien(
             @PathVariable String maGv,
@@ -160,7 +160,7 @@ public class GiaoVienController {
     }
 
     // Xóa giáo viên theo mã
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{maGv}")
     public ResponseEntity<?> deleteGiaoVien(@PathVariable String maGv) {
         try {
@@ -172,7 +172,7 @@ public class GiaoVienController {
     }
 
     // Lấy danh sách giáo viên không phân trang
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllGiaoVienWithoutPaging() {
         try {
