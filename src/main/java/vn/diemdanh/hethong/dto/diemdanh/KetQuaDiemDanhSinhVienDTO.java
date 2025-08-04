@@ -14,9 +14,9 @@ import lombok.*;
 @AllArgsConstructor
 public class KetQuaDiemDanhSinhVienDTO {
     private LocalDate ngayHoc;
-    private Integer stBd;
-    private Integer stKt;
-    private Integer svSolanDD;
-    private Integer gvSoLanDD;
+    private Long stBd;
+    private Long stKt;
+    private Long svSolanDD;
+    private Long gvSoLanDD;
     private String trangThai;
 }
