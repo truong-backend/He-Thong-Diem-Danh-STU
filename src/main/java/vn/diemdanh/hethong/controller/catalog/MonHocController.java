@@ -79,7 +79,7 @@ public class MonHocController {
     /**
      * Lấy tất cả môn học không phân trang
      */
-    @PreAuthorize("hasAnyRole('GIANG_VIEN')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllMonHocWithoutPaging() {
         try {
