@@ -10,13 +10,9 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Configuration
 public class AwsConfig {
-
-    private static final Logger logger = LoggerFactory.getLogger(AwsConfig.class);
 
     @Value("${cloud.aws.credentials.access-key}")
     private String accessKey;
@@ -29,9 +25,6 @@ public class AwsConfig {
 
     @Bean
     public AmazonRekognition rekognitionClient() {
-        logger.info("Creating Rekognition client with region: {}", region);
-        logger.info("Access key starts with: {}", accessKey != null ? accessKey.substring(0, Math.min(4, accessKey.length())) + "..." : "null");
-
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
         return AmazonRekognitionClientBuilder.standard()
                 .withRegion(region)
@@ -41,9 +34,6 @@ public class AwsConfig {
 
     @Bean
     public AmazonS3Client amazonS3() {
-        logger.info("Creating S3 client with region: {}", region);
-        logger.info("Access key starts with: {}", accessKey != null ? accessKey.substring(0, Math.min(4, accessKey.length())) + "..." : "null");
-
         BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
         return (AmazonS3Client) AmazonS3ClientBuilder.standard()
                 .withRegion(region)
