@@ -50,7 +50,7 @@ public class KhoaController {
         }
     }
 
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllKhoa() {
         try {

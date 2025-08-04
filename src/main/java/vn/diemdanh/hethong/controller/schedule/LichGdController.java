@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.hocky.HocKyDTO;
 import vn.diemdanh.hethong.dto.lichgd.LichGdDto;
@@ -96,6 +97,7 @@ public class LichGdController {
     }
 
     // -------------------- HỌC KỲ --------------------
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/hoc-ky/{maGv}")
     public ResponseEntity<List<HocKyDTO>> getAllHocKy(@PathVariable String maGv) {
         try {
@@ -106,6 +108,7 @@ public class LichGdController {
         }
     }
 
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/hoc-ky")
     public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
         try {
@@ -117,6 +120,7 @@ public class LichGdController {
     }
 
     // -------------------- MÃ GIẢNG DẠY --------------------
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/ma-gd")
     public ResponseEntity<Integer> getMaGd(
             @RequestParam int hocKy,
@@ -132,6 +136,7 @@ public class LichGdController {
     }
 
     // -------------------- LẤY LỊCH GIẢNG DẠY THEO MÃ GIÁO VIÊN --------------------
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/giang-vien/{maGv}")
     public ResponseEntity<List<LichGdDto>> getLichByMaGv(@PathVariable String maGv) {
         try {

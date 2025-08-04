@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.User;
@@ -18,12 +19,14 @@ public class UserController {
 
     @Autowired private UserService userService;
     // Lấy user theo id
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(convertToDto(user));
     }
     // Lấy user theo email
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/email/{email}")
     public ResponseEntity<UserDto> getUserByEmail(@PathVariable String email) {
         User user = userService.getCurrentUser(email);
@@ -31,6 +34,7 @@ public class UserController {
     }
 
     // Tạo mới user
+    @PreAuthorize("hasRole('admin')")
     @PostMapping
     public ResponseEntity<UserDto> createUser(@RequestBody UserDto userDto) {
         User user = userService.createUser(userDto);
@@ -38,6 +42,7 @@ public class UserController {
     }
 
     // Cập nhật user theo id
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/{id}")
     public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
         User updatedUser = userService.updateUser(id, userDto);
@@ -45,12 +50,14 @@ public class UserController {
     }
 
     // Xóa user theo id
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
     // Chuyển đổi entity User sang UserDto
+    @PreAuthorize("hasRole('admin')")
     private UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());

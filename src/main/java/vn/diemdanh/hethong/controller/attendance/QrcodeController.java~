@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.qrcode.DiemDanhQRRequest;
 import vn.diemdanh.hethong.dto.qrcode.QRCodeDTO;
@@ -18,7 +19,7 @@ public class QrcodeController {
     private QrcodeService qrcodeService;
 
     // ========================== 8. TẠO QR CODE MỚI ==========================
-
+    @PreAuthorize("hasRole('teacher')")
     @PostMapping("/qr/TaoQRCode")
     public ResponseEntity<QRCodeDTO> generateQRCode(@Valid @RequestBody TaoQRCodeRequest request) {
         try {
@@ -30,8 +31,7 @@ public class QrcodeController {
     }
 
     // ========================== 9. ĐIỂM DANH BẰNG QR CODE ==========================
-
-    @PostMapping("/qr")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/qr")
     public ResponseEntity<?> markAttendanceByQR(@Valid @RequestBody DiemDanhQRRequest request) {
         try {

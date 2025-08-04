@@ -52,7 +52,7 @@ public class DiemDanhController {
 
     // ========================== ĐIỂM DANH THỦ CÔNG ==========================
 
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasRole('admin')")
     @PostMapping("/diem-danh-thu-cong")
     public ResponseEntity<String> markAttendanceManual(@Valid @RequestBody DiemDanhRequest request) {
         try {

@@ -7,6 +7,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +40,7 @@ public class GiaoVienController {
 
     @Autowired private FaceRekognitionService faceRekognitionService;
 
+    @PreAuthorize("hasRole('teacher')")
     @PostMapping(value="/diemdanh-face",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> diemdanhFace(
             @RequestPart("file") MultipartFile file,
@@ -70,6 +72,7 @@ public class GiaoVienController {
     }
 
     // Điểm danh quét mã QR sinh viên
+    @PreAuthorize("hasRole('teacher')")
     @PostMapping("/diemdanhnguoc")
     public ResponseEntity<?> diemdanhQuetMaQRSinhVien(@Valid @RequestBody DiemDanhRequest request) {
         try {
@@ -84,6 +87,7 @@ public class GiaoVienController {
         }
     }
 
+    @PreAuthorize("hasRole('teacher')")
     // Lấy profile giáo viên hiện tại
     @GetMapping("/profile")
     public ResponseEntity<?> getProfileTeacher(@AuthenticationPrincipal UserDetails userDetails) {
@@ -102,6 +106,7 @@ public class GiaoVienController {
         return ResponseEntity.ok(updatedProfile);
     }
 
+    @PreAuthorize("hasRole('teacher')")
     // Thêm giáo viên mới
     @PostMapping
     public ResponseEntity<?> createGiaoVien(@Valid @RequestBody CreateGiaoVienRequest request) {
@@ -114,6 +119,7 @@ public class GiaoVienController {
     }
 
     // Lấy danh sách giáo viên có phân trang, sắp xếp và tìm kiếm
+    @PreAuthorize("hasRole('admin')")
     @GetMapping
     public ResponseEntity<?> getAllGiaoVien(
             @RequestParam(defaultValue = "0") int page,
@@ -140,6 +146,7 @@ public class GiaoVienController {
     }
 
     // Cập nhật giáo viên theo mã
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/{maGv}")
     public ResponseEntity<?> updateGiaoVien(
             @PathVariable String maGv,
@@ -153,6 +160,7 @@ public class GiaoVienController {
     }
 
     // Xóa giáo viên theo mã
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{maGv}")
     public ResponseEntity<?> deleteGiaoVien(@PathVariable String maGv) {
         try {
@@ -164,6 +172,7 @@ public class GiaoVienController {
     }
 
     // Lấy danh sách giáo viên không phân trang
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllGiaoVienWithoutPaging() {
         try {
@@ -174,6 +183,7 @@ public class GiaoVienController {
         }
     }
 
+    @PreAuthorize("hasRole('admin')")
     // Lấy danh sách giáo viên theo học kỳ, năm học và mã môn
     @GetMapping("/danh-sach-giao-vien")
     public ResponseEntity<List<GiaoVienInfo>> getGiaoVienByMonHoc(

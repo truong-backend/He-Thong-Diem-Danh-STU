@@ -30,6 +30,7 @@ public class MonHocController {
     /**
      * Tạo môn học mới
      */
+    @PreAuthorize("hasRole('admin')")
     @PostMapping
     public ResponseEntity<?> createMonHoc(@Valid @RequestBody MonHocDto request) {
         try {
@@ -45,6 +46,7 @@ public class MonHocController {
     /**
      * Lấy danh sách môn học có phân trang
      */
+    @PreAuthorize("hasRole('admin')")
     @GetMapping
     public ResponseEntity<?> getMonHocList(
             @RequestParam(defaultValue = "0") int page,
@@ -79,7 +81,7 @@ public class MonHocController {
     /**
      * Lấy tất cả môn học không phân trang
      */
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllMonHocWithoutPaging() {
         try {
@@ -93,6 +95,7 @@ public class MonHocController {
     /**
      * Cập nhật thông tin môn học
      */
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/{maMh}")
     public ResponseEntity<?> updateMonHoc(@PathVariable String maMh, @Valid @RequestBody MonHocDto request) {
         try {
@@ -110,6 +113,7 @@ public class MonHocController {
     /**
      * Xóa môn học
      */
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{maMh}")
     public ResponseEntity<?> deleteMonHoc(@PathVariable String maMh) {
         try {
@@ -127,6 +131,7 @@ public class MonHocController {
     /**
      * Lấy môn học cho kết quả điểm danh
      */
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/monHocKetQuaDiemDanh")
     public ResponseEntity<List<MonHocKetQuaDiemDanhDTO>> getMonHocForDiemDanh() {
         return ResponseEntity.ok(monHocService.getMonHocKetQuaDiemDanh());
@@ -135,6 +140,7 @@ public class MonHocController {
     /**
      * Lấy danh sách môn học theo giáo viên
      */
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/danh-sach-mon-hoc-theo-giao-vien")
     public ResponseEntity<List<MonHocGiangVienDTO>> getMonHocByGiaoVien(
             @RequestParam String maGv,
@@ -146,6 +152,7 @@ public class MonHocController {
     /**
      * Lấy danh sách nhóm môn học
      */
+    @PreAuthorize("hasRole('teacher')")
     @GetMapping("/danh-sach-nhom-mon-hoc")
     public ResponseEntity<List<NhomMonHocDTO>> getSubjectGroups(
             @RequestParam String teacherId,
@@ -182,6 +189,7 @@ public class MonHocController {
     /**
      * Lấy môn học theo học kỳ và năm
      */
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/mon-hoc-theo-hoc-ky-nam")
     public ResponseEntity<List<MonHocDto>> getMonHocByHocKyAndNam(
             @RequestParam Integer hocKy,

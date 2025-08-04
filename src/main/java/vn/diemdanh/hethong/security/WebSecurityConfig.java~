@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -22,10 +22,10 @@ import vn.diemdanh.hethong.service.UserService;
 
 import java.util.Arrays;
 
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true) // Kích hoạt method-level security
 public class WebSecurityConfig {
 
     @Autowired
@@ -36,11 +36,11 @@ public class WebSecurityConfig {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
-
 
     @Bean
     public DaoAuthenticationProvider userAuthenticationProvider() {
@@ -60,7 +60,6 @@ public class WebSecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
-        // Create a custom AuthenticationManager with multiple providers
         return new ProviderManager(Arrays.asList(
                 userAuthenticationProvider(),
                 adminAuthenticationProvider()
@@ -81,11 +80,12 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // Cho phép truy cập không cần auth tới Swagger
+                        // ==================== PUBLIC ENDPOINTS ====================
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -93,19 +93,32 @@ public class WebSecurityConfig {
                                 "/api-docs/**"
                         ).permitAll()
 
-                        // Các rule hiện tại
-                        .requestMatchers("/api/**").permitAll()
-                        .requestMatchers("/apiAdmin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
-                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                        // Auth endpoints - LOGIN APIs
+                        .requestMatchers(
+                                "/api/sinhvien/login",
+                                "/api/giangvien/login",
+                                "/api/admin/login"
+                        ).permitAll()
 
-                        // Mặc định các route còn lại vẫn cho phép
-                        .anyRequest().permitAll()
+                        // Password reset endpoints
+                        .requestMatchers(
+                                "/api/password-reset/**"
+                        ).permitAll()
+
+                        // Legacy login endpoints
+                        .requestMatchers(
+                                "/api/user/login",
+                                "/api/register"
+                        ).permitAll()
+
+                        // ==================== TẤT CẢ CÒN LẠI BẮT BUỘC XÁC THỰC ====================
+                        .anyRequest().authenticated()
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
 }

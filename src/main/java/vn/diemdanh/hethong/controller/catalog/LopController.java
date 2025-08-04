@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import vn.diemdanh.hethong.dto.lop.LopDto;
@@ -21,6 +22,7 @@ public class LopController {
     /**
      * Tạo lớp mới.
      */
+    @PreAuthorize("hasRole('admin')")
     @PostMapping
     public ResponseEntity<?> createLop(@Valid @RequestBody LopDto request) {
         try {
@@ -34,6 +36,7 @@ public class LopController {
     /**
      * Lấy danh sách lớp có phân trang và sắp xếp.
      */
+    @PreAuthorize("hasRole('admin')")
     @GetMapping
     public ResponseEntity<?> getLopList(
             @RequestParam(defaultValue = "0") int page,
@@ -53,6 +56,7 @@ public class LopController {
     /**
      * Lấy danh sách tất cả lớp (không phân trang).
      */
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllLops() {
         try {
@@ -66,6 +70,7 @@ public class LopController {
     /**
      * Lấy thông tin chi tiết một lớp theo mã lớp.
      */
+    @PreAuthorize("hasRole('admin')")
     @GetMapping("/{maLop}")
     public ResponseEntity<?> getLop(@PathVariable String maLop) {
         try {
@@ -79,6 +84,7 @@ public class LopController {
     /**
      * Cập nhật thông tin lớp.
      */
+    @PreAuthorize("hasRole('admin')")
     @PutMapping("/{maLop}")
     public ResponseEntity<?> updateLop(
             @PathVariable String maLop,
@@ -95,6 +101,7 @@ public class LopController {
     /**
      * Xóa lớp theo mã lớp.
      */
+    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/{maLop}")
     public ResponseEntity<?> deleteLop(@PathVariable String maLop) {
         try {

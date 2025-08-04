@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.diemdanh.hethong.dto.admin.*;
@@ -27,6 +28,7 @@ public class AdminController {
     private AdminService adminService;
 
     // Lấy admin theo id
+
     @GetMapping("/{id}")
     public ResponseEntity<AdminDto> getAdminById(@PathVariable Integer id) {
         return adminService.getAdminDtoById(id)
@@ -34,6 +36,7 @@ public class AdminController {
                 .orElse(ResponseEntity.notFound().build());
     }
     // Tạo mới admin
+    @PreAuthorize("hasRole('admin')")
     @PostMapping
     public ResponseEntity<?> taoAdmin(@Valid @RequestBody CreateAdminRequest request) {
         try {
@@ -43,7 +46,7 @@ public class AdminController {
             return taoPhanHoiLoi(e.getMessage());
         }
     }
-
+    @PreAuthorize("hasRole('admin')")
     // Cập nhật admin
     @PutMapping("/{id}")
     public ResponseEntity<?> capNhatAdmin(@PathVariable Integer id,
@@ -56,6 +59,7 @@ public class AdminController {
         }
     }
 
+    @PreAuthorize("hasRole('admin')")
     // Xóa admin
     @DeleteMapping("/{id}")
     public ResponseEntity<?> xoaAdmin(@PathVariable Integer id) {
@@ -68,6 +72,7 @@ public class AdminController {
         }
     }
 
+    @PreAuthorize("hasRole('admin')")
     // Lấy tất cả admin không phân trang
     @GetMapping("/all")
     public ResponseEntity<?> layDanhSachAdmin() {
@@ -81,6 +86,7 @@ public class AdminController {
             return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách admin: " + e.getMessage());
         }
     }
+
 
     // Chuyển đổi entity Admin sang AdminDto
     private AdminDto chuyenDoiEntitySangDto(Admin admin) {

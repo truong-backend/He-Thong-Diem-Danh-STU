@@ -80,13 +80,12 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
                         // ==================== PUBLIC ENDPOINTS ====================
-
-                        // Swagger documentation
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -96,42 +95,25 @@ public class WebSecurityConfig {
 
                         // Auth endpoints - LOGIN APIs
                         .requestMatchers(
-                                "/api/sinhvien/login",    // Sinh viên login
-                                "/api/giangvien/login",   // Giảng viên login
-                                "/api/admin/login"        // Admin login
+                                "/api/sinhvien/login",
+                                "/api/giangvien/login",
+                                "/api/admin/login"
                         ).permitAll()
 
                         // Password reset endpoints
                         .requestMatchers(
-                                "/api/password-reset/**"  // Tất cả endpoints reset password
+                                "/api/password-reset/**"
                         ).permitAll()
 
-                        // Legacy login endpoints (nếu còn dùng)
-                        .requestMatchers(
-                                "/api/user/login",
-                                "/api/register"
-                        ).permitAll()
 
-                        // ==================== PROTECTED ENDPOINTS ====================
-
-                        // Admin endpoints - chỉ ADMIN
-                        .requestMatchers("/apiAdmin/**").hasRole("ADMIN")
-
-                        // Teacher endpoints - ADMIN hoặc TEACHER
-                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
-
-                        // Student endpoints - ADMIN, TEACHER hoặc STUDENT
-                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
-
-                        // ==================== TẤT CẢ API KHÁC CẦN XÁC THỰC ====================
-                        .requestMatchers("/api/**").authenticated()  // Thay đổi từ permitAll() thành authenticated()
-
-                        // Mặc định cho phép tất cả các request khác
-                        .anyRequest().permitAll()
+                        // ==================== TẤT CẢ CÒN LẠI BẮT BUỘC XÁC THỰC ====================
+                        .anyRequest().authenticated()
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
 }
