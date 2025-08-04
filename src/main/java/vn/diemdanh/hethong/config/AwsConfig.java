@@ -14,13 +14,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AwsConfig {
 
-//    @Value("${cloud.aws.credentials.access-key}")
+    //    @Value("${cloud.aws.credentials.access-key}")
     private String accessKey = "AKIATS35HK5PXLEL5WTQ";
 
-//    @Value("${cloud.aws.credentials.secret-key}")
+    //    @Value("${cloud.aws.credentials.secret-key}")
     private String secretKey = "l2cm4vfuY+ztKsxh5CFh9yT/Vszdk/J5U14yNlOu";
 
-//    @Value("${cloud.aws.region.static}")
+    //    @Value("${cloud.aws.region.static}")
     private String region ="ap-southeast-1";
 
     @Bean
@@ -40,4 +40,15 @@ public class AwsConfig {
                 .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
                 .build();
     }
+
+    // Xóa hoặc comment out method validateCredentials() này
+    /*
+    private void validateCredentials() {
+        if (accessKey == null || accessKey.trim().isEmpty() ||
+            secretKey == null || secretKey.trim().isEmpty()) {
+            throw new IllegalStateException(
+                "AWS credentials not found. Please set cloud.aws.credentials.access-key and cloud.aws.credentials.secret-key");
+        }
+    }
+    */
 }
