@@ -18,9 +18,9 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/diemdanh_stu?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
-      - AWS_ACCESSKEY=AKIATS35HK5PXLEL5WTQ
-      - AWS_SECRETKEY=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
-      - AWS_REGION=ap-southeast-1
+      - AWS_ACCESSKEY=${AWS_ACCESSKEY}
+      - AWS_SECRETKEY=${AWS_SECRETKEY}
+      - AWS_REGION=${AWS_REGION}
 
 
   db:
