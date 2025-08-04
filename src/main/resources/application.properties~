@@ -1,7 +1,7 @@
 spring.application.name=HeThongDiemDanh
 
 
-spring.datasource.url=jdbc:mysql://db:3306/diemdanh_stu?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&createDatabaseIf>
+spring.datasource.url=jdbc:mysql://db:3306/diemdanh_stu?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8&createDatabaseIfNotExist=true
 spring.datasource.username=root
 spring.datasource.password=root
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
@@ -52,8 +52,8 @@ logging.level.org.springframework.web=DEBUG
 logging.level.org.springframework.web.multipart=TRACE
 logging.level.org.springframework.http.converter=TRACE
 
-aws.accessKey=AKIATS35HK5PXLEL5WTQ
-aws.secretKey=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
-aws.region=ap-southeast-1
+aws.accessKey=${AWS_ACCESSKEY}
+aws.secretKey=${AWS_SECRETKEY}
+aws.region=${AWS_REGION}
 
 
