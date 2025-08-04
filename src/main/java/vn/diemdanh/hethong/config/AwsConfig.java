@@ -1,5 +1,6 @@
 package vn.diemdanh.hethong.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
@@ -12,17 +13,31 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AwsConfig {
+
+    @Value("${cloud.aws.credentials.access-key}")
+    private String accessKey;
+
+    @Value("${cloud.aws.credentials.secret-key}")
+    private String secretKey;
+
+    @Value("${cloud.aws.region.static}")
+    private String region;
+
     @Bean
     public AmazonRekognition rekognitionClient() {
+        BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
         return AmazonRekognitionClientBuilder.standard()
-                .withRegion(Regions.AP_SOUTHEAST_1) // vùng phù hợp
-                .build(); // tự động lấy credentials từ ~/.aws/credentials
+                .withRegion(region)
+                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                .build();
     }
 
     @Bean
     public AmazonS3Client amazonS3() {
+        BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
         return (AmazonS3Client) AmazonS3ClientBuilder.standard()
-                .withRegion(Regions.AP_SOUTHEAST_1)
-                .build(); // tự động lấy credentials
+                .withRegion(region)
+                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                .build();
     }
 }
