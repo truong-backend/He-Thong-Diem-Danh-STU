@@ -8,7 +8,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.diemdanh.hethong.dto.admin.*;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienExcelDto;
+
 import vn.diemdanh.hethong.entity.Admin;
 import vn.diemdanh.hethong.helper.ExcelExporter;
 import vn.diemdanh.hethong.helper.csvImport;
@@ -35,52 +35,55 @@ public class AdminController {
     }
     // Tạo mới admin
     @PostMapping
-    public ResponseEntity<?> createAdmin(@Valid @RequestBody CreateAdminRequest request) {
+    public ResponseEntity<?> taoAdmin(@Valid @RequestBody CreateAdminRequest request) {
         try {
             AdminDto createdAdmin = adminService.createAdmin(request);
             return ResponseEntity.ok(createdAdmin);
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage());
+            return taoPhanHoiLoi(e.getMessage());
         }
     }
+
     // Cập nhật admin
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateAdmin(@PathVariable Integer id,
-                                         @Valid @RequestBody UpdateAdminRequest request) {
+    public ResponseEntity<?> capNhatAdmin(@PathVariable Integer id,
+                                          @Valid @RequestBody UpdateAdminRequest request) {
         try {
             AdminDto updatedAdmin = adminService.updateAdmin(id, request);
             return ResponseEntity.ok(updatedAdmin);
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage());
+            return taoPhanHoiLoi(e.getMessage());
         }
     }
+
     // Xóa admin
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAdmin(@PathVariable Integer id) {
+    public ResponseEntity<?> xoaAdmin(@PathVariable Integer id) {
         try {
             adminService.deleteAdmin(id);
             Map<String, String> response = Collections.singletonMap("message", "Admin đã được xóa thành công");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return createErrorResponse(e.getMessage());
+            return taoPhanHoiLoi(e.getMessage());
         }
     }
 
+    // Lấy tất cả admin không phân trang
     @GetMapping("/all")
-    public ResponseEntity<?> getAllSinhVienNoPagination() {
+    public ResponseEntity<?> layDanhSachAdmin() {
         try {
             List<Admin> admins = adminService.findAll();
             List<AdminDto> dtos = admins.stream()
-                    .map(this::convertToDto)
+                    .map(this::chuyenDoiEntitySangDto)
                     .collect(Collectors.toList());
             return ResponseEntity.ok(dtos);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách sinh viên: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách admin: " + e.getMessage());
         }
     }
 
     // Chuyển đổi entity Admin sang AdminDto
-    private AdminDto convertToDto(Admin admin) {
+    private AdminDto chuyenDoiEntitySangDto(Admin admin) {
         if (admin == null) {
             return null; // Hoặc có thể ném ngoại lệ tùy yêu cầu
         }
@@ -97,7 +100,7 @@ public class AdminController {
     }
 
     // Tạo ResponseEntity lỗi chuẩn
-    private ResponseEntity<Map<String, String>> createErrorResponse(String message) {
+    private ResponseEntity<Map<String, String>> taoPhanHoiLoi(String message) {
         Map<String, String> error = Collections.singletonMap("message", message);
         return ResponseEntity.badRequest().body(error);
     }

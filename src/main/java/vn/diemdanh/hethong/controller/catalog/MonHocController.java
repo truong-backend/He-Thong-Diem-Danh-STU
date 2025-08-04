@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.diemdanh.hethong.dto.diemdanh.MonHocSinhVienDto;
 import vn.diemdanh.hethong.dto.lichhoc.LichHocTheoThuDto;
@@ -78,6 +79,7 @@ public class MonHocController {
     /**
      * Lấy tất cả môn học không phân trang
      */
+    @PreAuthorize("hasAnyRole('GIANG_VIEN')")
     @GetMapping("/all")
     public ResponseEntity<?> getAllMonHocWithoutPaging() {
         try {
