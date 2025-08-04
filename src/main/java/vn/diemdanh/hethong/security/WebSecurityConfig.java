@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -24,6 +25,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true) // Kích hoạt method-level security
 public class WebSecurityConfig {
 
     @Autowired
@@ -34,11 +36,11 @@ public class WebSecurityConfig {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter();
     }
-
 
     @Bean
     public DaoAuthenticationProvider userAuthenticationProvider() {
@@ -58,7 +60,6 @@ public class WebSecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager() throws Exception {
-        // Create a custom AuthenticationManager with multiple providers
         return new ProviderManager(Arrays.asList(
                 userAuthenticationProvider(),
                 adminAuthenticationProvider()
@@ -83,7 +84,9 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authz -> authz
-                        // Cho phép truy cập không cần auth tới Swagger
+                        // ==================== PUBLIC ENDPOINTS ====================
+
+                        // Swagger documentation
                         .requestMatchers(
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
@@ -91,13 +94,39 @@ public class WebSecurityConfig {
                                 "/api-docs/**"
                         ).permitAll()
 
-                        // Các rule hiện tại
-                        .requestMatchers("/api/**").authenticated()
+                        // Auth endpoints - LOGIN APIs
+                        .requestMatchers(
+                                "/api/sinhvien/login",    // Sinh viên login
+                                "/api/giangvien/login",   // Giảng viên login
+                                "/api/admin/login"        // Admin login
+                        ).permitAll()
+
+                        // Password reset endpoints
+                        .requestMatchers(
+                                "/api/password-reset/**"  // Tất cả endpoints reset password
+                        ).permitAll()
+
+                        // Legacy login endpoints (nếu còn dùng)
+                        .requestMatchers(
+                                "/api/user/login",
+                                "/api/register"
+                        ).permitAll()
+
+                        // ==================== PROTECTED ENDPOINTS ====================
+
+                        // Admin endpoints - chỉ ADMIN
                         .requestMatchers("/apiAdmin/**").hasRole("ADMIN")
+
+                        // Teacher endpoints - ADMIN hoặc TEACHER
                         .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
+
+                        // Student endpoints - ADMIN, TEACHER hoặc STUDENT
                         .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
 
-                        // Mặc định các route còn lại vẫn cho phép
+                        // ==================== TẤT CẢ API KHÁC CẦN XÁC THỰC ====================
+                        .requestMatchers("/api/**").authenticated()  // Thay đổi từ permitAll() thành authenticated()
+
+                        // Mặc định cho phép tất cả các request khác
                         .anyRequest().permitAll()
                 );
 
@@ -105,5 +134,4 @@ public class WebSecurityConfig {
 
         return http.build();
     }
-
 }
