@@ -92,7 +92,7 @@ public class WebSecurityConfig {
                         ).permitAll()
 
                         // Các rule hiện tại
-                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
                         .requestMatchers("/apiAdmin/**").hasRole("ADMIN")
                         .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
                         .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
