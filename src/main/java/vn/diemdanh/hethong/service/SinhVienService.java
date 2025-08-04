@@ -1,13 +1,19 @@
 package vn.diemdanh.hethong.service;
 
+import com.amazonaws.services.rekognition.AmazonRekognition;
+import com.amazonaws.services.rekognition.model.Image;
+import com.amazonaws.services.rekognition.model.IndexFacesRequest;
+import com.amazonaws.services.rekognition.model.IndexFacesResult;
+import com.amazonaws.services.rekognition.model.S3Object;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import vn.diemdanh.hethong.dto.sinhvien.CreateSinhVienRequest;
-import vn.diemdanh.hethong.dto.sinhvien.QRSinhVienInfoDTO;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDTOProfile;
-import vn.diemdanh.hethong.dto.sinhvien.SinhVienDiemDanhDTO;
+import org.springframework.web.multipart.MultipartFile;
+import vn.diemdanh.hethong.dto.sinhvien.*;
 import vn.diemdanh.hethong.dto.user.UserDto;
 import vn.diemdanh.hethong.entity.Lop;
 import vn.diemdanh.hethong.entity.SinhVien;
@@ -16,6 +22,7 @@ import vn.diemdanh.hethong.repository.LopRepository;
 import vn.diemdanh.hethong.repository.SinhVienRepository;
 import vn.diemdanh.hethong.repository.UserRepository;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -39,7 +46,9 @@ public class SinhVienService {
 
     @Autowired
     private UserService userService;
-
+    @Autowired
+    private AmazonS3Client amazonS3;
+    @Autowired private AmazonRekognition rekognitionClient;
     public QRSinhVienInfoDTO getQRSinhVien(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() ->
                 new EntityNotFoundException("Không tìm thấy user hoặc email"));
@@ -66,7 +75,8 @@ public class SinhVienService {
         svDTO.setDiaChi(sinhVien.getDiaChi());
         svDTO.setEmail(sinhVien.getEmail());
         svDTO.setSdt(sinhVien.getSdt());
-        svDTO.setAvatar(sinhVien.getAvatar());
+        String avatarUrl = "https://my-quan-ly-diem-danh-stu-dtn00150.s3.ap-southeast-1.amazonaws.com/" + sinhVien.getMaSv() +".jpg";
+        svDTO.setAvatar(avatarUrl);
         return svDTO;
     }
 
@@ -82,16 +92,39 @@ public class SinhVienService {
           sv.getSdt(), sv.getAvatar()
         );
     }
-    public SinhVienDTOProfile updateProfileSinhVien(String email,SinhVienDTOProfile svDTO){
+    public SinhVienDTOProfile updateProfileSinhVien(String email, SinhVienUpdateRequest svDTO, MultipartFile avatarFile){
         User user = userRepository.findByEmail(email).orElseThrow(()
                 -> new EntityNotFoundException("Không tìm thấy user hoặc email"));
 
-        SinhVien updateSV = user.getMaSv();
-        updateSV.setSdt(svDTO.getSdt());
-        updateSV.setDiaChi(svDTO.getDiaChi());
-        SinhVien saved = sinhVienRepository.save(updateSV);
-        return maptoDTO(saved);
+        SinhVien sv = user.getMaSv();
+        sv.setDiaChi(svDTO.getDiaChi());
+        sv.setSdt(svDTO.getSdt());
+        if(avatarFile != null && !avatarFile.isEmpty()) {
+            try {
+                String fileName = sv.getMaSv() + ".jpg";
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentType("image/jpeg");
+                metadata.setContentLength(avatarFile.getSize());
 
+                amazonS3.putObject(new PutObjectRequest("my-quan-ly-diem-danh-stu-dtn00150", fileName, avatarFile.getInputStream(), metadata));
+                String fileUrl = amazonS3.getUrl("my-quan-ly-diem-danh-stu-dtn00150", fileName).toString();
+                sv.setAvatar(fileUrl);
+                Image image = new Image().withS3Object(new S3Object().withBucket("my-quan-ly-diem-danh-stu-dtn00150").withName(fileName));
+                IndexFacesRequest indexFacesRequest = new IndexFacesRequest()
+                        .withCollectionId("diem-danh-stu")
+                        .withImage(image)
+                        .withExternalImageId(fileName)
+                        .withDetectionAttributes("DEFAULT");
+                IndexFacesResult indexFacesResult = rekognitionClient.indexFaces(indexFacesRequest);
+                if(indexFacesResult.getFaceRecords().isEmpty()) {
+                    throw new RuntimeException("Không thể index khuôn mặt từ avatar");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Lỗi khi lưu avatar hoặc index Rekognition: " + e);
+            }
+        }
+        SinhVien saved = sinhVienRepository.save(sv);
+        return maptoDTO(saved);
     }
 
     public void createSinhVien(CreateSinhVienRequest request) {
