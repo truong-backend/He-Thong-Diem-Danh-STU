@@ -3,10 +3,12 @@ package vn.diemdanh.hethong.controller.user;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.diemdanh.hethong.dto.sinhvien.*;
 import vn.diemdanh.hethong.entity.*;
 import vn.diemdanh.hethong.repository.LopRepository;
@@ -54,12 +56,13 @@ public class SinhVienController {
     }
 
     // Cập nhật profile sinh viên hiện tại
-    @PutMapping("/update-profile")
+    @PutMapping(value="/update-profile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProfileSinhVien(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody SinhVienDTOProfile profileRequest) {
+            @RequestPart("profile") SinhVienUpdateRequest profileRequest,
+            @RequestPart(value = "avatarFile", required = false) MultipartFile avatarFile) {
         String email = userDetails.getUsername();
-        SinhVienDTOProfile updated = sinhVienService.updateProfileSinhVien(email, profileRequest);
+        SinhVienDTOProfile updated = sinhVienService.updateProfileSinhVien(email, profileRequest,avatarFile);
         return ResponseEntity.ok(updated);
     }
 
