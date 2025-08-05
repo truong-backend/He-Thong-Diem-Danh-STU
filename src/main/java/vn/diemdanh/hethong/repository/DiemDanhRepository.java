@@ -166,8 +166,8 @@ public interface DiemDanhRepository extends JpaRepository<DiemDanh, Long> {
                 sv.ten_sv,
                 l.ten_lop,
                 COUNT(DISTINCT tkb.ma_tkb),
-                COUNT(DISTINCT dd.ma_dd),
-                COUNT(DISTINCT tkb.ma_tkb) - COUNT(DISTINCT dd.ma_dd)
+                sum(case when dd.diem_danh1 is not null and dd.diem_danh2 is not null then 1 else 0 end),
+                COUNT(DISTINCT tkb.ma_tkb) - sum(case when dd.diem_danh1 is not null and dd.diem_danh2 is not null then 1 else 0 end)
             FROM sinh_vien sv
             JOIN lop l ON sv.ma_lop = l.ma_lop
             JOIN lich_hoc lh ON sv.ma_sv = lh.ma_sv

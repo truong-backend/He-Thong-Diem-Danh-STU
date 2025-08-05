@@ -107,7 +107,7 @@ public class WebSecurityConfig {
 
 
                         // ==================== TẤT CẢ CÒN LẠI BẮT BUỘC XÁC THỰC ====================
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 );
 
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

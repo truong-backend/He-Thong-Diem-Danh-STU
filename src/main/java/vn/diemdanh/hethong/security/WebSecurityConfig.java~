@@ -105,11 +105,6 @@ public class WebSecurityConfig {
                                 "/api/password-reset/**"
                         ).permitAll()
 
-                        // Legacy login endpoints
-                        .requestMatchers(
-                                "/api/user/login",
-                                "/api/register"
-                        ).permitAll()
 
                         // ==================== TẤT CẢ CÒN LẠI BẮT BUỘC XÁC THỰC ====================
                         .anyRequest().authenticated()
