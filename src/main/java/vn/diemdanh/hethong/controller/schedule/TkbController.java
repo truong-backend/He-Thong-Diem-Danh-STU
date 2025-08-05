@@ -60,8 +60,9 @@ public class TkbController {
             MonHoc monHoc = monHocRepository.findById(request.getMaMh())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
 
-            LocalDate startDate = lichGd.getNgayBd();
-            LocalDate endDate = lichGd.getNgayKt();
+            LocalDate startDate = lichGd.getNgayBd().plusDays(1);
+            LocalDate endDate = lichGd.getNgayKt().plusDays(1);
+
             int soTietMonHoc = monHoc.getSoTiet();
             int tietMotBuoi = lichGd.getStKt() - lichGd.getStBd() + 1;
 
