@@ -60,9 +60,8 @@ public class TkbController {
             MonHoc monHoc = monHocRepository.findById(request.getMaMh())
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy môn học"));
 
-            LocalDate startDate = lichGd.getNgayBd().minusDays(1);
-            LocalDate endDate = lichGd.getNgayKt().minusDays(1);
-
+            LocalDate startDate = lichGd.getNgayBd();
+            LocalDate endDate = lichGd.getNgayKt();
             int soTietMonHoc = monHoc.getSoTiet();
             int tietMotBuoi = lichGd.getStKt() - lichGd.getStBd() + 1;
 
@@ -75,7 +74,7 @@ public class TkbController {
                     continue;
                 }
 
-                int dayOfWeek = date.getDayOfWeek().getValue();
+                int dayOfWeek = date.getDayOfWeek().getValue() + 1;
                 if (!thu.contains(dayOfWeek)) {
                     continue;
                 }
