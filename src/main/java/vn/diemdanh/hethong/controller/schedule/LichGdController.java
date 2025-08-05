@@ -97,7 +97,7 @@ public class LichGdController {
     }
 
     // -------------------- HỌC KỲ --------------------
-    @PreAuthorize("hasRole('teacher')")
+    @PreAuthorize("hasAnyRole('teacher', 'admin', 'student')")
     @GetMapping("/hoc-ky/{maGv}")
     public ResponseEntity<List<HocKyDTO>> getAllHocKy(@PathVariable String maGv) {
         try {
@@ -108,7 +108,7 @@ public class LichGdController {
         }
     }
 
-    @PreAuthorize("hasRole('admin')")
+    @PreAuthorize("hasAnyRole('teacher', 'admin', 'student')")
     @GetMapping("/hoc-ky")
     public ResponseEntity<List<HocKyDTO>> getAllHocKy() {
         try {
