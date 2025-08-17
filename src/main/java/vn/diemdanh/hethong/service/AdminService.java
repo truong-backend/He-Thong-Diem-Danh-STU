@@ -233,4 +233,31 @@ public class AdminService implements UserDetailsService {
     public List<Admin> findAll() {
         return adminRepository.findAll();
     }
+
+    // Lấy danh sách admin phân trang, có hỗ trợ tìm kiếm
+    public Page<AdminDto> layDanhSachQuanTriVien(String search, Pageable pageable) {
+        Page<Admin> page;
+        if (search == null || search.isEmpty()) {
+            page = adminRepository.findAll(pageable);
+        } else {
+            page = adminRepository.findByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                    search, search, search, pageable
+            );
+        }
+        return page.map(this::mapToDto);
+    }
+    /////////////////////pHÂN TRANG ///////
+    private AdminDto mapToDto(Admin admin) {
+        if (admin == null) return null;
+        AdminDto dto = new AdminDto();
+        dto.setId(admin.getId());
+        dto.setUsername(admin.getUsername());
+        dto.setFullName(admin.getFullName());
+        dto.setEmail(admin.getEmail());
+        dto.setRole(admin.getRole());
+        dto.setAvatar(admin.getAvatar());
+        dto.setCreatedAt(admin.getCreatedAt());
+        dto.setUpdatedAt(admin.getUpdatedAt());
+        return dto;
+    }
 }

@@ -72,42 +72,27 @@ public class AdminController {
         }
     }
 
-    @PreAuthorize("hasRole('admin')")
-    // Lấy tất cả admin không phân trang
-    @GetMapping("/all")
-    public ResponseEntity<?> layDanhSachAdmin() {
-        try {
-            List<Admin> admins = adminService.findAll();
-            List<AdminDto> dtos = admins.stream()
-                    .map(this::chuyenDoiEntitySangDto)
-                    .collect(Collectors.toList());
-            return ResponseEntity.ok(dtos);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Lỗi khi lấy danh sách admin: " + e.getMessage());
-        }
-    }
-
-
-    // Chuyển đổi entity Admin sang AdminDto
-    private AdminDto chuyenDoiEntitySangDto(Admin admin) {
-        if (admin == null) {
-            return null; // Hoặc có thể ném ngoại lệ tùy yêu cầu
-        }
-        AdminDto dto = new AdminDto();
-        dto.setId(admin.getId());
-        dto.setUsername(admin.getUsername());
-        dto.setEmail(admin.getEmail());
-        dto.setFullName(admin.getFullName());
-        dto.setRole(admin.getRole());
-        dto.setAvatar(admin.getAvatar());
-        dto.setCreatedAt(admin.getCreatedAt());
-        dto.setUpdatedAt(admin.getUpdatedAt());
-        return dto;
-    }
 
     // Tạo ResponseEntity lỗi chuẩn
     private ResponseEntity<Map<String, String>> taoPhanHoiLoi(String message) {
         Map<String, String> error = Collections.singletonMap("message", message);
         return ResponseEntity.badRequest().body(error);
     }
+    ///Phân trang trên BE
+    @PreAuthorize("hasRole('admin')")
+    @GetMapping("/danh-sach-quan-tri-vien")
+    public ResponseEntity<Page<AdminDto>> layDanhSachQuanTriVien(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "id,asc") String[] sort
+    ) {
+        Sort.Direction direction = sort[1].equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort[0]));
+
+        Page<AdminDto> adminPage = adminService.layDanhSachQuanTriVien(search, pageable);
+
+        return ResponseEntity.ok(adminPage);
+    }
+
 }
