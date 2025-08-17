@@ -35,41 +35,10 @@ public class AdminService implements UserDetailsService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-    @Autowired
-    LopRepository lopRepository;
-    @Autowired
-    SinhVienRepository sinhVienRepository;
 
     @Autowired
     private SinhVienService sinhVienService;
 
-    @Transactional
-    public void saveImportData(List<SinhVienExcelDto> sinhVienExcelDtos) {
-        for (SinhVienExcelDto dto : sinhVienExcelDtos) {
-            try {
-                CreateSinhVienRequest request = convertToCreateRequest(dto);
-                sinhVienService.createSinhVien(request);
-            } catch (Exception e) {
-                // Log lỗi nhưng không rollback toàn bộ
-                System.err.println("Lỗi khi thêm sinh viên mã: " + dto.getMaSv() + " -> " + e.getMessage());
-            }
-        }
-    }
-
-
-    public CreateSinhVienRequest convertToCreateRequest(SinhVienExcelDto excelDto) {
-        CreateSinhVienRequest request = new CreateSinhVienRequest();
-        request.setMaSv(excelDto.getMaSv());
-        request.setTenSv(excelDto.getTenSv());
-        request.setNgaySinh(excelDto.getNgaySinh());
-        request.setPhai(excelDto.getPhai());
-        request.setDiaChi(excelDto.getDiaChi());
-        request.setSdt(excelDto.getSdt());
-        request.setEmail(excelDto.getEmail());
-        request.setMaLop(excelDto.getMaLop());
-        request.setCreateAccount(true); // hoặc false, tùy nhu cầu
-        return request;
-    }
     @Override
     public UserDetails loadUserByUsername(String email) {
         // Kiểm tra xem admin có tồn tại trong database không?
@@ -81,8 +50,6 @@ public class AdminService implements UserDetailsService {
         return new CustomAdminDetails(admin);
     }
 
-
-    // Phương thức mới để lấy admin theo ID (cần cho JwtAuthenticationFilter)
     public Admin getAdminById(Integer adminId) {
         return adminRepository.findById(adminId)
                 .orElseThrow(() ->
@@ -90,25 +57,11 @@ public class AdminService implements UserDetailsService {
                 );
     }
 
-    // Phương thức để load admin details theo ID
     public UserDetails loadAdminById(Integer adminId) {
         Admin admin = getAdminById(adminId);
         return new CustomAdminDetails(admin);
     }
 
-    public Page<AdminDto> getAllAdmins(Pageable pageable) {
-        Page<Admin> adminPage = adminRepository.findAll(pageable);
-        return adminPage.map(admin -> new AdminDto(
-                admin.getId(),
-                admin.getUsername(),
-                admin.getEmail(),
-                admin.getFullName(),
-                admin.getRole(),
-                admin.getAvatar(),
-                admin.getCreatedAt(),
-                admin.getUpdatedAt()
-        ));
-    }
     public Optional<AdminDto> getAdminDtoById(Integer id) {
         return adminRepository.findById(id)
                 .map(admin -> new AdminDto(
@@ -213,26 +166,6 @@ public class AdminService implements UserDetailsService {
         adminRepository.delete(admin);
     }
 
-    public List<SinhVienExcelDto> getAllSinhVienForExcel() {
-        List<SinhVien> sinhViens = sinhVienRepository.findAll();
-        return sinhViens.stream()
-                .map(sv -> new SinhVienExcelDto(
-                        sv.getMaSv(),
-                        sv.getTenSv(),
-                        sv.getNgaySinh(),
-                        sv.getPhai(),
-                        sv.getDiaChi(),
-                        sv.getSdt(),
-                        sv.getEmail(),
-                        sv.getMaLop().getMaLop(),
-                        sv.getAvatar()
-                ))
-                .collect(Collectors.toList());
-    }
-
-    public List<Admin> findAll() {
-        return adminRepository.findAll();
-    }
 
     // Lấy danh sách admin phân trang, có hỗ trợ tìm kiếm
     public Page<AdminDto> layDanhSachQuanTriVien(String search, Pageable pageable) {
